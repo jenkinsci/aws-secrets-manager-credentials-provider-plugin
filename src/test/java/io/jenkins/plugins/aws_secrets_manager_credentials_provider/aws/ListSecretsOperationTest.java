@@ -11,11 +11,11 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class ListSecretsTest {
+public class ListSecretsOperationTest {
     @Test
     public void shouldHandleMissingSecret() {
         final ListSecretsResult result = new ListSecretsResult().withSecretList();
-        final ListSecrets strategy = new ListSecrets(new ListingMockAwsSecretsManager(result));
+        final ListSecretsOperation strategy = new ListSecretsOperation(new ListingMockAwsSecretsManager(result));
 
         final List<SecretListEntry> secrets = strategy.get();
 
@@ -25,7 +25,7 @@ public class ListSecretsTest {
     @Test
     public void shouldHandleSecret() {
         final ListSecretsResult result = new ListSecretsResult().withSecretList(new SecretListEntry().withName("foo").withDescription("bar"));
-        final ListSecrets strategy = new ListSecrets(new ListingMockAwsSecretsManager(result));
+        final ListSecretsOperation strategy = new ListSecretsOperation(new ListingMockAwsSecretsManager(result));
 
         final List<SecretListEntry> secrets = strategy.get();
 
@@ -35,7 +35,7 @@ public class ListSecretsTest {
     @Test
     public void shouldHandleSecretWithTags() {
         final ListSecretsResult result = new ListSecretsResult().withSecretList(new SecretListEntry().withName("foo").withDescription("bar").withTags(new Tag().withKey("key").withValue("value")));
-        final ListSecrets strategy = new ListSecrets(new ListingMockAwsSecretsManager(result));
+        final ListSecretsOperation strategy = new ListSecretsOperation(new ListingMockAwsSecretsManager(result));
 
         final List<SecretListEntry> secrets = strategy.get();
 

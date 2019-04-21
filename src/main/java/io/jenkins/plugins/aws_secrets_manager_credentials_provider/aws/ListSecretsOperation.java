@@ -15,11 +15,11 @@ import java.util.function.Supplier;
  *
  * Paginate through secrets until there are none left to get.
  */
-public class ListSecrets implements Supplier<List<SecretListEntry>> {
+public class ListSecretsOperation implements Supplier<List<SecretListEntry>> {
 
     private final AWSSecretsManager client;
 
-    public ListSecrets(AWSSecretsManager client) {
+    public ListSecretsOperation(AWSSecretsManager client) {
         this.client = client;
     }
 

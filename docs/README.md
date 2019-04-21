@@ -39,8 +39,6 @@ Optional permissions:
 
 - `kms:Decrypt` (if you use a customer-managed AWS KMS key to encrypt the secret)
 
-## Usage
-
 ### AWS Secrets Manager
 
 Upload secrets to AWS Secrets Manager in the format "1 secret value = 1 AWS Secret" (see [documentation](https://docs.aws.amazon.com/cli/latest/reference/secretsmanager/create-secret.html)).
@@ -65,7 +63,7 @@ ssh-keygen -t rsa -b 4096 -C 'acme@example.com' -f id_rsa
 aws secretsmanager create-secret --name 'ssh-key' --description 'Acme Corp SSH key' --secret-string 'file://id_rsa'
 ```
 
-### Jenkinsfile
+## Usage 
 
 Reference a secret in Secrets Manager by its name in a build job:
 
@@ -108,25 +106,26 @@ unclassified:
 
 ## Development
 
-Dependencies:
+### Dependencies
 
 - Java 8
-- Maven
-- Moto (a specific fork with `ListSecrets` support: <https://github.com/chriskilding/moto/tree/feature/secretsmanager-listsecrets>)
+- [Maven](https://maven.apache.org)
+- [Moto](https://github.com/spulec/moto) (master): `pip install https://github.com/spulec/moto/archive/master.tar.gz flask`
 
-Setup:
+### Test 
 
-- Install the Moto fork to your system with `pip`.
-- Ensure that `moto_server` is on your `PATH` (the command `moto_server -p 4584` should launch the forked code in standalone server mode).
-
-Test:
+In Maven:
 
 ```bash
 mvn verify
 ```
 
+In your IDE:
+
+1. Start Moto (`moto_server secretsmanager -p 4584`).
+2. Run tests.
+3. Stop Moto.
+
 ## Screenshots
 
-AWS Secrets Manager secrets listed in the Jenkins credentials screen:
-
-![Credentials screen](docs/img/plugin.png)
+![Credentials screen](img/plugin.png)

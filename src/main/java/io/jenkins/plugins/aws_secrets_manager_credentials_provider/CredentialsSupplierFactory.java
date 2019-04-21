@@ -7,7 +7,7 @@ import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder;
 import com.amazonaws.services.secretsmanager.model.SecretListEntry;
 import com.amazonaws.services.secretsmanager.model.Tag;
 import com.cloudbees.plugins.credentials.common.IdCredentials;
-import io.jenkins.plugins.aws_secrets_manager_credentials_provider.aws.ListSecrets;
+import io.jenkins.plugins.aws_secrets_manager_credentials_provider.aws.ListSecretsOperation;
 import io.jenkins.plugins.aws_secrets_manager_credentials_provider.config.EndpointConfiguration;
 import io.jenkins.plugins.aws_secrets_manager_credentials_provider.config.Filters;
 import io.jenkins.plugins.aws_secrets_manager_credentials_provider.config.PluginConfiguration;
@@ -67,7 +67,7 @@ final class CredentialsSupplierFactory {
                 client = builder.withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(ec.getServiceEndpoint(), ec.getSigningRegion())).build();
             }
 
-            Supplier<List<SecretListEntry>> strategy = new ListSecrets(client);
+            Supplier<List<SecretListEntry>> strategy = new ListSecretsOperation(client);
 
             // tag filtering
             final Filters filters = config.getFilters();
