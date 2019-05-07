@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * Look up all secrets in Secrets Manager using the ListSecrets command.
@@ -29,13 +30,20 @@ public class ListSecretsOperation implements Supplier<List<SecretListEntry>> {
 
         Optional<String> nextToken = Optional.empty();
         do {
-            final ListSecretsRequest req = nextToken.map((nt) -> new ListSecretsRequest().withNextToken(nt)).orElse(new ListSecretsRequest());
-            final ListSecretsResult res = client.listSecrets(req);
-            final List<SecretListEntry> secrets = res.getSecretList();
+            final ListSecretsRequest request = nextToken.map((nt) -> new ListSecretsRequest().withNextToken(nt)).orElse(new ListSecretsRequest());
+            final ListSecretsResult result = client.listSecrets(request);
+            final List<SecretListEntry> secrets = result.getSecretList()
+                    .stream()
+                    .filter(ListSecretsOperation::isNotDeleted)
+                    .collect(Collectors.toList());
             secretList.addAll(secrets);
-            nextToken = Optional.ofNullable(res.getNextToken());
+            nextToken = Optional.ofNullable(result.getNextToken());
         } while (nextToken.isPresent());
 
         return secretList;
+    }
+
+    private static boolean isNotDeleted(SecretListEntry entry) {
+        return entry.getDeletedDate() == null;
     }
 }

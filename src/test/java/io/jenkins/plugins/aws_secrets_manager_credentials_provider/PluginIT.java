@@ -4,9 +4,10 @@ import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.CredentialsScope;
 import com.cloudbees.plugins.credentials.CredentialsStore;
+import com.cloudbees.plugins.credentials.CredentialsUnavailableException;
 import com.cloudbees.plugins.credentials.domains.Domain;
-import com.cloudbees.plugins.credentials.impl.BaseStandardCredentials;
 
+import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -26,11 +27,13 @@ import io.jenkins.plugins.aws_secrets_manager_credentials_provider.util.CreateSe
 import io.jenkins.plugins.aws_secrets_manager_credentials_provider.util.JenkinsConfiguredWithCodeRule;
 import io.jenkins.plugins.aws_secrets_manager_credentials_provider.util.DeleteSecretOperation;
 import io.jenkins.plugins.aws_secrets_manager_credentials_provider.util.CreateSecretOperation.Result;
+import io.jenkins.plugins.aws_secrets_manager_credentials_provider.util.RestoreSecretOperation;
 import io.jenkins.plugins.aws_secrets_manager_credentials_provider.util.TestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.tuple;
+import static org.assertj.core.api.SoftAssertions.assertSoftly;
 
 public class PluginIT {
 
@@ -43,8 +46,8 @@ public class PluginIT {
 
     private CredentialsStore store;
 
-    private List<BaseStandardCredentials> lookupCredentials() {
-        return CredentialsProvider.lookupCredentials(BaseStandardCredentials.class, r.jenkins, ACL.SYSTEM, Collections.emptyList());
+    private List<StringCredentials> lookupCredentials() {
+        return CredentialsProvider.lookupCredentials(StringCredentials.class, r.jenkins, ACL.SYSTEM, Collections.emptyList());
     }
 
     @BeforeClass
@@ -57,16 +60,17 @@ public class PluginIT {
     public void setup() {
         store = CredentialsProvider.lookupStores(r.jenkins).iterator().next();
 
-        deleteSecrets(Arrays.asList(FOO, BAR), o -> {
-            o.force = true;
-        });
+        for (String secretId: Arrays.asList(FOO, BAR)) {
+            restoreSecret(secretId);
+            deleteSecret(secretId, opts -> opts.force = true);
+        }
     }
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldStartEmpty() {
         // When
-        final List<BaseStandardCredentials> credentials = lookupCredentials();
+        final List<StringCredentials> credentials = lookupCredentials();
 
         // Then
         assertThat(credentials).isEmpty();
@@ -79,7 +83,7 @@ public class PluginIT {
         final Result foo = createSecret(FOO, "supersecret");
 
         // When
-        final List<BaseStandardCredentials> credentials = lookupCredentials();
+        final List<StringCredentials> credentials = lookupCredentials();
 
         // Then
         assertThat(credentials)
@@ -122,7 +126,7 @@ public class PluginIT {
         ));
 
         // When
-        final List<BaseStandardCredentials> credentials = lookupCredentials();
+        final List<StringCredentials> credentials = lookupCredentials();
 
         // Then
         assertThat(credentials)
@@ -134,21 +138,63 @@ public class PluginIT {
     @ConfiguredWithCode(value = "/tags.yml")
     public void shouldFilterByTag() {
         // Given
-        final Result foo = createSecret(FOO, "supersecret", o -> {
-            o.tags = Collections.singletonMap("product", "roadrunner");
+        final Result foo = createSecret(FOO, "supersecret", opts -> {
+            opts.tags = Collections.singletonMap("product", "roadrunner");
         });
-
-        final Result bar = createSecret(BAR, "supersecret", o -> {
-            o.tags = Collections.singletonMap("product", "coyote");
+        // And
+        final Result bar = createSecret(BAR, "supersecret", opts -> {
+            opts.tags = Collections.singletonMap("product", "coyote");
         });
 
         // When
-        final List<BaseStandardCredentials> credentials = lookupCredentials();
+        final List<StringCredentials> credentials = lookupCredentials();
 
         // Then
         assertThat(credentials)
                 .extracting("id", "secret")
                 .containsOnly(tuple(foo.getName(), Secret.fromString(foo.getValue())));
+    }
+
+    @Test
+    @ConfiguredWithCode(value = "/integration.yml")
+    public void shouldFilterByDeletionStatus() {
+        // Given
+        final CreateSecretOperation.Result foo = createSecret("foo", "supersecret");
+        // And
+        final CreateSecretOperation.Result bar = createSecret("bar", "supersecret");
+        // And
+        deleteSecret(bar.getName());
+
+        // When
+        final List<StringCredentials> credentials = lookupCredentials();
+
+        // Then
+        assertThat(credentials)
+                .extracting("id", "secret")
+                .containsOnly(tuple(foo.getName(), Secret.fromString(foo.getValue())));
+    }
+
+    @Test
+    @ConfiguredWithCode(value = "/integration.yml")
+    public void shouldTolerateRecentlyDeletedSecrets() {
+        // Given
+        final CreateSecretOperation.Result foo = createSecret("foo", "supersecret");
+        // And
+        final CreateSecretOperation.Result bar = createSecret("bar", "supersecret");
+
+        // When
+        final List<StringCredentials> credentials = lookupCredentials();
+        // And
+        deleteSecret(bar.getName());
+
+        // Then
+        final StringCredentials fooCreds = credentials.stream().filter(c -> c.getId().equals("foo")).findFirst().orElseThrow(() -> new IllegalStateException("Needed the credential 'foo', but it did not exist"));
+        final StringCredentials barCreds = credentials.stream().filter(c -> c.getId().equals("bar")).findFirst().orElseThrow(() -> new IllegalStateException("Needed the credential 'bar', but it did not exist"));
+
+        assertSoftly(s -> {
+            s.assertThat(fooCreds.getSecret()).as("Foo").isEqualTo(Secret.fromString(foo.getValue()));
+            s.assertThatThrownBy(barCreds::getSecret).as("Bar").isInstanceOf(CredentialsUnavailableException.class);
+        });
     }
 
     @Test
@@ -187,8 +233,18 @@ public class PluginIT {
         return create.run(name, secretString, opts);
     }
 
-    private static void deleteSecrets(List<String> ids, Consumer<DeleteSecretOperation.Opts> opts) {
+    private static void deleteSecret(String secretId) {
         final DeleteSecretOperation delete = new DeleteSecretOperation(CLIENT);
-        ids.forEach(id -> delete.run(id, opts));
+        delete.run(secretId);
+    }
+
+    private static void deleteSecret(String secretId, Consumer<DeleteSecretOperation.Opts> opts) {
+        final DeleteSecretOperation delete = new DeleteSecretOperation(CLIENT);
+        delete.run(secretId, opts);
+    }
+
+    private static void restoreSecret(String secretId) {
+        final RestoreSecretOperation restore = new RestoreSecretOperation(CLIENT);
+        restore.run(secretId);
     }
 }
