@@ -6,4 +6,9 @@
     <f:entry title="${%signingRegion}">
         <f:textbox field="signingRegion" />
     </f:entry>
+    <f:validateButton
+        title="${%testConnection}"
+        progress="${%testing}"
+        method="testConnection"
+        with="serviceEndpoint,signingRegion" />
 </j:jelly>

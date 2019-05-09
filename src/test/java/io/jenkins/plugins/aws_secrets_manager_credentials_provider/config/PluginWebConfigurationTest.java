@@ -1,39 +1,17 @@
 package io.jenkins.plugins.aws_secrets_manager_credentials_provider.config;
 
-import com.gargoylesoftware.htmlunit.html.HtmlForm;
-import com.gargoylesoftware.htmlunit.html.HtmlPage;
-
 import org.junit.Rule;
-import org.jvnet.hudson.test.JenkinsRule;
 
-import java.util.function.Consumer;
+import io.jenkins.plugins.aws_secrets_manager_credentials_provider.util.JenkinsConfiguredWithWebRule;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
-import static org.junit.Assert.fail;
+
 
 public class PluginWebConfigurationTest extends AbstractPluginConfigurationTest {
 
     @Rule
-    public final JenkinsRule r = new JenkinsRule();
-
-    private void configure(Consumer<HtmlForm> configurator) {
-        final JenkinsRule.WebClient webClient = r.createWebClient();
-
-        try {
-            final HtmlPage p = webClient.goTo("configure");
-            webClient.waitForBackgroundJavaScript(5000);
-
-            final HtmlForm form = p.getFormByName("config");
-
-            configurator.accept(form);
-
-            r.submit(form);
-            webClient.waitForBackgroundJavaScript(5000);
-        } catch (Exception e) {
-            fail("Failed to configure Jenkins");
-        }
-    }
+    public final JenkinsConfiguredWithWebRule r = new JenkinsConfiguredWithWebRule();
 
     private PluginConfiguration getPluginConfiguration() {
         return (PluginConfiguration) r.jenkins.getDescriptor(PluginConfiguration.class);
@@ -52,7 +30,7 @@ public class PluginWebConfigurationTest extends AbstractPluginConfigurationTest 
     @Override
     public void shouldCustomiseEndpointConfiguration() {
         // Given
-        configure(form -> {
+        r.configure(form -> {
             form.getInputByName("_.endpointConfiguration").setChecked(true);
             form.getInputByName("_.serviceEndpoint").setValueAttribute("http://localhost:4584");
             form.getInputByName("_.signingRegion").setValueAttribute("us-east-1");
@@ -71,7 +49,7 @@ public class PluginWebConfigurationTest extends AbstractPluginConfigurationTest 
     @Override
     public void shouldCustomiseTagFilter() {
         // Given
-        configure(form -> {
+        r.configure(form -> {
             form.getInputByName("_.filters").setChecked(true);
 
             form.getInputByName("_.tag").setChecked(true);
