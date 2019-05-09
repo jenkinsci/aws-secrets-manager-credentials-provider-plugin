@@ -1,6 +1,7 @@
 package io.jenkins.plugins.aws_secrets_manager_credentials_provider.config;
 
 import org.junit.Rule;
+import org.junit.Test;
 
 import io.jenkins.plugins.aws_secrets_manager_credentials_provider.util.JenkinsConfiguredWithWebRule;
 
@@ -43,6 +44,39 @@ public class PluginWebConfigurationTest extends AbstractPluginConfigurationTest 
         assertSoftly(s -> {
             s.assertThat(config.getEndpointConfiguration().getServiceEndpoint()).as("Service Endpoint").isEqualTo("http://localhost:4584");
             s.assertThat(config.getEndpointConfiguration().getSigningRegion()).as("Signing Region").isEqualTo("us-east-1");
+        });
+    }
+
+    @Test
+    public void shouldCustomiseAndResetConfiguration() {
+        r.configure(form -> {
+            form.getInputByName("_.endpointConfiguration").setChecked(true);
+            form.getInputByName("_.serviceEndpoint").setValueAttribute("http://localhost:4584");
+            form.getInputByName("_.signingRegion").setValueAttribute("us-east-1");
+
+            form.getInputByName("_.filters").setChecked(true);
+            form.getInputByName("_.tag").setChecked(true);
+            form.getInputByName("_.key").setValueAttribute("product");
+            form.getInputByName("_.value").setValueAttribute("foobar");
+        });
+
+        final PluginConfiguration configBefore = getPluginConfiguration();
+
+        assertSoftly(s -> {
+            s.assertThat(configBefore.getEndpointConfiguration()).as("Endpoint Configuration").isNotNull();
+            s.assertThat(configBefore.getFilters().getTag()).as("Filters").isNotNull();
+        });
+
+        r.configure(form -> {
+            form.getInputByName("_.endpointConfiguration").setChecked(false);
+            form.getInputByName("_.filters").setChecked(false);
+        });
+
+        final PluginConfiguration configAfter = getPluginConfiguration();
+
+        assertSoftly(s -> {
+            s.assertThat(configAfter.getEndpointConfiguration()).as("Endpoint Configuration").isNull();
+            s.assertThat(configAfter.getFilters()).as("Filters").isNull();
         });
     }
 
