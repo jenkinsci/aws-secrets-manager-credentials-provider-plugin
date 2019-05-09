@@ -32,6 +32,7 @@ public class PluginConfiguration extends GlobalConfiguration {
     @SuppressWarnings("unused")
     public void setEndpointConfiguration(EndpointConfiguration endpointConfiguration) {
         this.endpointConfiguration = endpointConfiguration;
+        save();
     }
 
     public Filters getFilters() {
@@ -42,5 +43,6 @@ public class PluginConfiguration extends GlobalConfiguration {
     @SuppressWarnings("unused")
     public void setFilters(Filters filters) {
         this.filters = filters;
+        save();
     }
 }
