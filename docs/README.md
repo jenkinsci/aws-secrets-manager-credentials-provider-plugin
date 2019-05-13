@@ -22,9 +22,7 @@ Settings:
 
 Install and configure the plugin.
 
-```bash
-curl -s -o /var/lib/jenkins/plugins/aws-secrets-manager-credentials-provider.hpi https://example.com/aws-secrets-manager-credentials-provider.hpi
-```
+Official plugin builds are not yet available, so you need to build the plugin `.hpi` from source. Please see the Development instructions below.
 
 ### AWS IAM
 
@@ -41,7 +39,7 @@ Optional permissions:
 
 ### AWS Secrets Manager
 
-Upload secrets to AWS Secrets Manager in the format "1 secret value = 1 AWS Secret" (see [documentation](https://docs.aws.amazon.com/cli/latest/reference/secretsmanager/create-secret.html)).
+Upload secrets to AWS Secrets Manager in the format "one secret value = one AWS Secret" (see the [AWS documentation](https://docs.aws.amazon.com/cli/latest/reference/secretsmanager/create-secret.html)).
 
 Text:
 
@@ -85,7 +83,15 @@ pipeline {
 
 The plugin's default behavior requires **no configuration**.
 
-Customise the plugin using the Web UI or [Jenkins Configuration As Code](https://github.com/jenkinsci/configuration-as-code-plugin).
+### Web UI
+
+You can set plugin configuration using the Web UI.
+
+Go to Manage Jenkins > Configure System > AWS Secrets Manager Credentials Provider and change the settings.
+
+### Configuration As Code (CasC)
+
+You can set plugin configuration using Jenkins [Configuration As Code](https://github.com/jenkinsci/configuration-as-code-plugin).
 
 ```yaml
 unclassified:
@@ -112,7 +118,7 @@ unclassified:
 - [Maven](https://maven.apache.org)
 - [Moto](https://github.com/spulec/moto) (master): `pip install https://github.com/spulec/moto/archive/master.tar.gz flask`
 
-### Test 
+### Build 
 
 In Maven:
 
@@ -122,9 +128,12 @@ mvn verify
 
 In your IDE:
 
-1. Start Moto (`moto_server secretsmanager -p 4584`).
-2. Run tests.
-3. Stop Moto.
+1. Generate translations: `mvn localizer:generate`. (This is a one-off task. You only need to re-run this if you change the translations, or if you clean the Maven target directory.)
+2. Compile.
+3. Start Moto: `moto_server secretsmanager -p 4584`.
+4. Run tests.
+5. Stop Moto.
+
 
 ## Screenshots
 
