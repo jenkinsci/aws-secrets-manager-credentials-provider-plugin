@@ -103,22 +103,6 @@
                 </executions>
             </plugin>
             <plugin>
-                <groupId>org.jvnet.localizer</groupId>
-                <artifactId>maven-localizer-plugin</artifactId>
-                <!-- version specified in parent pom -->
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>generate</goal>
-                        </goals>
-                        <configuration>
-                            <!-- Work around the fact that translations are put in the wrong directory. -->
-                            <outputDirectory>target/generated-sources/localizer</outputDirectory>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
                 <version>3.0.1</version>
