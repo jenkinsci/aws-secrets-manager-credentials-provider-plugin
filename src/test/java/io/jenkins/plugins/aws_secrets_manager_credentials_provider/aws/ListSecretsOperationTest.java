@@ -12,6 +12,12 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ListSecretsOperationTest {
+
+    @Test
+    public void shouldFail() {
+        assertThat(true).isFalse();
+    }
+
     @Test
     public void shouldHandleMissingSecret() {
         final ListSecretsResult result = new ListSecretsResult().withSecretList();
