@@ -1,5 +1,7 @@
 # AWS Secrets Manager Credentials Provider Plugin
 
+[![Build Status](https://ci.jenkins.io/buildStatus/icon?job=Plugins/aws-secrets-manager-credentials-provider-plugin/master)](https://ci.jenkins.io/blue/organizations/jenkins/Plugins%2Faws-secrets-manager-credentials-provider-plugin/activity/)
+
 Access credentials from AWS Secrets Manager in your Jenkins jobs. (Specify shared secrets once in your AWS account, use them from Jenkins.)
 
 Features:
