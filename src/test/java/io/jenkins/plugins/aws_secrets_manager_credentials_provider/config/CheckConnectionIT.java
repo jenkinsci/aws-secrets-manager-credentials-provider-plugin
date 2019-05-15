@@ -6,19 +6,16 @@ import com.gargoylesoftware.htmlunit.html.HtmlButton;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import cloud.localstack.LocalstackTestRunner;
 import io.jenkins.plugins.aws_secrets_manager_credentials_provider.util.JenkinsConfiguredWithWebRule;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 // Implementation note: We can't call this TestConnectionIT as the 'Test' bit of the name gets matched by the unit-test runner.
-@RunWith(LocalstackTestRunner.class)
 public class CheckConnectionIT {
 
     @Rule
