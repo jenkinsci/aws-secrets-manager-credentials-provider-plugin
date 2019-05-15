@@ -13,6 +13,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.jvnet.hudson.test.JenkinsRule;
 
 import java.util.Arrays;
@@ -20,6 +21,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 
+import cloud.localstack.LocalstackTestRunner;
+import cloud.localstack.TestUtils;
 import hudson.security.ACL;
 import hudson.util.Secret;
 import io.jenkins.plugins.aws_secrets_manager_credentials_provider.util.ConfiguredWithCode;
@@ -28,13 +31,13 @@ import io.jenkins.plugins.aws_secrets_manager_credentials_provider.util.JenkinsC
 import io.jenkins.plugins.aws_secrets_manager_credentials_provider.util.DeleteSecretOperation;
 import io.jenkins.plugins.aws_secrets_manager_credentials_provider.util.CreateSecretOperation.Result;
 import io.jenkins.plugins.aws_secrets_manager_credentials_provider.util.RestoreSecretOperation;
-import io.jenkins.plugins.aws_secrets_manager_credentials_provider.util.TestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
 
+@RunWith(LocalstackTestRunner.class)
 public class PluginIT {
 
     private static final AWSSecretsManager CLIENT = TestUtils.getClientSecretsManager();
