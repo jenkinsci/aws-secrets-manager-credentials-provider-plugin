@@ -5,25 +5,23 @@
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
-        <version>3.4</version>
+        <version>3.23</version>
         <relativePath />
     </parent>
 
-    <groupId>io.jenkins.plugins</groupId>
     <artifactId>aws-secrets-manager-credentials-provider</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>hpi</packaging>
 
     <name>AWS Secrets Manager Credentials Provider</name>
     <description>Allows the Jenkins Credentials Store to look up secrets in AWS Secrets Manager.</description>
-    <url>TODO</url>
+    <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
     <inceptionYear>2019</inceptionYear>
 
     <developers>
         <developer>
-            <id>TODO</id>
+            <id>chriskilding</id>
             <name>Chris Kilding</name>
-            <url>https://github.com/chriskilding</url>
         </developer>
     </developers>
 
@@ -35,9 +33,9 @@
     </licenses>
 
     <scm>
-        <connection>https://github.com/chriskilding/${project.artifactId}-plugin.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com/chriskilding/${project.artifactId}-plugin.git</developerConnection>
-        <url>https://github.com/chriskilding/${project.artifactId}-plugin</url>
+        <connection>https://github.com/jenkinsci/${project.artifactId}-plugin.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/jenkinsci/${project.artifactId}-plugin.git</developerConnection>
+        <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
     </scm>
 
     <properties>
@@ -64,7 +62,6 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.12</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -79,20 +76,14 @@
             <version>1.8</version>
             <scope>test</scope>
         </dependency>
-        <!-- Resolve dependency version clash -->
-        <dependency>
-            <groupId>org.jvnet.winp</groupId>
-            <artifactId>winp</artifactId>
-            <version>1.24</version>
-        </dependency>
     </dependencies>
 
     <build>
         <plugins>
+            <!-- Parent POM managed plugins -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
-                <version>2.22.0</version>
                 <executions>
                     <execution>
                         <goals>
@@ -101,16 +92,18 @@
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <!-- Workaround: Write failsafe reports to surefire reports directory so Jenkins can find them -->
+                    <reportsDirectory>${project.build.directory}/surefire-reports</reportsDirectory>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
-                <version>3.0.1</version>
             </plugin>
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.1</version>
                 <executions>
                     <execution>
                         <goals>
@@ -120,37 +113,68 @@
                     </execution>
                 </executions>
             </plugin>
+            <!-- Our plugins -->
             <plugin>
-                <groupId>com.bazaarvoice.maven.plugins</groupId>
-                <artifactId>process-exec-maven-plugin</artifactId>
-                <version>0.8</version>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>3.0.0</version>
+                <configuration>
+                    <configLocation>google_checks.xml</configLocation>
+                    <sourceDirectories>${project.build.sourceDirectory}</sourceDirectories>
+                    <linkXRef>false</linkXRef>
+                    <suppressionsLocation>checkstyle-suppressions.xml</suppressionsLocation>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>io.fabric8</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <version>0.26.0</version>
                 <executions>
                     <execution>
-                        <id>moto</id>
+                        <id>start-moto</id>
                         <phase>pre-integration-test</phase>
                         <goals>
+                            <goal>build</goal>
                             <goal>start</goal>
                         </goals>
-                        <configuration>
-                            <name>Moto</name>
-                            <waitForInterrupt>false</waitForInterrupt>
-                            <healthcheckUrl>http://localhost:4584/</healthcheckUrl>
-                            <workingDir>${project.basedir}</workingDir>
-                            <arguments>
-                                <argument>moto_server</argument>
-                                <argument>-p</argument>
-                                <argument>4584</argument>
-                            </arguments>
-                        </configuration>
                     </execution>
                     <execution>
-                        <id>stop-all</id>
+                        <id>stop-moto</id>
                         <phase>post-integration-test</phase>
                         <goals>
-                            <goal>stop-all</goal>
+                            <goal>stop</goal>
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <images>
+                        <image>
+                            <alias>moto</alias>
+                            <name>${project.groupId}.${project.artifactId}/moto</name>
+
+                            <build>
+                                <from>python:3.7</from>
+                                <runCmds>
+                                    <!-- Pin Moto to latest stable commit on master -->
+                                    <run>pip install https://github.com/spulec/moto/archive/8cb4db1896521af99ff295b028f604c6ab599401.tar.gz flask</run>
+                                </runCmds>
+                            </build>
+
+                            <run>
+                                <cmd>moto_server -H 0.0.0.0 -p 4584</cmd>
+                                <ports>
+                                    <port>4584:4584</port>
+                                </ports>
+                                <wait>
+                                    <http>
+                                        <url>http://localhost:4584/</url>
+                                    </http>
+                                    <time>15000</time>
+                                </wait>
+                            </run>
+                        </image>
+                    </images>
+                </configuration>
             </plugin>
         </plugins>
     </build>
