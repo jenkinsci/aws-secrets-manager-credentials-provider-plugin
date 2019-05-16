@@ -5,25 +5,23 @@
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
-        <version>3.4</version>
+        <version>3.23</version>
         <relativePath />
     </parent>
 
-    <groupId>io.jenkins.plugins</groupId>
     <artifactId>aws-secrets-manager-credentials-provider</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>hpi</packaging>
 
     <name>AWS Secrets Manager Credentials Provider</name>
     <description>Allows the Jenkins Credentials Store to look up secrets in AWS Secrets Manager.</description>
-    <url>TODO</url>
+    <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
     <inceptionYear>2019</inceptionYear>
 
     <developers>
         <developer>
             <id>chriskilding</id>
             <name>Chris Kilding</name>
-            <url>https://github.com/chriskilding</url>
         </developer>
     </developers>
 
@@ -64,7 +62,6 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.12</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -79,20 +76,14 @@
             <version>1.8</version>
             <scope>test</scope>
         </dependency>
-        <!-- Resolve dependency version clash -->
-        <dependency>
-            <groupId>org.jvnet.winp</groupId>
-            <artifactId>winp</artifactId>
-            <version>1.24</version>
-        </dependency>
     </dependencies>
 
     <build>
         <plugins>
+            <!-- Parent POM managed plugins -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
-                <version>2.22.0</version>
                 <executions>
                     <execution>
                         <goals>
@@ -109,8 +100,20 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
-                <version>3.0.1</version>
             </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- Our plugins -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
@@ -121,19 +124,6 @@
                     <linkXRef>false</linkXRef>
                     <suppressionsLocation>checkstyle-suppressions.xml</suppressionsLocation>
                 </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.jacoco</groupId>
-                <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.1</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>prepare-agent</goal>
-                            <goal>report</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
             <plugin>
                 <groupId>io.fabric8</groupId>
