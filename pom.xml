@@ -125,36 +125,54 @@
                 </executions>
             </plugin>
             <plugin>
-                <groupId>com.bazaarvoice.maven.plugins</groupId>
-                <artifactId>process-exec-maven-plugin</artifactId>
-                <version>0.8</version>
+                <groupId>io.fabric8</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <version>0.26.0</version>
                 <executions>
                     <execution>
-                        <id>moto</id>
+                        <id>start-moto</id>
                         <phase>pre-integration-test</phase>
                         <goals>
+                            <goal>build</goal>
                             <goal>start</goal>
                         </goals>
-                        <configuration>
-                            <name>Moto</name>
-                            <waitForInterrupt>false</waitForInterrupt>
-                            <healthcheckUrl>http://localhost:4584/</healthcheckUrl>
-                            <workingDir>${project.basedir}</workingDir>
-                            <arguments>
-                                <argument>moto_server</argument>
-                                <argument>-p</argument>
-                                <argument>4584</argument>
-                            </arguments>
-                        </configuration>
                     </execution>
                     <execution>
-                        <id>stop-all</id>
+                        <id>stop-moto</id>
                         <phase>post-integration-test</phase>
                         <goals>
-                            <goal>stop-all</goal>
+                            <goal>stop</goal>
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <images>
+                        <image>
+                            <alias>moto</alias>
+                            <name>${project.groupId}.${project.artifactId}/moto</name>
+
+                            <build>
+                                <from>python:3.7</from>
+                                <runCmds>
+                                    <run>pip install https://github.com/spulec/moto/archive/master.tar.gz flask</run>
+                                </runCmds>
+                            </build>
+
+                            <run>
+                                <cmd>moto_server -H 0.0.0.0 -p 4584</cmd>
+                                <ports>
+                                    <port>4584:4584</port>
+                                </ports>
+                                <wait>
+                                    <http>
+                                        <url>http://localhost:4584/</url>
+                                    </http>
+                                    <time>15000</time>
+                                </wait>
+                            </run>
+                        </image>
+                    </images>
+                </configuration>
             </plugin>
         </plugins>
     </build>
