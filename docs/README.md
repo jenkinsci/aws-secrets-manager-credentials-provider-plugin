@@ -117,8 +117,8 @@ unclassified:
 ### Dependencies
 
 - Java 8
+- [Docker](https://www.docker.com)
 - [Maven](https://maven.apache.org)
-- [Moto](https://github.com/spulec/moto) (master): `pip install https://github.com/spulec/moto/archive/master.tar.gz flask`
 
 ### Build 
 
@@ -132,10 +132,9 @@ In your IDE:
 
 1. Generate translations: `mvn localizer:generate`. (This is a one-off task. You only need to re-run this if you change the translations, or if you clean the Maven target directory.)
 2. Compile.
-3. Start Moto: `moto_server secretsmanager -p 4584`.
+3. Start Moto: `mvn docker:build docker:start`.
 4. Run tests.
-5. Stop Moto.
-
+5. Stop Moto: `mvn docker:stop`.
 
 ## Screenshots
 
