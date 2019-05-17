@@ -1,8 +1,7 @@
 package io.jenkins.plugins.credentials.secretsmanager.config;
 
-import io.jenkins.plugins.credentials.secretsmanager.util.ConfiguredWithCode;
-import io.jenkins.plugins.credentials.secretsmanager.util.JenkinsConfiguredWithCodeRule;
-
+import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
+import io.jenkins.plugins.casc.misc.JenkinsConfiguredWithCodeRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;

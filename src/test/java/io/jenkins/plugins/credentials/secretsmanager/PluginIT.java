@@ -22,9 +22,9 @@ import java.util.function.Consumer;
 
 import hudson.security.ACL;
 import hudson.util.Secret;
-import io.jenkins.plugins.credentials.secretsmanager.util.ConfiguredWithCode;
+import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
+import io.jenkins.plugins.casc.misc.JenkinsConfiguredWithCodeRule;
 import io.jenkins.plugins.credentials.secretsmanager.util.CreateSecretOperation;
-import io.jenkins.plugins.credentials.secretsmanager.util.JenkinsConfiguredWithCodeRule;
 import io.jenkins.plugins.credentials.secretsmanager.util.DeleteSecretOperation;
 import io.jenkins.plugins.credentials.secretsmanager.util.CreateSecretOperation.Result;
 import io.jenkins.plugins.credentials.secretsmanager.util.RestoreSecretOperation;
