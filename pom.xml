@@ -10,7 +10,7 @@
     </parent>
 
     <artifactId>aws-secrets-manager-credentials-provider</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>${revision}${changelist}</version>
     <packaging>hpi</packaging>
 
     <name>AWS Secrets Manager Credentials Provider</name>
@@ -39,6 +39,8 @@
     </scm>
 
     <properties>
+        <revision>0.0.1</revision>
+        <changelist>-SNAPSHOT</changelist>
         <jenkins.version>2.60.3</jenkins.version>
         <java.level>8</java.level>
         <jcasc.version>1.15</jcasc.version>
