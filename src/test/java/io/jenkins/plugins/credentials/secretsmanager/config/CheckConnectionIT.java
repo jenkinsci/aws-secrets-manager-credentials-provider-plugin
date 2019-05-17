@@ -15,7 +15,7 @@ import io.jenkins.plugins.credentials.secretsmanager.util.JenkinsConfiguredWithW
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-// Implementation note: We can't call this TestConnectionIT as the 'Test' bit of the name gets matched by the unit-test runner.
+// NOTE: We can't call this TestConnectionIT as the 'Test' bit of the name gets matched by the unit-test runner.
 public class CheckConnectionIT {
 
     @Rule

@@ -13,19 +13,17 @@ public class JenkinsConfiguredWithWebRule extends JenkinsRule {
     public void configure(Consumer<HtmlForm> configurator) {
         final JenkinsRule.WebClient webClient = super.createWebClient();
 
-        // Make ajax synchronous
         webClient.setAjaxController(new NicelyResynchronizingAjaxController());
+        webClient.getOptions().setCssEnabled(false);
 
         try {
             final HtmlPage p = webClient.goTo("configure");
-            webClient.waitForBackgroundJavaScript(5000);
 
             final HtmlForm form = p.getFormByName("config");
 
             configurator.accept(form);
 
             super.submit(form);
-            webClient.waitForBackgroundJavaScript(5000);
         } catch (Exception e) {
             throw new RuntimeException("Failed to configure Jenkins");
         }
