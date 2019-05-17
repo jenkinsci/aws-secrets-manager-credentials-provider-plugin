@@ -15,6 +15,7 @@ import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.verb.POST;
 
+import java.io.IOException;
 import java.io.Serializable;
 
 import javax.annotation.Nonnull;
@@ -84,7 +85,6 @@ public class EndpointConfiguration extends AbstractDescribableImpl<EndpointConfi
         public FormValidation doTestConnection(
                 @QueryParameter("serviceEndpoint") final String serviceEndpoint,
                 @QueryParameter("signingRegion") final String signingRegion) {
-
             Jenkins.getInstance().checkPermission(Jenkins.ADMINISTER);
 
             final AwsClientBuilder.EndpointConfiguration ec =
@@ -102,11 +102,21 @@ public class EndpointConfiguration extends AbstractDescribableImpl<EndpointConfi
                 return FormValidation.error(msg);
             }
 
+            if (statusCode > 600) {
+                rubbish();
+            }
+
             if ((statusCode >= 200) && (statusCode <= 399)) {
                 return FormValidation.ok(Messages.success());
             } else {
                 return FormValidation.error(Messages.awsServerError() + ": HTTP " + statusCode);
             }
+        }
+
+        private void rubbish() {
+            // TODO take this spotbugs test code out
+            FormValidation v = null;
+            FormValidation.Kind kind = v.kind;
         }
     }
 }
