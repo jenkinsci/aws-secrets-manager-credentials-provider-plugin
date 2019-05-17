@@ -84,7 +84,6 @@ public class EndpointConfiguration extends AbstractDescribableImpl<EndpointConfi
         public FormValidation doTestConnection(
                 @QueryParameter("serviceEndpoint") final String serviceEndpoint,
                 @QueryParameter("signingRegion") final String signingRegion) {
-
             Jenkins.getInstance().checkPermission(Jenkins.ADMINISTER);
 
             final AwsClientBuilder.EndpointConfiguration ec =
