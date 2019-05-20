@@ -133,7 +133,7 @@
                     <configLocation>google_checks.xml</configLocation>
                     <sourceDirectories>${project.build.sourceDirectory}</sourceDirectories>
                     <linkXRef>false</linkXRef>
-                    <suppressionsLocation>checkstyle-suppressions.xml</suppressionsLocation>
+                    <suppressionsLocation>${project.basedir}/checkstyle-suppressions.xml</suppressionsLocation>
                 </configuration>
             </plugin>
             <plugin>
