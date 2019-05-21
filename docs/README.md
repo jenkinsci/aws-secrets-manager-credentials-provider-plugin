@@ -2,9 +2,14 @@
 
 [![Build Status](https://ci.jenkins.io/buildStatus/icon?job=Plugins/aws-secrets-manager-credentials-provider-plugin/master)](https://ci.jenkins.io/blue/organizations/jenkins/Plugins%2Faws-secrets-manager-credentials-provider-plugin/activity/)
 
-Access credentials from AWS Secrets Manager in your Jenkins jobs. (Specify shared secrets once in your AWS account, use them from Jenkins.)
+Access credentials from AWS Secrets Manager in your Jenkins jobs.
 
-Features:
+## Contents
+
+- [CI Build](https://ci.jenkins.io/blue/organizations/jenkins/Plugins%2Faws-secrets-manager-credentials-provider-plugin/)
+- [Issues](https://issues.jenkins-ci.org/issues/?jql=component+%3D+aws-secrets-manager-credentials-provider-plugin)
+
+## Features
 
 - Read-only view of Secrets Manager.
 - Credential metadata caching (duration: 5 minutes).
@@ -116,9 +121,9 @@ unclassified:
 
 ### Dependencies
 
-- Java 8
-- [Docker](https://www.docker.com)
-- [Maven](https://maven.apache.org)
+- Docker
+- Java
+- Maven
 
 ### Build 
 
