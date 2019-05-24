@@ -26,6 +26,11 @@
         </developer>
     </developers>
 
+    <issueManagement>
+        <system>JIRA</system>
+        <url>https://issues.jenkins-ci.org/browse/JENKINS</url>
+    </issueManagement>
+
     <licenses>
         <license>
             <name>MIT License</name>
@@ -195,6 +200,12 @@
         <repository>
             <id>repo.jenkins-ci.org</id>
             <url>https://repo.jenkins-ci.org/public/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
         </repository>
     </repositories>
 
@@ -202,6 +213,12 @@
         <pluginRepository>
             <id>repo.jenkins-ci.org</id>
             <url>https://repo.jenkins-ci.org/public/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
         </pluginRepository>
     </pluginRepositories>
 </project>
