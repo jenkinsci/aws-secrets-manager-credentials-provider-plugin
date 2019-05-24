@@ -28,3 +28,5 @@ hs_err_pid*
 *.iml
 target
 work
+*.releaseBackup
+release.properties

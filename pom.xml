@@ -16,7 +16,7 @@
 
     <name>AWS Secrets Manager Credentials Provider</name>
     <description>Allows the Jenkins Credentials Store to look up secrets in AWS Secrets Manager.</description>
-    <url>https://wiki.jenkins-ci.org/display/JENKINS/JIRA+Plugin</url>
+    <url>https://github.com/jenkinsci/aws-secrets-manager-credentials-provider-plugin</url>
     <inceptionYear>2019</inceptionYear>
 
     <developers>
@@ -39,9 +39,9 @@
     </licenses>
 
     <scm>
-        <connection>https://github.com/jenkinsci/${project.artifactId}-plugin.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com/jenkinsci/${project.artifactId}-plugin.git</developerConnection>
-        <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
+        <connection>https://github.com/jenkinsci/aws-secrets-manager-credentials-provider-plugin.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/jenkinsci/aws-secrets-manager-credentials-provider-plugin.git</developerConnection>
+        <url>https://github.com/jenkinsci/aws-secrets-manager-credentials-provider-plugin</url>
         <tag>${scmTag}</tag>
     </scm>
 
