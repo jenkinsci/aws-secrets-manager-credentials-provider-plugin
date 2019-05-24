@@ -16,7 +16,7 @@
 
     <name>AWS Secrets Manager Credentials Provider</name>
     <description>Allows the Jenkins Credentials Store to look up secrets in AWS Secrets Manager.</description>
-    <url>https://github.com/jenkinsci/aws-secrets-manager-credentials-provider-plugin</url>
+    <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
     <inceptionYear>2019</inceptionYear>
 
     <developers>
@@ -39,9 +39,9 @@
     </licenses>
 
     <scm>
-        <connection>https://github.com/jenkinsci/aws-secrets-manager-credentials-provider-plugin.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com/jenkinsci/aws-secrets-manager-credentials-provider-plugin.git</developerConnection>
-        <url>https://github.com/jenkinsci/aws-secrets-manager-credentials-provider-plugin</url>
+        <connection>https://github.com/jenkinsci/${project.artifactId}-plugin.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/jenkinsci/${project.artifactId}-plugin.git</developerConnection>
+        <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
         <tag>${scmTag}</tag>
     </scm>
 
@@ -65,9 +65,9 @@
             <version>1.4</version>
         </dependency>
         <dependency>
-            <groupId>com.amazonaws</groupId>
-            <artifactId>aws-java-sdk-secretsmanager</artifactId>
-            <version>1.11.505</version>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>aws-java-sdk</artifactId>
+            <version>1.11.457</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -200,12 +200,6 @@
         <repository>
             <id>repo.jenkins-ci.org</id>
             <url>https://repo.jenkins-ci.org/public/</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
         </repository>
     </repositories>
 
@@ -213,12 +207,6 @@
         <pluginRepository>
             <id>repo.jenkins-ci.org</id>
             <url>https://repo.jenkins-ci.org/public/</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
         </pluginRepository>
     </pluginRepositories>
 </project>
