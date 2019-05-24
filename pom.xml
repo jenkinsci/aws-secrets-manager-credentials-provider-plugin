@@ -16,7 +16,7 @@
 
     <name>AWS Secrets Manager Credentials Provider</name>
     <description>Allows the Jenkins Credentials Store to look up secrets in AWS Secrets Manager.</description>
-    <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
+    <url>https://wiki.jenkins-ci.org/display/JENKINS/JIRA+Plugin</url>
     <inceptionYear>2019</inceptionYear>
 
     <developers>
