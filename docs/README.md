@@ -1,6 +1,7 @@
 # AWS Secrets Manager Credentials Provider Plugin
 
 [![Build Status](https://ci.jenkins.io/buildStatus/icon?job=Plugins/aws-secrets-manager-credentials-provider-plugin/master)](https://ci.jenkins.io/blue/organizations/jenkins/Plugins%2Faws-secrets-manager-credentials-provider-plugin/activity/)
+[![Jenkins Plugin](https://img.shields.io/jenkins/plugin/v/aws-secrets-manager-credentials-provider.svg)](https://plugins.jenkins.io/aws-secrets-manager-credentials-provider)
 
 Access credentials from AWS Secrets Manager in your Jenkins jobs.
 
@@ -29,7 +30,8 @@ Settings:
 
 Install and configure the plugin.
 
-Official plugin builds are not yet available, so you need to build the plugin `.hpi` from source. Please see the Development instructions below.
+- **Jenkins:** Compile the plugin `.hpi` from source, and upload to your Jenkins server. (Please see the Development instructions below.)
+- **Jenkins Evergreen:** Install this plugin on your Jenkins Evergreen server in the usual way. (This plugin is published to the Jenkins Incrementals repository). 
 
 ### AWS IAM
 
