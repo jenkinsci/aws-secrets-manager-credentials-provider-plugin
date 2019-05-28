@@ -1,10 +1,14 @@
 # AWS Secrets Manager Credentials Provider Plugin
 
 [![Build Status](https://ci.jenkins.io/buildStatus/icon?job=Plugins/aws-secrets-manager-credentials-provider-plugin/master)](https://ci.jenkins.io/blue/organizations/jenkins/Plugins%2Faws-secrets-manager-credentials-provider-plugin/activity/)
+[![Jenkins Plugin](https://img.shields.io/jenkins/plugin/v/aws-secrets-manager-credentials-provider.svg)](https://plugins.jenkins.io/aws-secrets-manager-credentials-provider)
 
-Access credentials from AWS Secrets Manager in your Jenkins jobs. (Specify shared secrets once in your AWS account, use them from Jenkins.)
+Access credentials from AWS Secrets Manager in your Jenkins jobs.
 
-Features:
+- [CI Build](https://ci.jenkins.io/blue/organizations/jenkins/Plugins%2Faws-secrets-manager-credentials-provider-plugin/)
+- [Issues](https://issues.jenkins-ci.org/issues/?jql=component+%3D+aws-secrets-manager-credentials-provider-plugin)
+
+## Features
 
 - Read-only view of Secrets Manager.
 - Credential metadata caching (duration: 5 minutes).
@@ -24,8 +28,7 @@ Settings:
 
 Install and configure the plugin.
 
-Official plugin builds are not yet available, so you need to build the plugin `.hpi` from source. Please see the Development instructions below.
-
+Official plugin builds are not yet available, so you need to build the plugin `.hpi` from source, and upload it to your Jenkins server. Please see the Development instructions below.
 ### AWS IAM
 
 Give Jenkins an [IAM policy](https://docs.aws.amazon.com/secretsmanager/latest/userguide/auth-and-access_identity-based-policies.html) with read access to AWS Secrets Manager.
@@ -116,9 +119,9 @@ unclassified:
 
 ### Dependencies
 
-- Java 8
-- [Docker](https://www.docker.com)
-- [Maven](https://maven.apache.org)
+- Docker
+- Java
+- Maven
 
 ### Build 
 

@@ -26,6 +26,11 @@
         </developer>
     </developers>
 
+    <issueManagement>
+        <system>JIRA</system>
+        <url>https://issues.jenkins-ci.org/browse/JENKINS</url>
+    </issueManagement>
+
     <licenses>
         <license>
             <name>MIT License</name>
@@ -37,6 +42,7 @@
         <connection>https://github.com/jenkinsci/${project.artifactId}-plugin.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/jenkinsci/${project.artifactId}-plugin.git</developerConnection>
         <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
+        <tag>${scmTag}</tag>
     </scm>
 
     <properties>
@@ -59,9 +65,9 @@
             <version>1.4</version>
         </dependency>
         <dependency>
-            <groupId>com.amazonaws</groupId>
-            <artifactId>aws-java-sdk-secretsmanager</artifactId>
-            <version>1.11.505</version>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>aws-java-sdk</artifactId>
+            <version>1.11.457</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
