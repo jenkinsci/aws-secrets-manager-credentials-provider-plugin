@@ -28,7 +28,6 @@ Settings:
 
 Install and configure the plugin.
 
-Official plugin builds are not yet available, so you need to build the plugin `.hpi` from source, and upload it to your Jenkins server. Please see the Development instructions below.
 ### AWS IAM
 
 Give Jenkins an [IAM policy](https://docs.aws.amazon.com/secretsmanager/latest/userguide/auth-and-access_identity-based-policies.html) with read access to AWS Secrets Manager.
@@ -92,7 +91,7 @@ The plugin's default behavior requires **no configuration**.
 
 You can set plugin configuration using the Web UI.
 
-Go to Manage Jenkins > Configure System > AWS Secrets Manager Credentials Provider and change the settings.
+Go to `Manage Jenkins` > `Configure System` > `AWS Secrets Manager Credentials Provider` and change the settings.
 
 ### Configuration As Code (CasC)
 
