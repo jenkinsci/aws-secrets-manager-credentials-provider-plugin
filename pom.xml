@@ -179,8 +179,7 @@
                             <build>
                                 <from>python:3.7</from>
                                 <runCmds>
-                                    <!-- Pin Moto to latest stable commit on master -->
-                                    <run>pip install https://github.com/spulec/moto/archive/8cb4db1896521af99ff295b028f604c6ab599401.tar.gz flask</run>
+                                    <run>pip install moto==1.3.13 flask==1.1.1</run>
                                 </runCmds>
                             </build>
 
