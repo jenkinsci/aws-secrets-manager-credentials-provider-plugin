@@ -11,6 +11,7 @@ import io.jenkins.plugins.credentials.secretsmanager.aws.ListSecretsOperation;
 import io.jenkins.plugins.credentials.secretsmanager.config.EndpointConfiguration;
 import io.jenkins.plugins.credentials.secretsmanager.config.Filters;
 import io.jenkins.plugins.credentials.secretsmanager.config.PluginConfiguration;
+import io.jenkins.plugins.credentials.secretsmanager.types.AwsStringCredentials;
 import io.jenkins.plugins.credentials.secretsmanager.util.Memoizer;
 
 import java.time.Duration;

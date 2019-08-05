@@ -1,4 +1,4 @@
-package io.jenkins.plugins.credentials.secretsmanager;
+package io.jenkins.plugins.credentials.secretsmanager.types;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
@@ -17,6 +17,7 @@ import javax.annotation.Nonnull;
 
 import hudson.Extension;
 import hudson.util.Secret;
+import io.jenkins.plugins.credentials.secretsmanager.Messages;
 
 public class AwsStringCredentials extends BaseStandardCredentials implements StringCredentials {
 
