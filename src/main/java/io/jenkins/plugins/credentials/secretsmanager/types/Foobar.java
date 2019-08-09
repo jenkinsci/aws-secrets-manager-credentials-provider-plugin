@@ -4,8 +4,10 @@ import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.amazonaws.services.secretsmanager.model.GetSecretValueResult;
 import com.amazonaws.services.secretsmanager.model.Tag;
 import com.cloudbees.jenkins.plugins.sshcredentials.impl.BasicSSHUserPrivateKey;
+import com.cloudbees.plugins.credentials.SecretBytes;
 import com.cloudbees.plugins.credentials.common.IdCredentials;
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
+import com.cloudbees.plugins.credentials.impl.CertificateCredentialsImpl;
 
 import java.util.List;
 import java.util.Map;
@@ -46,6 +48,7 @@ public final class Foobar {
         }
     }
 
+    // FIXME only works for PEM-encoded (string) key
     private static class SshCredentialMatcher implements Matcher {
 
         private final transient AWSSecretsManager client;
@@ -55,18 +58,43 @@ public final class Foobar {
         }
 
         public Optional<StandardCredentials> match(String secretValue, Map<String, String> tags) {
-            if (hasAsciiArmor(secretValue) && hasUsername(tags)) {
+            if (isPemFormatKey(secretValue) && hasUsername(tags)) {
                 return new AwsSshCredentials(client);
-
-                new BasicSSHUserPrivateKey.DirectEntryPrivateKeySource()
             }
 
             return Optional.empty();
         }
 
-        private static boolean hasAsciiArmor(String str) {
+        private static boolean isPemFormatKey(String str) {
             return str.matches("^-{2,}\\s*BEGIN .+ PRIVATE KEY\\s*-{2,}")
                     && str.matches("^-{2,}\\s*END .+ PRIVATE KEY\\s*-{2,}");
+        }
+
+        private static boolean hasUsername(Map<String, String> tags) {
+            return tags.containsKey("username");
+        }
+    }
+
+    // FIXME only works for PEM-encoded (string) cert
+    private static class CertificateCredentialMatcher implements Matcher {
+
+        private final transient AWSSecretsManager client;
+
+        private CertificateCredentialMatcher(AWSSecretsManager client) {
+            this.client = client;
+        }
+
+        public Optional<StandardCredentials> match(String secretValue, Map<String, String> tags) {
+            if (isPemFormatCertificate(secretValue) && hasUsername(tags)) {
+                return new AwsCertificateCredentials(client);
+            }
+
+            return Optional.empty();
+        }
+
+        private static boolean isPemFormatCertificate(String str) {
+            return str.matches("^-{2,}\\s*BEGIN .+ CERTIFICATE\\s*-{2,}")
+                    && str.matches("^-{2,}\\s*END .+ CERTIFICATE\\s*-{2,}");
         }
 
         private static boolean hasUsername(Map<String, String> tags) {
@@ -84,7 +112,7 @@ public final class Foobar {
 
         public Optional<StandardCredentials> match(String secretValue, Map<String, String> tags) {
             if (hasUsername(tags)) {
-                return new AwsUsernamePasswordCredentials();
+                return new AwsUsernamePasswordCredentials(client);
             }
 
             return Optional.empty();

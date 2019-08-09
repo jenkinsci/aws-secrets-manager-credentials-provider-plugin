@@ -1,8 +1,10 @@
 package io.jenkins.plugins.credentials.secretsmanager.types;
 
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
+import com.cloudbees.plugins.credentials.SecretBytes;
 import com.cloudbees.plugins.credentials.common.StandardCertificateCredentials;
 import com.cloudbees.plugins.credentials.impl.BaseStandardCredentials;
+import com.cloudbees.plugins.credentials.impl.CertificateCredentialsImpl;
 
 import java.security.KeyStore;
 
@@ -16,6 +18,7 @@ import io.jenkins.plugins.credentials.secretsmanager.Messages;
 class AwsCertificateCredentials extends BaseStandardCredentials implements StandardCertificateCredentials {
 
     private static final long serialVersionUID = 1L;
+    private static final Secret NO_PASSWORD = Secret.fromString("");
 
     private final transient AWSSecretsManager client;
 
@@ -27,13 +30,19 @@ class AwsCertificateCredentials extends BaseStandardCredentials implements Stand
     @NonNull
     @Override
     public KeyStore getKeyStore() {
+        final CertificateCredentialsImpl.KeyStoreSource ksc = toKeyStoreSource(secretValue);
         return null;
     }
 
     @NonNull
     @Override
     public Secret getPassword() {
-        return null;
+        return NO_PASSWORD;
+    }
+
+    private static CertificateCredentialsImpl.KeyStoreSource toKeyStoreSource(String secret) {
+        final SecretBytes theCert = SecretBytes.fromString(secret);
+        return new CertificateCredentialsImpl.UploadedKeyStoreSource(theCert);
     }
 
     @Extension
