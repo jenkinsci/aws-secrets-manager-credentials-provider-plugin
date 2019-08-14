@@ -1,4 +1,4 @@
-package io.jenkins.plugins.credentials.secretsmanager.types;
+package io.jenkins.plugins.credentials.secretsmanager;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
@@ -30,84 +30,126 @@ import javax.annotation.Nonnull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.util.Secret;
-import io.jenkins.plugins.credentials.secretsmanager.Messages;
 
-public class AwsStringCredentials extends BaseStandardCredentials implements StringCredentials, StandardUsernamePasswordCredentials, SSHUserPrivateKey, StandardCertificateCredentials {
+/**
+ * A multi-type credential class backed by AWS Secrets Manager, which detects its type at lookup
+ * time.
+ * <p>
+ * Due to its dynamic behavior, an instance of this class can either be bound in your Jenkins job as
+ * its true type (e.g. SSH private key), or upcast to a simple Secret Text credential.
+ * <p>
+ * NOTE: a credential cannot necessarily be downcast to a complex type: if the additional metadata
+ * is missing on the underlying AWS secret, the relevant accessor methods will fail at lookup time.
+ */
+public class AwsCredentials extends BaseStandardCredentials implements StringCredentials, StandardUsernamePasswordCredentials, SSHUserPrivateKey, StandardCertificateCredentials {
 
-    private static final Secret NO_PASSPHRASE = Secret.fromString("");
+    private static final Secret NONE = Secret.fromString("");
     private static final long serialVersionUID = 1L;
 
     private final Map<String, String> tags;
 
     private final transient AWSSecretsManager client;
 
-    AwsStringCredentials(String id, String description, Map<String, String> tags, AWSSecretsManager client) {
+    AwsCredentials(String id, String description, Map<String, String> tags, AWSSecretsManager client) {
         super(id, description);
         this.tags = tags;
         this.client = client;
     }
 
-    /**
-     * from StringCredentials
-     */
+    private void testForTheType(String n) {
+        if (tags.containsKey("username")) {
+            // either ssh key or username/password
+            String secret = getSecretValue(n);
+
+            if (isSshKey(secret)) {
+                // ssh key
+            } else {
+                // username/password
+            }
+        } else {
+            // either secret text or certificate
+            String secret = getSecretValue(n);
+
+            if (isCertificate(secret)) {
+                // certificate
+            } else {
+                // secret text
+            }
+        }
+    }
+
+    private static boolean isSshKey(String secret) {
+        return secret.startsWith("--BEGIN SSH PRIVATE KEY--");
+    }
+
+    private static boolean isCertificate(String secret) {
+        return secret.startsWith("--BEGIN CERTIFICATE--");
+    }
+
     @Nonnull
     @Override
     public Secret getSecret() {
-        final String id = this.getId();
-        return Secret.fromString(getSecretValue(id));
+        return Secret.fromString(getSecretValue(getId()));
     }
 
-    /**
-     * from StandardUsernamePasswordCredentials
-     */
     @NonNull
     @Override
     public Secret getPassword() {
-        final String id = this.getId();
-        return Secret.fromString(getSecretValue(id));
+        if (tags.containsKey("username")) {
+            // username/password
+            return Secret.fromString(getSecretValue(getId()));
+        } else {
+            // certificate
+            return NONE;
+        }
     }
 
     @NonNull
     @Override
     public String getUsername() {
-        return tags.get("username");
+        if (tags.containsKey("username")) {
+            return tags.get("username");
+        } else {
+            throw new CredentialsUnavailableException("username", Messages.noUsernameError());
+        }
     }
 
-    /**
-     * from SSHUserPrivateKey
-     */
+    @Override
+    public Secret getPassphrase() {
+        return NONE;
+    }
+
     @NonNull
     @Override
+    public List<String> getPrivateKeys() {
+        return Collections.singletonList(this.getPrivateKey());
+    }
+
+    @NonNull
+    @Deprecated
+    @Override
     public String getPrivateKey() {
-        final String id = this.getId();
-
-        final PEMParser pemParser = new PEMParser(new StringReader(getSecretValue(id)));
-
         try {
+            final PEMParser pemParser = new PEMParser(new StringReader(getSecretValue(getId())));
             final Object object = pemParser.readObject();
             final JcaPEMKeyConverter converter = new JcaPEMKeyConverter().setProvider("BC");
             final KeyPair keyPair = converter.getKeyPair((PEMKeyPair) object);
             return StandardCharsets.UTF_8.decode(ByteBuffer.wrap(keyPair.getPrivate().getEncoded())).toString();
         } catch (IOException e) {
-            throw new CredentialsUnavailableException("secret", "Private key secret value was not encoded in PEM format");
+            throw new CredentialsUnavailableException("privateKey", Messages.noPrivateKeyError());
         }
     }
 
-    /**
-     * from SSHUserPrivateKey
-     */
-    @Override
-    public Secret getPassphrase() {
-        return NO_PASSPHRASE;
-    }
-
-    /**
-     * from SSHUserPrivateKey
-     */
     @NonNull
     @Override
-    public List<String> getPrivateKeys() {
-        return Collections.singletonList(this.getPrivateKey());
+    public KeyStore getKeyStore() {
+        try {
+            final PEMParser pemParser = new PEMParser(new StringReader(getSecretValue(getId())));
+            final Object object = pemParser.readObject();
+        } catch (IOException e) {
+            throw new CredentialsUnavailableException("keyStore", Messages.noCertificateError());
+
+        }
     }
 
     private String getSecretValue(String secretName) {
@@ -132,12 +174,6 @@ public class AwsStringCredentials extends BaseStandardCredentials implements Str
         return s;
     }
 
-    @NonNull
-    @Override
-    public KeyStore getKeyStore() {
-        return null;
-    }
-
     @Extension
     @SuppressWarnings("unused")
     public static class DescriptorImpl extends BaseStandardCredentialsDescriptor {
@@ -147,7 +183,7 @@ public class AwsStringCredentials extends BaseStandardCredentials implements Str
         @Override
         @Nonnull
         public String getDisplayName() {
-            return Messages.secretText();
+            return Messages.awsSecret();
         }
     }
 }

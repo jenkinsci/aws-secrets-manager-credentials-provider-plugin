@@ -11,13 +11,13 @@ import io.jenkins.plugins.credentials.secretsmanager.aws.ListSecretsOperation;
 import io.jenkins.plugins.credentials.secretsmanager.config.EndpointConfiguration;
 import io.jenkins.plugins.credentials.secretsmanager.config.Filters;
 import io.jenkins.plugins.credentials.secretsmanager.config.PluginConfiguration;
-import io.jenkins.plugins.credentials.secretsmanager.types.AwsStringCredentials;
 import io.jenkins.plugins.credentials.secretsmanager.util.Memoizer;
 
 import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
@@ -110,7 +110,8 @@ final class CredentialsSupplierFactory {
             for (SecretListEntry s : secretList) {
                 final String name = s.getName();
                 final String description = Optional.ofNullable(s.getDescription()).orElse("");
-                final IdCredentials cred = new AwsStringCredentials(name, description, client);
+                final Map<String, String> tags = s.getTags().stream().collect(Collectors.toMap(Tag::getKey, Tag::getValue));
+                final IdCredentials cred = new AwsCredentials(name, description, tags, client);
                 credentials.put(name, cred);
             }
 
