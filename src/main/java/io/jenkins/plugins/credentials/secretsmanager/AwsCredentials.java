@@ -10,6 +10,8 @@ import com.cloudbees.plugins.credentials.common.StandardCertificateCredentials;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import com.cloudbees.plugins.credentials.impl.BaseStandardCredentials;
 
+import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
@@ -21,6 +23,8 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.security.KeyStore;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -54,36 +58,6 @@ public class AwsCredentials extends BaseStandardCredentials implements StringCre
         super(id, description);
         this.tags = tags;
         this.client = client;
-    }
-
-    private void testForTheType(String n) {
-        if (tags.containsKey("username")) {
-            // either ssh key or username/password
-            String secret = getSecretValue(n);
-
-            if (isSshKey(secret)) {
-                // ssh key
-            } else {
-                // username/password
-            }
-        } else {
-            // either secret text or certificate
-            String secret = getSecretValue(n);
-
-            if (isCertificate(secret)) {
-                // certificate
-            } else {
-                // secret text
-            }
-        }
-    }
-
-    private static boolean isSshKey(String secret) {
-        return secret.startsWith("--BEGIN SSH PRIVATE KEY--");
-    }
-
-    private static boolean isCertificate(String secret) {
-        return secret.startsWith("--BEGIN CERTIFICATE--");
     }
 
     @Nonnull
@@ -146,9 +120,11 @@ public class AwsCredentials extends BaseStandardCredentials implements StringCre
         try {
             final PEMParser pemParser = new PEMParser(new StringReader(getSecretValue(getId())));
             final Object object = pemParser.readObject();
-        } catch (IOException e) {
+            JcaX509CertificateConverter converter = new JcaX509CertificateConverter().setProvider("BC");
+            final X509Certificate certificate = converter.getCertificate((X509CertificateHolder) object);
+            // FIXME load into a KeyStore and return
+        } catch (IOException | CertificateException e) {
             throw new CredentialsUnavailableException("keyStore", Messages.noCertificateError());
-
         }
     }
 
