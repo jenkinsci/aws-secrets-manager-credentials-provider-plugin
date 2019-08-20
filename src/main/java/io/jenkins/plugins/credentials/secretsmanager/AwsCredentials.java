@@ -10,21 +10,22 @@ import com.cloudbees.plugins.credentials.common.StandardCertificateCredentials;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import com.cloudbees.plugins.credentials.impl.BaseStandardCredentials;
 
-import org.bouncycastle.cert.X509CertificateHolder;
-import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
+import org.apache.commons.io.IOUtils;
 import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringReader;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -118,12 +119,16 @@ public class AwsCredentials extends BaseStandardCredentials implements StringCre
     @Override
     public KeyStore getKeyStore() {
         try {
-            final PEMParser pemParser = new PEMParser(new StringReader(getSecretValue(getId())));
-            final Object object = pemParser.readObject();
-            JcaX509CertificateConverter converter = new JcaX509CertificateConverter().setProvider("BC");
-            final X509Certificate certificate = converter.getCertificate((X509CertificateHolder) object);
-            // FIXME load into a KeyStore and return
-        } catch (IOException | CertificateException e) {
+            //final PEMParser pemParser = new PEMParser(new StringReader(getSecretValue(getId())));
+            //final Object object = pemParser.readObject();
+            //final JcaX509CertificateConverter converter = new JcaX509CertificateConverter().setProvider("BC");
+            //final Certificate certificate = converter.getCertificate((X509CertificateHolder) object);
+            final KeyStore keyStore = KeyStore.getInstance("JKS");
+            final String secretValue = getSecretValue(getId());
+            final InputStream stream = IOUtils.toInputStream(secretValue, StandardCharsets.UTF_8);
+            keyStore.load(stream, null);
+            return keyStore;
+        } catch (IOException | CertificateException | KeyStoreException | NoSuchAlgorithmException e) {
             throw new CredentialsUnavailableException("keyStore", Messages.noCertificateError());
         }
     }
