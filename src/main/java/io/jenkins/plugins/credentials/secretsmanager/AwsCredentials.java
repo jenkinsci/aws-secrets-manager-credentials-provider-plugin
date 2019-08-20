@@ -14,12 +14,13 @@ import org.apache.commons.io.IOUtils;
 import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
+import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
-import java.nio.ByteBuffer;
+import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.security.KeyStore;
@@ -106,10 +107,14 @@ public class AwsCredentials extends BaseStandardCredentials implements StringCre
     public String getPrivateKey() {
         try {
             final PEMParser pemParser = new PEMParser(new StringReader(getSecretValue(getId())));
-            final Object object = pemParser.readObject();
+            final PEMKeyPair object = (PEMKeyPair) pemParser.readObject();
             final JcaPEMKeyConverter converter = new JcaPEMKeyConverter().setProvider("BC");
-            final KeyPair keyPair = converter.getKeyPair((PEMKeyPair) object);
-            return StandardCharsets.UTF_8.decode(ByteBuffer.wrap(keyPair.getPrivate().getEncoded())).toString();
+            final KeyPair keyPair = converter.getKeyPair(object);
+            final StringWriter writer = new StringWriter();
+            final JcaPEMWriter w = new JcaPEMWriter(writer);
+            w.writeObject(keyPair);
+            w.flush();
+            return writer.toString();
         } catch (IOException e) {
             throw new CredentialsUnavailableException("privateKey", Messages.noPrivateKeyError());
         }

@@ -71,7 +71,8 @@ public class PluginIT {
             , "jEOb9QKBgG3jSxGfqN/sD8W9BhpVrybCXh2RvhxOBJAFx58wSWTkRcYSwpdyvm7x"
             , "wlMtcEdQgaSBeuBU3HPUdYE07bQNAlYO0p9MQnsLHzd2V9yiCX1Sq5iB6dQpHxyi"
             , "sDZLY2Mym1nUJWfE47GAcxFZtrVh9ojKcmgiHo8qPTkWjFGY7xe/"
-            , "-----END RSA PRIVATE KEY-----");
+            , "-----END RSA PRIVATE KEY-----"
+            , "");
 
     @Rule
     public JenkinsRule r = new JenkinsConfiguredWithCodeRule();
@@ -151,7 +152,7 @@ public class PluginIT {
         // Then
         assertThat(credentials)
                 .extracting("id", "username", "privateKey", "passphrase")
-                .containsOnly(tuple(foo.getName(), "joe", Secret.fromString(foo.getValue()), Secret.fromString("")));
+                .containsOnly(tuple(foo.getName(), "joe", foo.getValue(), Secret.fromString("")));
     }
 
     @Test
