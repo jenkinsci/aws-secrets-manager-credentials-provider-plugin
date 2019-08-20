@@ -41,43 +41,87 @@ Optional permissions:
 
 - `kms:Decrypt` (if you use a customer-managed AWS KMS key to encrypt the secret)
 
-### AWS Secrets Manager
+## Usage
 
-Upload secrets to AWS Secrets Manager in the format "one secret value = one AWS Secret" (see the [AWS documentation](https://docs.aws.amazon.com/cli/latest/reference/secretsmanager/create-secret.html)).
+1. **Upload the secret** to AWS Secrets Manager in the format "one secret value = one AWS Secret" (see the [AWS documentation](https://docs.aws.amazon.com/cli/latest/reference/secretsmanager/create-secret.html)).
+2. **Reference the secret** by name in your Jenkins build job.
 
-Text:
+### Secret Text
 
 ```bash
 aws secretsmanager create-secret --name 'newrelic-token' --description 'Acme Corp Newrelic API token' --secret-string 'abc123'
 ```
 
-Username + Password:
-
-```bash
-aws secretsmanager create-secret --name 'artifactory-username' --description 'Acme Corp Artifactory username' --secret-string 'joe'
-aws secretsmanager create-secret --name 'artifactory-password' --description 'Acme Corp Artifactory password' --secret-string 'supersecret'
+```groovy
+pipeline {
+    environment {
+        NEWRELIC_TOKEN = credentials('newrelic-token')
+    }
+    stages {
+        stage('Foo') {
+            // FIXME example
+        }
+    }
+}
 ```
 
-SSH key:
+### Username with Password
 
 ```bash
-ssh-keygen -t rsa -b 4096 -C 'acme@example.com' -f id_rsa
-aws secretsmanager create-secret --name 'ssh-key' --description 'Acme Corp SSH key' --secret-string 'file://id_rsa'
+aws secretsmanager create-secret --name 'artifactory-login' --description 'Acme Corp Artifactory login' --secret-string 'supersecret' --tags 'Key=username,Value=joe'
 ```
-
-## Usage 
-
-Reference a secret in Secrets Manager by its name in a build job:
 
 ```groovy
 pipeline {
     environment {
-        ARTIFACTORY_USERNAME = credentials("artifactory-username")
-        ARTIFACTORY_PASSWORD = credentials("artifactory-password")
+        // Binds the username and password to 2 environment variables:
+        // ARTIFACTORY_USR=joe
+        // ARTIFACTORY_PSW=supersecret
+        ARTIFACTORY = credentials('artifactory-login')
     }
     stages {
-        stage("Deploy") {
-            sh "mvn deploy"
+        stage('Foo') {
+            sh 'mvn deploy'
+        }
+    }
+}
+```
+
+### SSH Private Key
+
+```bash
+ssh-keygen -t rsa -b 4096 -C 'acme@example.com' -f id_rsa
+aws secretsmanager create-secret --name 'ssh-key' --description 'Acme Corp SSH key' --secret-string 'file://id_rsa' --tags 'Key=username,Value=joe'
+```
+
+```groovy
+pipeline {
+    stages {
+        stage('Foo') {
+            sshagent(credentials: 'ssh-key') {
+                sh 'git push'
+            }
+        }
+    }
+}
+```
+
+### Certificate
+
+```bash
+openssl req -new -x509 -key key.pem -days 7 -out cert.crt
+# FIXME join this up
+aws secretsmanager create-secret --name 'client-cert' --description 'Acme Corp client certificate' --secret-string 'file://???'
+```
+
+```groovy
+pipeline {
+    stages {
+        stage('Foo') {
+            withCredentials(bindings: [certificate(credentialsId: 'client-cert', keystoreVariable: 'CERTIFICATE_FOR_XYZ')]) {
+                // FIXME join this up with the bindings
+                sh 'curl --cacert ??.crt --cert ??.pfx https://example.com'
+            }
         }
     }
 }
