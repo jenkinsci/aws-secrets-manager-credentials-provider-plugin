@@ -173,13 +173,12 @@ public class PluginIT {
         final List<CertCreds> credentials = lookupCredentials(StandardCertificateCredentials.class)
                 .stream()
                 .map(cred -> {
-                    final int keyStoreSize;
                     try {
-                        keyStoreSize = cred.getKeyStore().size();
+                        final int keyStoreSize = cred.getKeyStore().size();
+                        return new CertCreds(cred.getId(), keyStoreSize, cred.getPassword());
                     } catch (KeyStoreException e) {
                         throw new RuntimeException(e);
                     }
-                    return new CertCreds(cred.getId(), keyStoreSize, cred.getPassword());
                 })
                 .collect(Collectors.toList());
 

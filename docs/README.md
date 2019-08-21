@@ -61,7 +61,7 @@ pipeline {
     }
     stages {
         stage('Foo') {
-            curl -X GET -H 'X-Api-Key:NEWRELIC_API_KEY' 'https://api.newrelic.com/v2/applications/example/deployments.json'
+            sh 'curl -X GET -H "X-Api-Key:$NEWRELIC_API_KEY" https://api.newrelic.com/v2/applications/example/deployments.json'
         }
     }
 }
