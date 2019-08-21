@@ -10,18 +10,18 @@ import com.cloudbees.plugins.credentials.common.StandardCertificateCredentials;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import com.cloudbees.plugins.credentials.impl.BaseStandardCredentials;
 
-import org.apache.commons.io.IOUtils;
 import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.nio.charset.StandardCharsets;
+import java.nio.ByteBuffer;
 import java.security.KeyPair;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -65,7 +65,7 @@ public class AwsCredentials extends BaseStandardCredentials implements StringCre
     @Nonnull
     @Override
     public Secret getSecret() {
-        return Secret.fromString(getSecretValue(getId()));
+        return Secret.fromString(getSecretString(getId()));
     }
 
     @NonNull
@@ -73,7 +73,7 @@ public class AwsCredentials extends BaseStandardCredentials implements StringCre
     public Secret getPassword() {
         if (tags.containsKey("username")) {
             // username/password
-            return Secret.fromString(getSecretValue(getId()));
+            return Secret.fromString(getSecretString(getId()));
         } else {
             // certificate
             return NONE;
@@ -106,8 +106,10 @@ public class AwsCredentials extends BaseStandardCredentials implements StringCre
     @Override
     public String getPrivateKey() {
         try {
-            final PEMParser pemParser = new PEMParser(new StringReader(getSecretValue(getId())));
+            final PEMParser pemParser = new PEMParser(new StringReader(getSecretString(getId())));
             final PEMKeyPair object = (PEMKeyPair) pemParser.readObject();
+
+            // Normalize the format of the private key
             final JcaPEMKeyConverter converter = new JcaPEMKeyConverter().setProvider("BC");
             final KeyPair keyPair = converter.getKeyPair(object);
             final StringWriter writer = new StringWriter();
@@ -123,14 +125,10 @@ public class AwsCredentials extends BaseStandardCredentials implements StringCre
     @NonNull
     @Override
     public KeyStore getKeyStore() {
-        try {
-            //final PEMParser pemParser = new PEMParser(new StringReader(getSecretValue(getId())));
-            //final Object object = pemParser.readObject();
-            //final JcaX509CertificateConverter converter = new JcaX509CertificateConverter().setProvider("BC");
-            //final Certificate certificate = converter.getCertificate((X509CertificateHolder) object);
+        final ByteBuffer secretValue = getSecretBinary(getId());
+
+        try (InputStream stream = new ByteArrayInputStream(secretValue.array())) {
             final KeyStore keyStore = KeyStore.getInstance("JKS");
-            final String secretValue = getSecretValue(getId());
-            final InputStream stream = IOUtils.toInputStream(secretValue, StandardCharsets.UTF_8);
             keyStore.load(stream, null);
             return keyStore;
         } catch (IOException | CertificateException | KeyStoreException | NoSuchAlgorithmException e) {
@@ -138,27 +136,27 @@ public class AwsCredentials extends BaseStandardCredentials implements StringCre
         }
     }
 
-    private String getSecretValue(String secretName) {
+    private String getSecretString(String secretName) {
+        final GetSecretValueResult result = this.getSecretValue(secretName);
+        return result.getSecretString();
+    }
+
+    private ByteBuffer getSecretBinary(String secretName) {
+        final GetSecretValueResult result = this.getSecretValue(secretName);
+        return result.getSecretBinary();
+    }
+
+    private GetSecretValueResult getSecretValue(String secretName) {
         final GetSecretValueRequest request = new GetSecretValueRequest().withSecretId(secretName);
 
-        final GetSecretValueResult result;
         try {
             // TODO configure the timeout
-            result = client.getSecretValue(request);
+            return client.getSecretValue(request);
         } catch (AmazonClientException ex) {
             throw new CredentialsUnavailableException("secret", Messages.couldNotRetrieveSecretError(secretName));
         }
-
-        // Which field is populated depends on whether the secret was a string or binary
-        final String s;
-        if (result.getSecretString() != null) {
-            s = result.getSecretString();
-        } else {
-            s = StandardCharsets.UTF_8.decode(result.getSecretBinary()).toString();
-        }
-
-        return s;
     }
+
 
     @Extension
     @SuppressWarnings("unused")

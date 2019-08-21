@@ -48,24 +48,28 @@ Optional permissions:
 
 ### Secret Text
 
+A simple secret string.
+
 ```bash
-aws secretsmanager create-secret --name 'newrelic-token' --description 'Acme Corp Newrelic API token' --secret-string 'abc123'
+aws secretsmanager create-secret --name 'newrelic-api-key' --description 'Acme Corp Newrelic API key' --secret-string 'abc123'
 ```
 
 ```groovy
 pipeline {
     environment {
-        NEWRELIC_TOKEN = credentials('newrelic-token')
+        NEWRELIC_API_KEY = credentials('newrelic-api-key')
     }
     stages {
         stage('Foo') {
-            // FIXME example
+            curl -X GET -H 'X-Api-Key:NEWRELIC_API_KEY' 'https://api.newrelic.com/v2/applications/example/deployments.json'
         }
     }
 }
 ```
 
 ### Username with Password
+
+A username and password pair.
 
 ```bash
 aws secretsmanager create-secret --name 'artifactory-login' --description 'Acme Corp Artifactory login' --secret-string 'supersecret' --tags 'Key=username,Value=joe'
@@ -89,6 +93,8 @@ pipeline {
 
 ### SSH Private Key
 
+An SSH private key stored in PEM format, with a username.
+
 ```bash
 ssh-keygen -t rsa -b 4096 -C 'acme@example.com' -f id_rsa
 aws secretsmanager create-secret --name 'ssh-key' --description 'Acme Corp SSH key' --secret-string 'file://id_rsa' --tags 'Key=username,Value=joe'
@@ -108,19 +114,20 @@ pipeline {
 
 ### Certificate
 
+A client certificate stored in a Java Keystore file.
+
 ```bash
-openssl req -new -x509 -key key.pem -days 7 -out cert.crt
-# FIXME join this up
-aws secretsmanager create-secret --name 'client-cert' --description 'Acme Corp client certificate' --secret-string 'file://???'
+keytool -genkeypair -alias domain -keyalg RSA -validity 7 -keystore keystore.jks
+aws secretsmanager create-secret --name 'code-signing-cert' --description 'Acme Corp code signing certificate' --secret-binary 'file://keystore.jks'
 ```
 
 ```groovy
 pipeline {
     stages {
         stage('Foo') {
-            withCredentials(bindings: [certificate(credentialsId: 'client-cert', keystoreVariable: 'CERTIFICATE_FOR_XYZ')]) {
-                // FIXME join this up with the bindings
-                sh 'curl --cacert ??.crt --cert ??.pfx https://example.com'
+            // Makes the keystore available as a temporary .jks file on disk in Jenkins
+            withCredentials(bindings: [certificate(credentialsId: 'code-signing-cert', keystoreVariable: 'KEYSTORE_JKS')]) {
+                sh './gradlew -PstoreFile=$KEYSTORE_JKS clean assembleRelease'
             }
         }
     }

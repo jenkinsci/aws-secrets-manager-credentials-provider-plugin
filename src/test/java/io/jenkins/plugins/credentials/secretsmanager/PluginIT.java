@@ -7,6 +7,7 @@ import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.CredentialsScope;
 import com.cloudbees.plugins.credentials.CredentialsStore;
 import com.cloudbees.plugins.credentials.CredentialsUnavailableException;
+import com.cloudbees.plugins.credentials.common.StandardCertificateCredentials;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import com.cloudbees.plugins.credentials.domains.Domain;
 
@@ -18,10 +19,17 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import hudson.security.ACL;
 import hudson.util.Secret;
@@ -35,7 +43,6 @@ import io.jenkins.plugins.credentials.secretsmanager.util.TestUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.fail;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
 
@@ -44,35 +51,6 @@ public class PluginIT {
     private static final AWSSecretsManager CLIENT = TestUtils.getClientSecretsManager();
     private static final String FOO = "foo";
     private static final String BAR = "bar";
-    private static final String RSA_PRIVATE_KEY = String.join("\n"
-            , "-----BEGIN RSA PRIVATE KEY-----"
-            , "MIIEowIBAAKCAQEAngWMYnda9vD2utvbAdgCOLVNanA/MW50er5ROW21it/eph1u"
-            , "6RCuZ0CiuYUE5Eb8kOOQP7MTL3Ixyv9GW6hmMZwjyvcCamKj7cYuEHBYkn0X2Jgw"
-            , "syPGUWZwITgSxgb/VfjRKbAtUdvXNFjHxknUlaVd+G6gQpN5Lv3//O/EglmVqf1d"
-            , "CM2xAy9Ixk9roMSmBpgwC7lCsi1W9IGdLrjLAC96BrJkHX1EDQDdB8tWg8qLjZfr"
-            , "L1ioddG/NDH8lOUetWX9SB5WF4xi/oBRNvSCwmBAa8v2DvhS/TEwcWAsReclRCNW"
-            , "5eGAqhbb0Kl8E0hYJdFlEKYjQH3y5cZtqMAiuwIDAQABAoIBAGQK2TThoYpjRaFJ"
-            , "XZ8ONWHXjpqLU8akykOHR/8WsO+qCdibG8OcFv4xkpPnXhBzzKSiHYnmgofwQQvm"
-            , "j5GpzIEt/A8cUMAvkN8RL8qihcDAR5+Nwo83X+/a7bRqPqB2f6LbMvi0nAyOJPH0"
-            , "Hw4vYdIX7qVAzF855GfW0QE+fueSdtgWviJM8gZHdhCqe/zqYm016zNaavap530r"
-            , "tJ/+vhUW8WYqJqBW8+58laW5vTBusNsVjeL40yJF8X/XQQcdZ4XmthNcegx79oim"
-            , "j9ELzX0ttchiwAe/trLxTkdWb4rEFz+U50iAOMUdS8T0brb5bxhqNM/ByiqQ28W9"
-            , "2NJCVEkCgYEA0phCE9iKVWNZnvWX6+fHgr2NO2ShPexPeRfFxr0ugXGTQvyT0HnM"
-            , "/Q//V+LduPMX8b2AsOzI0rQh+4bjohOZvKmGKiuPv3eSvqpi/r6208ZVTBjjFvBO"
-            , "UQhMbPUyR6vO1ryFDwBMwMqQ06ldkXArhB+SG0dYnOKb/6g0nO2BVFUCgYEAwBeH"
-            , "HGNGuxwum63UAaqyX6lRSpGGm6XSCBhzvHUPnVphgq7nnZOGl0z3U49jreCvuuEc"
-            , "fA9YqxJjzoZy5870KOXY2kltlq/U/4Lrb0k75ag6ZVbi0oemACN6KCHtE+Zm2dac"
-            , "rW8oKWpRTbsvMOYUvSjF0u8BCrestpRUF977Ks8CgYEAicbLFCjK9+ozq+eJKPFO"
-            , "eZ6BU6YWR2je5Z5D6i3CyzT+3whXvECzd6yLpXfrDyEbPTB5jUacbB0lTmWFb3fb"
-            , "UK6n89bkCKO2Ab9/XKJxAkPzcgGmME+vLRx8w5v29STWAW78rj/H9ymPbqqTaJ82"
-            , "GQ5+jBI1Sw6GeNAW+8P2pLECgYAs/dXBimcosCMih4ZelZKN4WSO6KL0ldQp3UBO"
-            , "ZcSwgFjSeRD60XD2wyoywiUAtt2yEcPQMu/7saT63HbRYKHDaoJuLkCiyLBE4G8w"
-            , "c6C527tBvSYHVYpGAgk8mSWkQZTZdPDhlmV7vdEpOayF8X3uCDy9eQlvbzHe2cMQ"
-            , "jEOb9QKBgG3jSxGfqN/sD8W9BhpVrybCXh2RvhxOBJAFx58wSWTkRcYSwpdyvm7x"
-            , "wlMtcEdQgaSBeuBU3HPUdYE07bQNAlYO0p9MQnsLHzd2V9yiCX1Sq5iB6dQpHxyi"
-            , "sDZLY2Mym1nUJWfE47GAcxFZtrVh9ojKcmgiHo8qPTkWjFGY7xe/"
-            , "-----END RSA PRIVATE KEY-----"
-            , "");
 
     @Rule
     public JenkinsRule r = new JenkinsConfiguredWithCodeRule();
@@ -117,7 +95,7 @@ public class PluginIT {
         // Then
         assertThat(credentials)
                 .extracting("id", "secret")
-                .containsOnly(tuple(foo.getName(), Secret.fromString(foo.getValue())));
+                .containsOnly(tuple(foo.getName(), Secret.fromString("supersecret")));
     }
 
     @Test
@@ -135,14 +113,43 @@ public class PluginIT {
         // Then
         assertThat(credentials)
                 .extracting("id", "username", "password")
-                .containsOnly(tuple(foo.getName(), "joe", Secret.fromString(foo.getValue())));
+                .containsOnly(tuple(foo.getName(), "joe", Secret.fromString("supersecret")));
     }
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportSshPrivateKeySecret() {
         // Given
-        final Result foo = createSecret(FOO, RSA_PRIVATE_KEY, opts -> {
+        final String privateKey = String.join("\n"
+                , "-----BEGIN RSA PRIVATE KEY-----"
+                , "MIIEowIBAAKCAQEAngWMYnda9vD2utvbAdgCOLVNanA/MW50er5ROW21it/eph1u"
+                , "6RCuZ0CiuYUE5Eb8kOOQP7MTL3Ixyv9GW6hmMZwjyvcCamKj7cYuEHBYkn0X2Jgw"
+                , "syPGUWZwITgSxgb/VfjRKbAtUdvXNFjHxknUlaVd+G6gQpN5Lv3//O/EglmVqf1d"
+                , "CM2xAy9Ixk9roMSmBpgwC7lCsi1W9IGdLrjLAC96BrJkHX1EDQDdB8tWg8qLjZfr"
+                , "L1ioddG/NDH8lOUetWX9SB5WF4xi/oBRNvSCwmBAa8v2DvhS/TEwcWAsReclRCNW"
+                , "5eGAqhbb0Kl8E0hYJdFlEKYjQH3y5cZtqMAiuwIDAQABAoIBAGQK2TThoYpjRaFJ"
+                , "XZ8ONWHXjpqLU8akykOHR/8WsO+qCdibG8OcFv4xkpPnXhBzzKSiHYnmgofwQQvm"
+                , "j5GpzIEt/A8cUMAvkN8RL8qihcDAR5+Nwo83X+/a7bRqPqB2f6LbMvi0nAyOJPH0"
+                , "Hw4vYdIX7qVAzF855GfW0QE+fueSdtgWviJM8gZHdhCqe/zqYm016zNaavap530r"
+                , "tJ/+vhUW8WYqJqBW8+58laW5vTBusNsVjeL40yJF8X/XQQcdZ4XmthNcegx79oim"
+                , "j9ELzX0ttchiwAe/trLxTkdWb4rEFz+U50iAOMUdS8T0brb5bxhqNM/ByiqQ28W9"
+                , "2NJCVEkCgYEA0phCE9iKVWNZnvWX6+fHgr2NO2ShPexPeRfFxr0ugXGTQvyT0HnM"
+                , "/Q//V+LduPMX8b2AsOzI0rQh+4bjohOZvKmGKiuPv3eSvqpi/r6208ZVTBjjFvBO"
+                , "UQhMbPUyR6vO1ryFDwBMwMqQ06ldkXArhB+SG0dYnOKb/6g0nO2BVFUCgYEAwBeH"
+                , "HGNGuxwum63UAaqyX6lRSpGGm6XSCBhzvHUPnVphgq7nnZOGl0z3U49jreCvuuEc"
+                , "fA9YqxJjzoZy5870KOXY2kltlq/U/4Lrb0k75ag6ZVbi0oemACN6KCHtE+Zm2dac"
+                , "rW8oKWpRTbsvMOYUvSjF0u8BCrestpRUF977Ks8CgYEAicbLFCjK9+ozq+eJKPFO"
+                , "eZ6BU6YWR2je5Z5D6i3CyzT+3whXvECzd6yLpXfrDyEbPTB5jUacbB0lTmWFb3fb"
+                , "UK6n89bkCKO2Ab9/XKJxAkPzcgGmME+vLRx8w5v29STWAW78rj/H9ymPbqqTaJ82"
+                , "GQ5+jBI1Sw6GeNAW+8P2pLECgYAs/dXBimcosCMih4ZelZKN4WSO6KL0ldQp3UBO"
+                , "ZcSwgFjSeRD60XD2wyoywiUAtt2yEcPQMu/7saT63HbRYKHDaoJuLkCiyLBE4G8w"
+                , "c6C527tBvSYHVYpGAgk8mSWkQZTZdPDhlmV7vdEpOayF8X3uCDy9eQlvbzHe2cMQ"
+                , "jEOb9QKBgG3jSxGfqN/sD8W9BhpVrybCXh2RvhxOBJAFx58wSWTkRcYSwpdyvm7x"
+                , "wlMtcEdQgaSBeuBU3HPUdYE07bQNAlYO0p9MQnsLHzd2V9yiCX1Sq5iB6dQpHxyi"
+                , "sDZLY2Mym1nUJWfE47GAcxFZtrVh9ojKcmgiHo8qPTkWjFGY7xe/"
+                , "-----END RSA PRIVATE KEY-----"
+                , "");
+        final Result foo = createSecret(FOO, privateKey, opts -> {
             opts.tags = Collections.singletonMap("username", "joe");
         });
 
@@ -152,13 +159,34 @@ public class PluginIT {
         // Then
         assertThat(credentials)
                 .extracting("id", "username", "privateKey", "passphrase")
-                .containsOnly(tuple(foo.getName(), "joe", foo.getValue(), Secret.fromString("")));
+                .containsOnly(tuple(foo.getName(), "joe", privateKey, Secret.fromString("")));
     }
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportCertificateSecret() {
-        fail("Implement this test");
+        // Given
+        final KeyStore keyStore = newKeyStore();
+        final Result foo = createSecret(FOO, saveKeyStore(keyStore));
+
+        // When
+        final List<CertCreds> credentials = lookupCredentials(StandardCertificateCredentials.class)
+                .stream()
+                .map(cred -> {
+                    final int keyStoreSize;
+                    try {
+                        keyStoreSize = cred.getKeyStore().size();
+                    } catch (KeyStoreException e) {
+                        throw new RuntimeException(e);
+                    }
+                    return new CertCreds(cred.getId(), keyStoreSize, cred.getPassword());
+                })
+                .collect(Collectors.toList());
+
+        // Then
+        assertThat(credentials)
+                .extracting("id", "password", "keyStoreSize")
+                .containsOnly(tuple(foo.getName(), Secret.fromString(""), 0));
     }
 
     @Test
@@ -179,7 +207,7 @@ public class PluginIT {
         // Then
         assertThat(credentials)
                 .extracting("id", "secret")
-                .containsOnly(tuple(foo.getName(), Secret.fromString(foo.getValue())));
+                .containsOnly(tuple(foo.getName(), Secret.fromString("supersecret")));
     }
 
     @Test
@@ -198,7 +226,7 @@ public class PluginIT {
         // Then
         assertThat(credentials)
                 .extracting("id", "secret")
-                .containsOnly(tuple(foo.getName(), Secret.fromString(foo.getValue())));
+                .containsOnly(tuple(foo.getName(), Secret.fromString("supersecret")));
     }
 
     @Test
@@ -219,7 +247,7 @@ public class PluginIT {
         final StringCredentials barCreds = credentials.stream().filter(c -> c.getId().equals("bar")).findFirst().orElseThrow(() -> new IllegalStateException("Needed the credential 'bar', but it did not exist"));
 
         assertSoftly(s -> {
-            s.assertThat(fooCreds.getSecret()).as("Foo").isEqualTo(Secret.fromString(foo.getValue()));
+            s.assertThat(fooCreds.getSecret()).as("Foo").isEqualTo(Secret.fromString("supersecret"));
             s.assertThatThrownBy(barCreds::getSecret).as("Bar").isInstanceOf(CredentialsUnavailableException.class);
         });
     }
@@ -254,9 +282,33 @@ public class PluginIT {
         return CredentialsProvider.lookupCredentials(type, r.jenkins, ACL.SYSTEM, Collections.emptyList());
     }
 
+    private static byte[] saveKeyStore(KeyStore keyStore) {
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+            keyStore.store(baos, new char[] {});
+            return baos.toByteArray();
+        } catch (IOException | CertificateException | NoSuchAlgorithmException | KeyStoreException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static KeyStore newKeyStore() {
+        try {
+            final KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+            keyStore.load(null, new char[]{});
+            return keyStore;
+        } catch (IOException | CertificateException | NoSuchAlgorithmException | KeyStoreException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private static Result createSecret(String name, String secretString) {
         final CreateSecretOperation create = new CreateSecretOperation(CLIENT);
         return create.run(name, secretString);
+    }
+
+    private static Result createSecret(String name, byte[] secretBinary) {
+        final CreateSecretOperation create = new CreateSecretOperation(CLIENT);
+        return create.run(name, secretBinary);
     }
 
     private static Result createSecret(String name, String secretString, Consumer<CreateSecretOperation.Opts> opts) {
@@ -277,5 +329,20 @@ public class PluginIT {
     private static void restoreSecret(String secretId) {
         final RestoreSecretOperation restore = new RestoreSecretOperation(CLIENT);
         restore.run(secretId);
+    }
+
+    /*
+     * KeyStore does not have a proper equals() implementation so we have to work around this.
+     */
+    private static class CertCreds {
+        final String id;
+        final int keyStoreSize;
+        final Secret password;
+
+        private CertCreds(String id, int keyStoreSize, Secret password) {
+            this.id = id;
+            this.keyStoreSize = keyStoreSize;
+            this.password = password;
+        }
     }
 }
