@@ -11,6 +11,13 @@ import com.cloudbees.plugins.credentials.common.StandardCertificateCredentials;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import com.cloudbees.plugins.credentials.domains.Domain;
 
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cert.X509v3CertificateBuilder;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
+import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl;
 import org.junit.Before;
@@ -21,13 +28,23 @@ import org.jvnet.hudson.test.JenkinsRule;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.math.BigInteger;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -164,28 +181,26 @@ public class PluginIT {
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
-    public void shouldSupportCertificateSecret() {
+    public void shouldSupportCertificateSecret() throws KeyStoreException {
         // Given
+        final String alias = "test";
+        final KeyPair keyPair = newKeyPair();
+        final Certificate cert = newSelfSignedCertificate(keyPair);
         final KeyStore keyStore = newKeyStore();
+        keyStore.setKeyEntry(alias, keyPair.getPrivate(), new char[] {}, new Certificate[] {cert});
+        // And
         final Result foo = createSecret(FOO, saveKeyStore(keyStore));
 
         // When
         final List<CertCreds> credentials = lookupCredentials(StandardCertificateCredentials.class)
                 .stream()
-                .map(cred -> {
-                    try {
-                        final int keyStoreSize = cred.getKeyStore().size();
-                        return new CertCreds(cred.getId(), keyStoreSize, cred.getPassword());
-                    } catch (KeyStoreException e) {
-                        throw new RuntimeException(e);
-                    }
-                })
+                .map(cred -> new CertCreds(cred.getId(), keystoreToMap(cred.getKeyStore()), cred.getPassword()))
                 .collect(Collectors.toList());
 
         // Then
         assertThat(credentials)
-                .extracting("id", "password", "keyStoreSize")
-                .containsOnly(tuple(foo.getName(), Secret.fromString(""), 0));
+                .extracting("id", "password", "keyStore")
+                .containsOnly(tuple(foo.getName(), Secret.fromString(""), Collections.singletonMap(alias, Collections.singletonList(cert))));
     }
 
     @Test
@@ -300,6 +315,51 @@ public class PluginIT {
         }
     }
 
+    private static KeyPair newKeyPair() {
+        final KeyPairGenerator keyPairGenerator;
+        try {
+            keyPairGenerator = KeyPairGenerator.getInstance("RSA");
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+        keyPairGenerator.initialize(512);
+        return keyPairGenerator.generateKeyPair();
+    }
+
+    private static Map<String, List<Certificate>> keystoreToMap(KeyStore keyStore) {
+        final Map<String, List<Certificate>> ks = new HashMap<>();
+
+        try {
+            final Enumeration<String> aliases = keyStore.aliases();
+            while (aliases.hasMoreElements()) {
+                final String a = aliases.nextElement();
+                ks.put(a, Arrays.asList(keyStore.getCertificateChain(a)));
+            }
+        } catch (KeyStoreException e) {
+            throw new RuntimeException(e);
+        }
+
+        return ks;
+    }
+
+    private static X509Certificate newSelfSignedCertificate(KeyPair keyPair) {
+        try {
+            final X500Name cn = new X500Name("CN=localhost");
+            final X509v3CertificateBuilder b = new JcaX509v3CertificateBuilder(
+                    cn,
+                    BigInteger.valueOf(Math.abs(new SecureRandom().nextInt())),
+                    new Date(System.currentTimeMillis() - (1000L * 60 * 60 * 24 * 30)), // Not after 99 days from now
+                    new Date(System.currentTimeMillis() + (1000L * 60 * 60 * 24 * 99)), // Subject
+                    cn,
+                    keyPair.getPublic()
+            );
+            final X509CertificateHolder holder = b.build(new JcaContentSignerBuilder("SHA1withRSA").build(keyPair.getPrivate()));
+            return new JcaX509CertificateConverter().getCertificate(holder);
+        } catch (CertificateException | OperatorCreationException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private static Result createSecret(String name, String secretString) {
         final CreateSecretOperation create = new CreateSecretOperation(CLIENT);
         return create.run(name, secretString);
@@ -335,12 +395,12 @@ public class PluginIT {
      */
     private static class CertCreds {
         final String id;
-        final int keyStoreSize;
+        final Map<String, List<Certificate>> keyStore;
         final Secret password;
 
-        private CertCreds(String id, int keyStoreSize, Secret password) {
+        private CertCreds(String id, Map<String, List<Certificate>> keyStore, Secret password) {
             this.id = id;
-            this.keyStoreSize = keyStoreSize;
+            this.keyStore = keyStore;
             this.password = password;
         }
     }
