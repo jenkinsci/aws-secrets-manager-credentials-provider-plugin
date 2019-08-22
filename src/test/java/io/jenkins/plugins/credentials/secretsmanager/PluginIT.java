@@ -356,7 +356,9 @@ public class PluginIT {
             final Enumeration<String> aliases = keyStore.aliases();
             while (aliases.hasMoreElements()) {
                 final String a = aliases.nextElement();
-                ks.put(a, Arrays.asList(keyStore.getCertificateChain(a)));
+                final Certificate[] certificateChain = keyStore.getCertificateChain(a);
+                final List<Certificate> certificateChainList = Arrays.asList(certificateChain);
+                ks.put(a, certificateChainList);
             }
         } catch (KeyStoreException e) {
             throw new RuntimeException(e);

@@ -123,7 +123,7 @@ public class AwsCredentials extends BaseStandardCredentials implements StringCre
         final ByteBuffer secretValue = getSecretBinary(getId());
 
         try (InputStream stream = new ByteArrayInputStream(secretValue.array())) {
-            final KeyStore keyStore = KeyStore.getInstance("JKS");
+            final KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
             keyStore.load(stream, null);
             return keyStore;
         } catch (IOException | CertificateException | KeyStoreException | NoSuchAlgorithmException e) {
