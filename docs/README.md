@@ -93,7 +93,12 @@ pipeline {
 
 ### SSH Private Key
 
-An SSH private key stored in PEM format, with a username.
+A private key with a username.
+
+The private key must satisfy the following requirements:
+
+- Encoding: PKCS#1 or PCKS#8
+- Format: PEM
 
 ```bash
 ssh-keygen -t rsa -b 4096 -C 'acme@example.com' -f id_rsa
@@ -114,7 +119,7 @@ pipeline {
 
 ### Certificate
 
-A client certificate stored in a Java Keystore file.
+A client certificate stored in a Java Keystore (.jks) file.
 
 ```bash
 keytool -genkeypair -alias domain -keyalg RSA -validity 7 -keystore keystore.jks

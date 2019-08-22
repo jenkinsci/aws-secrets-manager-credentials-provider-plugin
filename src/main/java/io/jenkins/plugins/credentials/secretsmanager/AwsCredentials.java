@@ -10,19 +10,16 @@ import com.cloudbees.plugins.credentials.common.StandardCertificateCredentials;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import com.cloudbees.plugins.credentials.impl.BaseStandardCredentials;
 
+import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
-import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
-import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
-import java.io.StringWriter;
 import java.nio.ByteBuffer;
-import java.security.KeyPair;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -106,17 +103,15 @@ public class AwsCredentials extends BaseStandardCredentials implements StringCre
     @Override
     public String getPrivateKey() {
         try {
-            final PEMParser pemParser = new PEMParser(new StringReader(getSecretString(getId())));
-            final PEMKeyPair object = (PEMKeyPair) pemParser.readObject();
+            final String secretValue = getSecretString(getId());
+            final PEMParser pemParser = new PEMParser(new StringReader(secretValue));
+            final Object keyObject = pemParser.readObject();
 
-            // Normalize the format of the private key
-            final JcaPEMKeyConverter converter = new JcaPEMKeyConverter().setProvider("BC");
-            final KeyPair keyPair = converter.getKeyPair(object);
-            final StringWriter writer = new StringWriter();
-            final JcaPEMWriter w = new JcaPEMWriter(writer);
-            w.writeObject(keyPair);
-            w.flush();
-            return writer.toString();
+            if ((keyObject instanceof PEMKeyPair) || (keyObject instanceof PrivateKeyInfo)) {
+                return secretValue.trim();
+            } else {
+                throw new CredentialsUnavailableException("privateKey", Messages.noPrivateKeyError());
+            }
         } catch (IOException e) {
             throw new CredentialsUnavailableException("privateKey", Messages.noPrivateKeyError());
         }
