@@ -68,6 +68,7 @@ public class PluginIT {
     private static final AWSSecretsManager CLIENT = TestUtils.getClientSecretsManager();
     private static final String FOO = "foo";
     private static final String BAR = "bar";
+    public static final char[] EMPTY_PASSWORD = {};
 
     @Rule
     public JenkinsRule r = new JenkinsConfiguredWithCodeRule();
@@ -331,7 +332,7 @@ public class PluginIT {
     private static KeyStore newKeyStore() {
         try {
             final KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
-            keyStore.load(null, new char[]{});
+            keyStore.load(null, EMPTY_PASSWORD);
             return keyStore;
         } catch (IOException | CertificateException | NoSuchAlgorithmException | KeyStoreException e) {
             throw new RuntimeException(e);

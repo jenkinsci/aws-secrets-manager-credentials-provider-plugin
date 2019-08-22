@@ -46,6 +46,7 @@ import hudson.util.Secret;
  */
 public class AwsCredentials extends BaseStandardCredentials implements StringCredentials, StandardUsernamePasswordCredentials, SSHUserPrivateKey, StandardCertificateCredentials {
 
+    private static final char[] EMPTY_PASSWORD = new char[]{};
     private static final Secret NONE = Secret.fromString("");
     private static final long serialVersionUID = 1L;
 
@@ -124,7 +125,8 @@ public class AwsCredentials extends BaseStandardCredentials implements StringCre
 
         try (InputStream stream = new ByteArrayInputStream(secretValue.array())) {
             final KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
-            keyStore.load(stream, null);
+            // JDK9 workaround: PKCS#12 keystores must always have a password (not null)
+            keyStore.load(stream, EMPTY_PASSWORD);
             return keyStore;
         } catch (IOException | CertificateException | KeyStoreException | NoSuchAlgorithmException e) {
             throw new CredentialsUnavailableException("keyStore", Messages.noCertificateError());
