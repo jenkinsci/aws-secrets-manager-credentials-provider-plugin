@@ -70,6 +70,37 @@ public class PluginIT {
     private static final String BAR = "bar";
     private static final char[] EMPTY_PASSWORD = {};
     private static final Secret EMPTY_PASSPHRASE = Secret.fromString("");
+    private static final String PKCS1_PRIVATE_KEY = "-----BEGIN RSA PRIVATE KEY-----\n" +
+            "MIICXQIBAAKBgQDbyoNEw32kJTN3/Bgnhr2GDlJ74YbwaFXMLC2V2j98+384NYra\n" +
+            "/mDOsBBU9eBLH7dKMGLvaTFGzUliIAASrJSoWAxJGaAKwHPnkG44gpf+wKQNybXn\n" +
+            "54vsNqDRFuz0BzDcD3YKEtqdT2eK/wJn80uarnQl4QcPfZx8/ELuVxo3uwIDAQAB\n" +
+            "AoGBAMCc26byTvP/qfg3U4+oFAUcHgr0XIXoWXAhMx3E8qh72kSPH43FKV9Yiid6\n" +
+            "hkIvnDgG6Vz36bgrhWjZtFapKWgyFZ2sRbrcU5+4Ks3+96V7abSF71KkWl/WWvMQ\n" +
+            "61/Q5lC6ZRFiLVdI4JJhAgdu0qrDCTxHMYtkxzYAvNGE4jX5AkEA9rsBVdyNGi85\n" +
+            "VRXHxs/0EG/56okBaMuVpd9l4noPcWRlrWwCYU/paExZimYyy5+5hp4TcTmQLw2Q\n" +
+            "jRo3cj5SHwJBAOQMaR6jfsgKIydqC9ZqcIH3YKI7AV/e3+3qXL3GHPcVqJVIMGSF\n" +
+            "DHqFW42B2WjdSpG4k4LisIBblsuHpXQg/uUCQAE2VgFX/hF83ek/HCYr62URR8cR\n" +
+            "OUKMjYWtHVEJjH3gImfBuhlETT9H8MCvU9yQQlcY+7t4ru6sQGORF2imSb0CQQCb\n" +
+            "5agPG/HVyqhRj3tcLxOOpZBYF0JPScuHl4mi6kZu202OD/WVIidvsq7tw/DecTlC\n" +
+            "+Q1Okq3accJajPacttnJAkAhM+1WigW6myaRQYkr648Vo47RFbtAJzn+RTY46sEn\n" +
+            "srzbfLspVubVfrJ/kh4LIEwPapfxPb7QQeK0guUABL/B\n" +
+            "-----END RSA PRIVATE KEY-----";
+    private static final String PKCS8_PRIVATE_KEY = "-----BEGIN PRIVATE KEY-----\n" +
+            "MIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBANvKg0TDfaQlM3f8\n" +
+            "GCeGvYYOUnvhhvBoVcwsLZXaP3z7fzg1itr+YM6wEFT14Esft0owYu9pMUbNSWIg\n" +
+            "ABKslKhYDEkZoArAc+eQbjiCl/7ApA3Jtefni+w2oNEW7PQHMNwPdgoS2p1PZ4r/\n" +
+            "AmfzS5qudCXhBw99nHz8Qu5XGje7AgMBAAECgYEAwJzbpvJO8/+p+DdTj6gUBRwe\n" +
+            "CvRchehZcCEzHcTyqHvaRI8fjcUpX1iKJ3qGQi+cOAbpXPfpuCuFaNm0VqkpaDIV\n" +
+            "naxFutxTn7gqzf73pXtptIXvUqRaX9Za8xDrX9DmULplEWItV0jgkmECB27SqsMJ\n" +
+            "PEcxi2THNgC80YTiNfkCQQD2uwFV3I0aLzlVFcfGz/QQb/nqiQFoy5Wl32Xieg9x\n" +
+            "ZGWtbAJhT+loTFmKZjLLn7mGnhNxOZAvDZCNGjdyPlIfAkEA5AxpHqN+yAojJ2oL\n" +
+            "1mpwgfdgojsBX97f7epcvcYc9xWolUgwZIUMeoVbjYHZaN1KkbiTguKwgFuWy4el\n" +
+            "dCD+5QJAATZWAVf+EXzd6T8cJivrZRFHxxE5QoyNha0dUQmMfeAiZ8G6GURNP0fw\n" +
+            "wK9T3JBCVxj7u3iu7qxAY5EXaKZJvQJBAJvlqA8b8dXKqFGPe1wvE46lkFgXQk9J\n" +
+            "y4eXiaLqRm7bTY4P9ZUiJ2+yru3D8N5xOUL5DU6SrdpxwlqM9py22ckCQCEz7VaK\n" +
+            "BbqbJpFBiSvrjxWjjtEVu0AnOf5FNjjqwSeyvNt8uylW5tV+sn+SHgsgTA9ql/E9\n" +
+            "vtBB4rSC5QAEv8E=\n" +
+            "-----END PRIVATE KEY-----";
 
     @Rule
     public JenkinsRule r = new JenkinsConfiguredWithCodeRule();
@@ -135,28 +166,31 @@ public class PluginIT {
                 .containsOnly(tuple(foo.getName(), "joe", Secret.fromString("supersecret")));
     }
 
+    /*
+     * NOTE: This is not an officially supported feature. It may change without warning in future.
+     */
+    @Test
+    @ConfiguredWithCode(value = "/integration.yml")
+    public void shouldAllowUsernamePasswordSecretToBeUsedAsStringSecret() {
+        // Given
+        final Result foo = createSecret(FOO, "supersecret", opts -> {
+            opts.tags = Collections.singletonMap("username", "joe");
+        });
+
+        // When
+        final List<StringCredentials> credentials = lookupCredentials(StringCredentials.class);
+
+        // Then
+        assertThat(credentials)
+                .extracting("id", "secret")
+                .containsOnly(tuple(foo.getName(), Secret.fromString("supersecret")));
+    }
+
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportSshPrivateKeyPkcs1Secret() {
         // Given
-        final String privateKey =
-                "-----BEGIN RSA PRIVATE KEY-----\n" +
-                "MIICXQIBAAKBgQDbyoNEw32kJTN3/Bgnhr2GDlJ74YbwaFXMLC2V2j98+384NYra\n" +
-                "/mDOsBBU9eBLH7dKMGLvaTFGzUliIAASrJSoWAxJGaAKwHPnkG44gpf+wKQNybXn\n" +
-                "54vsNqDRFuz0BzDcD3YKEtqdT2eK/wJn80uarnQl4QcPfZx8/ELuVxo3uwIDAQAB\n" +
-                "AoGBAMCc26byTvP/qfg3U4+oFAUcHgr0XIXoWXAhMx3E8qh72kSPH43FKV9Yiid6\n" +
-                "hkIvnDgG6Vz36bgrhWjZtFapKWgyFZ2sRbrcU5+4Ks3+96V7abSF71KkWl/WWvMQ\n" +
-                "61/Q5lC6ZRFiLVdI4JJhAgdu0qrDCTxHMYtkxzYAvNGE4jX5AkEA9rsBVdyNGi85\n" +
-                "VRXHxs/0EG/56okBaMuVpd9l4noPcWRlrWwCYU/paExZimYyy5+5hp4TcTmQLw2Q\n" +
-                "jRo3cj5SHwJBAOQMaR6jfsgKIydqC9ZqcIH3YKI7AV/e3+3qXL3GHPcVqJVIMGSF\n" +
-                "DHqFW42B2WjdSpG4k4LisIBblsuHpXQg/uUCQAE2VgFX/hF83ek/HCYr62URR8cR\n" +
-                "OUKMjYWtHVEJjH3gImfBuhlETT9H8MCvU9yQQlcY+7t4ru6sQGORF2imSb0CQQCb\n" +
-                "5agPG/HVyqhRj3tcLxOOpZBYF0JPScuHl4mi6kZu202OD/WVIidvsq7tw/DecTlC\n" +
-                "+Q1Okq3accJajPacttnJAkAhM+1WigW6myaRQYkr648Vo47RFbtAJzn+RTY46sEn\n" +
-                "srzbfLspVubVfrJ/kh4LIEwPapfxPb7QQeK0guUABL/B\n" +
-                "-----END RSA PRIVATE KEY-----";
-
-        final Result foo = createSecret(FOO, privateKey, opts -> {
+        final Result foo = createSecret(FOO, PKCS1_PRIVATE_KEY, opts -> {
             opts.tags = Collections.singletonMap("username", "joe");
         });
 
@@ -166,32 +200,14 @@ public class PluginIT {
         // Then
         assertThat(credentials)
                 .extracting("id", "username", "privateKey", "passphrase")
-                .containsOnly(tuple(foo.getName(), "joe", privateKey, EMPTY_PASSPHRASE));
+                .containsOnly(tuple(foo.getName(), "joe", PKCS1_PRIVATE_KEY, EMPTY_PASSPHRASE));
     }
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportSshPrivateKeyPkcs8Secret() {
         // Given
-        final String privateKey =
-                "-----BEGIN PRIVATE KEY-----\n" +
-                "MIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBANvKg0TDfaQlM3f8\n" +
-                "GCeGvYYOUnvhhvBoVcwsLZXaP3z7fzg1itr+YM6wEFT14Esft0owYu9pMUbNSWIg\n" +
-                "ABKslKhYDEkZoArAc+eQbjiCl/7ApA3Jtefni+w2oNEW7PQHMNwPdgoS2p1PZ4r/\n" +
-                "AmfzS5qudCXhBw99nHz8Qu5XGje7AgMBAAECgYEAwJzbpvJO8/+p+DdTj6gUBRwe\n" +
-                "CvRchehZcCEzHcTyqHvaRI8fjcUpX1iKJ3qGQi+cOAbpXPfpuCuFaNm0VqkpaDIV\n" +
-                "naxFutxTn7gqzf73pXtptIXvUqRaX9Za8xDrX9DmULplEWItV0jgkmECB27SqsMJ\n" +
-                "PEcxi2THNgC80YTiNfkCQQD2uwFV3I0aLzlVFcfGz/QQb/nqiQFoy5Wl32Xieg9x\n" +
-                "ZGWtbAJhT+loTFmKZjLLn7mGnhNxOZAvDZCNGjdyPlIfAkEA5AxpHqN+yAojJ2oL\n" +
-                "1mpwgfdgojsBX97f7epcvcYc9xWolUgwZIUMeoVbjYHZaN1KkbiTguKwgFuWy4el\n" +
-                "dCD+5QJAATZWAVf+EXzd6T8cJivrZRFHxxE5QoyNha0dUQmMfeAiZ8G6GURNP0fw\n" +
-                "wK9T3JBCVxj7u3iu7qxAY5EXaKZJvQJBAJvlqA8b8dXKqFGPe1wvE46lkFgXQk9J\n" +
-                "y4eXiaLqRm7bTY4P9ZUiJ2+yru3D8N5xOUL5DU6SrdpxwlqM9py22ckCQCEz7VaK\n" +
-                "BbqbJpFBiSvrjxWjjtEVu0AnOf5FNjjqwSeyvNt8uylW5tV+sn+SHgsgTA9ql/E9\n" +
-                "vtBB4rSC5QAEv8E=\n" +
-                "-----END PRIVATE KEY-----";
-
-        final Result foo = createSecret(FOO, privateKey, opts -> {
+        final Result foo = createSecret(FOO, PKCS8_PRIVATE_KEY, opts -> {
             opts.tags = Collections.singletonMap("username", "joe");
         });
 
@@ -201,7 +217,27 @@ public class PluginIT {
         // Then
         assertThat(credentials)
                 .extracting("id", "username", "privateKey", "passphrase")
-                .containsOnly(tuple(foo.getName(), "joe", privateKey, EMPTY_PASSPHRASE));
+                .containsOnly(tuple(foo.getName(), "joe", PKCS8_PRIVATE_KEY, EMPTY_PASSPHRASE));
+    }
+
+    /*
+     * NOTE: This is not an officially supported feature. It may change without warning in future.
+     */
+    @Test
+    @ConfiguredWithCode(value = "/integration.yml")
+    public void shouldAllowSshPrivateKeySecretToBeUsedAsStringSecret() {
+        // Given
+        final Result foo = createSecret(FOO, PKCS8_PRIVATE_KEY, opts -> {
+            opts.tags = Collections.singletonMap("username", "joe");
+        });
+
+        // When
+        final List<StringCredentials> credentials = lookupCredentials(StringCredentials.class);
+
+        // Then
+        assertThat(credentials)
+                .extracting("id", "secret")
+                .containsOnly(tuple(foo.getName(), Secret.fromString(PKCS8_PRIVATE_KEY)));
     }
 
     @Test

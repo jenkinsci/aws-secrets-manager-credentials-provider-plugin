@@ -44,7 +44,7 @@ import hudson.util.Secret;
  * the secretString must be in private key format, and username metadata must be present in the
  * secret's tags.)
  */
-public class AwsCredentials extends BaseStandardCredentials implements StringCredentials, StandardUsernamePasswordCredentials, SSHUserPrivateKey, StandardCertificateCredentials {
+class AwsCredentials extends BaseStandardCredentials implements StringCredentials, StandardUsernamePasswordCredentials, SSHUserPrivateKey, StandardCertificateCredentials {
 
     private static final char[] EMPTY_PASSWORD = {};
     private static final Secret NONE = Secret.fromString("");
@@ -109,7 +109,7 @@ public class AwsCredentials extends BaseStandardCredentials implements StringCre
             final Object keyObject = pemParser.readObject();
 
             if ((keyObject instanceof PEMKeyPair) || (keyObject instanceof PrivateKeyInfo)) {
-                return secretValue.trim();
+                return secretValue;
             } else {
                 throw new CredentialsUnavailableException("privateKey", Messages.noPrivateKeyError());
             }
@@ -154,7 +154,6 @@ public class AwsCredentials extends BaseStandardCredentials implements StringCre
         }
     }
 
-
     @Extension
     @SuppressWarnings("unused")
     public static class DescriptorImpl extends BaseStandardCredentialsDescriptor {
@@ -164,7 +163,7 @@ public class AwsCredentials extends BaseStandardCredentials implements StringCre
         @Override
         @Nonnull
         public String getDisplayName() {
-            return Messages.awsSecret();
+            return Messages.awsSecretsManagerSecret();
         }
     }
 }

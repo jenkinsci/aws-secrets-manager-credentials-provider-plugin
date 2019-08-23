@@ -43,8 +43,10 @@ Optional permissions:
 
 ## Usage
 
-1. **Upload the secret** to AWS Secrets Manager in the format "one secret value = one AWS Secret" (see the [AWS documentation](https://docs.aws.amazon.com/cli/latest/reference/secretsmanager/create-secret.html)).
+1. **Upload the secret** to AWS Secrets Manager as shown below (see also the [AWS documentation](https://docs.aws.amazon.com/cli/latest/reference/secretsmanager/create-secret.html)).
 2. **Reference the secret** by name in your Jenkins build job.
+
+An AWS Secrets Manager secret acts as one of the following Jenkins credential types, depending on the data and metadata that you put in it. 
 
 ### Secret Text
 
@@ -95,9 +97,9 @@ pipeline {
 
 A private key with a username.
 
-The private key must satisfy the following requirements:
+The private key value must satisfy the following requirements:
 
-- Encoding: PKCS#1 or PCKS#8
+- Encoding: PKCS#1 or PKCS#8
 - Format: PEM
 
 ```bash
@@ -167,8 +169,7 @@ unclassified:
 
 ## Bugs
 
-- All secrets must be uploaded via the AWS CLI or API. This is because the AWS Web console *currently* insists on wrapping your secret string in JSON.
-- All secrets must be in "secret string" format (not "secret binary") as Jenkins will parse them into (UTF-8) string credentials. You can base64 encode a binary secret to work around this.
+All secrets must be uploaded via the AWS CLI or API. This is because the AWS Web console *currently* insists on wrapping your secret string in JSON.
 
 ## Development
 
