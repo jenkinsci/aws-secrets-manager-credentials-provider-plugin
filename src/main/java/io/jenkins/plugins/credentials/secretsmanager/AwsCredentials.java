@@ -39,10 +39,10 @@ import hudson.util.Secret;
  * time.
  * <p>
  * NOTE: The underlying AWS secret must have the necessary format and metadata to be used as a
- * particular credential type. If these things are not present, the relevant accessor
- * method(s) will fail at lookup time. (For example, to use an {@see AwsCredentials} as an
- * {@see SSHUserPrivateKey}, the secretString must be in private key format, and username metadata
- * must be present in the secret's tags.)
+ * particular credential type. If these things are not present, the relevant accessor method(s) will
+ * fail at lookup time. (For example, to use the AWS secret as a Jenkins {@link SSHUserPrivateKey},
+ * the secretString must be in private key format, and username metadata must be present in the
+ * secret's tags.)
  */
 public class AwsCredentials extends BaseStandardCredentials implements StringCredentials, StandardUsernamePasswordCredentials, SSHUserPrivateKey, StandardCertificateCredentials {
 
