@@ -68,7 +68,8 @@ public class PluginIT {
     private static final AWSSecretsManager CLIENT = TestUtils.getClientSecretsManager();
     private static final String FOO = "foo";
     private static final String BAR = "bar";
-    public static final char[] EMPTY_PASSWORD = {};
+    private static final char[] EMPTY_PASSWORD = {};
+    private static final Secret EMPTY_PASSPHRASE = Secret.fromString("");
 
     @Rule
     public JenkinsRule r = new JenkinsConfiguredWithCodeRule();
@@ -165,7 +166,7 @@ public class PluginIT {
         // Then
         assertThat(credentials)
                 .extracting("id", "username", "privateKey", "passphrase")
-                .containsOnly(tuple(foo.getName(), "joe", privateKey, Secret.fromString("")));
+                .containsOnly(tuple(foo.getName(), "joe", privateKey, EMPTY_PASSPHRASE));
     }
 
     @Test
@@ -200,7 +201,7 @@ public class PluginIT {
         // Then
         assertThat(credentials)
                 .extracting("id", "username", "privateKey", "passphrase")
-                .containsOnly(tuple(foo.getName(), "joe", privateKey, Secret.fromString("")));
+                .containsOnly(tuple(foo.getName(), "joe", privateKey, EMPTY_PASSPHRASE));
     }
 
     @Test
@@ -211,7 +212,7 @@ public class PluginIT {
         final KeyPair keyPair = newKeyPair();
         final Certificate cert = newSelfSignedCertificate(keyPair);
         final KeyStore keyStore = newKeyStore();
-        keyStore.setKeyEntry(alias, keyPair.getPrivate(), new char[] {}, new Certificate[] {cert});
+        keyStore.setKeyEntry(alias, keyPair.getPrivate(), EMPTY_PASSWORD, new Certificate[] {cert});
         // And
         final Result foo = createSecret(FOO, saveKeyStore(keyStore));
 
@@ -224,7 +225,7 @@ public class PluginIT {
         // Then
         assertThat(credentials)
                 .extracting("id", "password", "keyStore")
-                .containsOnly(tuple(foo.getName(), Secret.fromString(""), Collections.singletonMap(alias, Collections.singletonList(cert))));
+                .containsOnly(tuple(foo.getName(), EMPTY_PASSPHRASE, Collections.singletonMap(alias, Collections.singletonList(cert))));
     }
 
     @Test
@@ -322,7 +323,7 @@ public class PluginIT {
 
     private static byte[] saveKeyStore(KeyStore keyStore) {
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-            keyStore.store(baos, new char[] {});
+            keyStore.store(baos, EMPTY_PASSWORD);
             return baos.toByteArray();
         } catch (IOException | CertificateException | NoSuchAlgorithmException | KeyStoreException e) {
             throw new RuntimeException(e);

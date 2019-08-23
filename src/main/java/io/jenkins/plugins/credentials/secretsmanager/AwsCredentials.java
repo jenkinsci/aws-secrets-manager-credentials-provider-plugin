@@ -38,15 +38,15 @@ import hudson.util.Secret;
  * A multi-type credential class backed by AWS Secrets Manager, which detects its type at lookup
  * time.
  * <p>
- * Due to its dynamic behavior, an instance of this class can either be bound in your Jenkins job as
- * its true type (e.g. SSH private key), or upcast to a simple Secret Text credential.
- * <p>
- * NOTE: a credential cannot necessarily be downcast to a complex type: if the additional metadata
- * is missing on the underlying AWS secret, the relevant accessor methods will fail at lookup time.
+ * NOTE: The underlying AWS secret must have the necessary format and metadata to be used as a
+ * particular credential type. If these things are not present, the relevant accessor
+ * method(s) will fail at lookup time. (For example, to use an {@see AwsCredentials} as an
+ * {@see SSHUserPrivateKey}, the secretString must be in private key format, and username metadata
+ * must be present in the secret's tags.)
  */
 public class AwsCredentials extends BaseStandardCredentials implements StringCredentials, StandardUsernamePasswordCredentials, SSHUserPrivateKey, StandardCertificateCredentials {
 
-    private static final char[] EMPTY_PASSWORD = new char[]{};
+    private static final char[] EMPTY_PASSWORD = {};
     private static final Secret NONE = Secret.fromString("");
     private static final long serialVersionUID = 1L;
 
@@ -125,7 +125,7 @@ public class AwsCredentials extends BaseStandardCredentials implements StringCre
 
         try (InputStream stream = new ByteArrayInputStream(secretValue.array())) {
             final KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
-            // JDK9 workaround: PKCS#12 keystores must always have a password (not null)
+            // JDK9 workaround: PKCS#12 keystores must have at least an empty password (not null)
             keyStore.load(stream, EMPTY_PASSWORD);
             return keyStore;
         } catch (IOException | CertificateException | KeyStoreException | NoSuchAlgorithmException e) {
