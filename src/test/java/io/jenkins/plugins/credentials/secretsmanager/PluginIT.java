@@ -329,6 +329,23 @@ public class PluginIT {
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
+    public void shouldTolerateSecretsWithNullTags() {
+        // Given
+        final Result foo = createSecret(FOO, "supersecret", opts -> {
+            opts.tags = null;
+        });
+
+        // When
+        final List<StringCredentials> credentials = lookupCredentials(StringCredentials.class);
+
+        // Then
+        assertThat(credentials)
+                .extracting("id", "secret")
+                .containsOnly(tuple(foo.getName(), Secret.fromString("supersecret")));
+    }
+
+    @Test
+    @ConfiguredWithCode(value = "/integration.yml")
     public void shouldTolerateSecretsWithNullTagKeys() {
         // Given
         final Result foo = createSecret(FOO, "supersecret", opts -> {

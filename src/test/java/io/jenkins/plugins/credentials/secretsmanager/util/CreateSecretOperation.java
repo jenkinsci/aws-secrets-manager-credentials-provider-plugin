@@ -31,15 +31,18 @@ public class CreateSecretOperation {
         final String description = o.description;
         final Map<String, String> tags = o.tags;
 
-        final List<Tag> t = tags.entrySet().stream()
-                .map((entry) -> new Tag().withKey(entry.getKey()).withValue(entry.getValue()))
-                .collect(Collectors.toList());
-
-        final CreateSecretRequest request = new CreateSecretRequest()
+        CreateSecretRequest request = new CreateSecretRequest()
                 .withName(name)
                 .withDescription(description)
-                .withSecretString(secretString)
-                .withTags(t);
+                .withSecretString(secretString);
+
+        if (tags != null) {
+            final List<Tag> t = tags.entrySet().stream()
+                    .map((entry) -> new Tag().withKey(entry.getKey()).withValue(entry.getValue()))
+                    .collect(Collectors.toList());
+
+            request = request.withTags(t);
+        }
 
         final CreateSecretResult result = client.createSecret(request);
 

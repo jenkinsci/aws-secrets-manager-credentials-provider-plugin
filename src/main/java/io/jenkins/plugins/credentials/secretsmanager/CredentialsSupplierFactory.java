@@ -110,7 +110,8 @@ final class CredentialsSupplierFactory {
             for (SecretListEntry s : secretList) {
                 final String name = s.getName();
                 final String description = Optional.ofNullable(s.getDescription()).orElse("");
-                final Map<String, String> tags = s.getTags().stream()
+                final Map<String, String> tags = Optional.ofNullable(s.getTags()).orElse(Collections.emptyList())
+                        .stream()
                         .filter(tag -> (tag.getKey() != null) && (tag.getValue() != null))
                         .collect(Collectors.toMap(Tag::getKey, Tag::getValue));
                 final IdCredentials cred = new AwsCredentials(name, description, tags, client);
