@@ -329,6 +329,40 @@ public class PluginIT {
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
+    public void shouldTolerateSecretsWithNullTagKeys() {
+        // Given
+        final Result foo = createSecret(FOO, "supersecret", opts -> {
+            opts.tags = Collections.singletonMap(null, "foo");
+        });
+
+        // When
+        final List<StringCredentials> credentials = lookupCredentials(StringCredentials.class);
+
+        // Then
+        assertThat(credentials)
+                .extracting("id", "secret")
+                .containsOnly(tuple(foo.getName(), Secret.fromString("supersecret")));
+    }
+
+    @Test
+    @ConfiguredWithCode(value = "/integration.yml")
+    public void shouldTolerateSecretsWithNullTagValues() {
+        // Given
+        final Result foo = createSecret(FOO, "supersecret", opts -> {
+            opts.tags = Collections.singletonMap("username", null);
+        });
+
+        // When
+        final List<StringCredentials> credentials = lookupCredentials(StringCredentials.class);
+
+        // Then
+        assertThat(credentials)
+                .extracting("id", "secret")
+                .containsOnly(tuple(foo.getName(), Secret.fromString("supersecret")));
+    }
+
+    @Test
+    @ConfiguredWithCode(value = "/integration.yml")
     public void shouldNotSupportUpdates() {
         final StringCredentialsImpl credential = new StringCredentialsImpl(CredentialsScope.GLOBAL, FOO, "desc", Secret.fromString("password"));
 

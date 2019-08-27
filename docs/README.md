@@ -53,7 +53,7 @@ An AWS Secrets Manager secret acts as one of the following Jenkins credential ty
 A simple secret string.
 
 ```bash
-aws secretsmanager create-secret --name 'newrelic-api-key' --description 'Acme Corp Newrelic API key' --secret-string 'abc123'
+aws secretsmanager create-secret --name 'newrelic-api-key' --secret-string 'abc123' --description 'Acme Corp Newrelic API key'
 ```
 
 ```groovy
@@ -74,7 +74,7 @@ pipeline {
 A username and password pair.
 
 ```bash
-aws secretsmanager create-secret --name 'artifactory-login' --description 'Acme Corp Artifactory login' --secret-string 'supersecret' --tags 'Key=username,Value=joe'
+aws secretsmanager create-secret --name 'artifactory-login' --secret-string 'supersecret' --tags 'Key=username,Value=joe' --description 'Acme Corp Artifactory login'
 ```
 
 ```groovy
@@ -104,7 +104,7 @@ The private key value must satisfy the following requirements:
 
 ```bash
 ssh-keygen -t rsa -b 4096 -C 'acme@example.com' -f id_rsa
-aws secretsmanager create-secret --name 'ssh-key' --description 'Acme Corp SSH key' --secret-string 'file://id_rsa' --tags 'Key=username,Value=joe'
+aws secretsmanager create-secret --name 'ssh-key' --secret-string 'file://id_rsa' --tags 'Key=username,Value=joe' --description 'Acme Corp SSH key'
 ```
 
 ```groovy
@@ -125,7 +125,7 @@ A client certificate stored in a Java Keystore (.jks) file.
 
 ```bash
 keytool -genkeypair -alias domain -keyalg RSA -validity 7 -keystore keystore.jks
-aws secretsmanager create-secret --name 'code-signing-cert' --description 'Acme Corp code signing certificate' --secret-binary 'file://keystore.jks'
+aws secretsmanager create-secret --name 'code-signing-cert' --secret-binary 'file://keystore.jks' --description 'Acme Corp code signing certificate'
 ```
 
 ```groovy
