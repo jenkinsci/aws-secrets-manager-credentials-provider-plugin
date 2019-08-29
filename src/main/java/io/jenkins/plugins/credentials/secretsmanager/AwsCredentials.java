@@ -103,17 +103,11 @@ class AwsCredentials extends BaseStandardCredentials implements StringCredential
     @Deprecated
     @Override
     public String getPrivateKey() {
-        try {
-            final String secretValue = getSecretString(getId());
-            final PEMParser pemParser = new PEMParser(new StringReader(secretValue));
-            final Object keyObject = pemParser.readObject();
+        final String secretValue = getSecretString(getId());
 
-            if ((keyObject instanceof PEMKeyPair) || (keyObject instanceof PrivateKeyInfo)) {
-                return secretValue;
-            } else {
-                throw new CredentialsUnavailableException("privateKey", Messages.noPrivateKeyError());
-            }
-        } catch (IOException e) {
+        if (isPemFormat(secretValue) || isOpenSshFormat(secretValue)) {
+            return secretValue;
+        } else {
             throw new CredentialsUnavailableException("privateKey", Messages.noPrivateKeyError());
         }
     }
@@ -152,6 +146,23 @@ class AwsCredentials extends BaseStandardCredentials implements StringCredential
         } catch (AmazonClientException ex) {
             throw new CredentialsUnavailableException("secret", Messages.couldNotRetrieveSecretError(secretName));
         }
+    }
+
+    private static boolean isPemFormat(String privateKey) {
+        final PEMParser pemParser = new PEMParser(new StringReader(privateKey));
+        final Object keyObject;
+        try {
+            keyObject = pemParser.readObject();
+        } catch (IOException e) {
+            return false;
+        }
+
+        return ((keyObject instanceof PEMKeyPair) || (keyObject instanceof PrivateKeyInfo));
+    }
+
+    private static boolean isOpenSshFormat(String privateKey) {
+        // FIXME implement
+        return false;
     }
 
     @Extension

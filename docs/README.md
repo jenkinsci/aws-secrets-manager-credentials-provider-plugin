@@ -100,7 +100,7 @@ A private key with a username.
 The private key value must satisfy the following requirements:
 
 - Encoding: PKCS#1 or PKCS#8
-- Format: PEM
+- Format: OpenSSH or PEM
 
 ```bash
 ssh-keygen -t rsa -b 4096 -C 'acme@example.com' -f id_rsa

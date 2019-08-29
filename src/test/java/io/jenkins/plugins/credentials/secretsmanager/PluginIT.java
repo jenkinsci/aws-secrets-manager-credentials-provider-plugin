@@ -70,6 +70,22 @@ public class PluginIT {
     private static final String BAR = "bar";
     private static final char[] EMPTY_PASSWORD = {};
     private static final Secret EMPTY_PASSPHRASE = Secret.fromString("");
+    private static final String OPENSSH_PRIVATE_KEY = "-----BEGIN OPENSSH PRIVATE KEY-----\n" +
+            "b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAlwAAAAdzc2gtcn\n" +
+            "NhAAAAAwEAAQAAAIEAvo3kQ4F54OnF/B/pVHLy1YECC15Pdh0HOQJDmrSm4WhlMVVHjnSc\n" +
+            "WrYmvCar4njMsU50+W9lAbPkKE79jWkgiSRjegQ1h7lknRxDMAxqt9hPX4ubIEIKilgCnz\n" +
+            "BGKOdaxae0YAyaml7v4CYwBWRMiZbSHhwuBv3Ms4HRGnfGxvMAAAII8gSeVvIEnlYAAAAH\n" +
+            "c3NoLXJzYQAAAIEAvo3kQ4F54OnF/B/pVHLy1YECC15Pdh0HOQJDmrSm4WhlMVVHjnScWr\n" +
+            "YmvCar4njMsU50+W9lAbPkKE79jWkgiSRjegQ1h7lknRxDMAxqt9hPX4ubIEIKilgCnzBG\n" +
+            "KOdaxae0YAyaml7v4CYwBWRMiZbSHhwuBv3Ms4HRGnfGxvMAAAADAQABAAAAgFrqzl9bFn\n" +
+            "C2eW1LOIO/eJdfvz73V4huXzTXHLRiv0DLE4UPQF36y2MIh8C73sTmiBuM6Ijeml3Om+yT\n" +
+            "i6x93TRdiUdBkUyfOXb2BohZPa9kpL0GRq00vHlj0n4uFXjXFIXsBRbnKFYPnBfDkXO4SA\n" +
+            "wKzQ8SivZtPCPxPAv8GyTpAAAAQHb9iJDAg3XhJDafM7Gd9cyM5hC9ERN+sM5oAyK/YJ27\n" +
+            "fjPV3KS2mJ2V+T/8RV5izorjnj4o7TA0yV1lyUZDUcIAAABBAPpgKemv0d9idEKRUdUTzr\n" +
+            "ZDAcHzvVgiPIIY28iqz8TIYNPKJ4V55nj90VXbUL2+oy6hmYgfx73Ma9hkbWAYP28AAABB\n" +
+            "AMLVtn/82sM5Jnjc40T4efNXG8BGIxFjS/Ek5ey223F//UpOrzR0B0iSxjSztrUtoE2B1z\n" +
+            "Jkcs9sxdyX70AmLr0AAAAQYWNtZUBleGFtcGxlLmNvbQECAw==\n" +
+            "-----END OPENSSH PRIVATE KEY-----";
     private static final String PKCS1_PRIVATE_KEY = "-----BEGIN RSA PRIVATE KEY-----\n" +
             "MIICXQIBAAKBgQDbyoNEw32kJTN3/Bgnhr2GDlJ74YbwaFXMLC2V2j98+384NYra\n" +
             "/mDOsBBU9eBLH7dKMGLvaTFGzUliIAASrJSoWAxJGaAKwHPnkG44gpf+wKQNybXn\n" +
@@ -184,6 +200,23 @@ public class PluginIT {
         assertThat(credentials)
                 .extracting("id", "secret")
                 .containsOnly(tuple(foo.getName(), Secret.fromString("supersecret")));
+    }
+
+    @Test
+    @ConfiguredWithCode(value = "/integration.yml")
+    public void shouldSupportSshPrivateKeyOpensshSecret() {
+        // Given
+        final Result foo = createSecret(FOO, OPENSSH_PRIVATE_KEY, opts -> {
+            opts.tags = Collections.singletonMap("username", "joe");
+        });
+
+        // When
+        final List<SSHUserPrivateKey> credentials = lookupCredentials(SSHUserPrivateKey.class);
+
+        // Then
+        assertThat(credentials)
+                .extracting("id", "username", "privateKey", "passphrase")
+                .containsOnly(tuple(foo.getName(), "joe", OPENSSH_PRIVATE_KEY, EMPTY_PASSPHRASE));
     }
 
     @Test
