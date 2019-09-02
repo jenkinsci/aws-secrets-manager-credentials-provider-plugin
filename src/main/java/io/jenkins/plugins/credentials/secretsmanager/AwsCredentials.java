@@ -13,6 +13,8 @@ import com.cloudbees.plugins.credentials.impl.BaseStandardCredentials;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
+import org.bouncycastle.util.io.pem.PemObject;
+import org.bouncycastle.util.io.pem.PemReader;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 
 import java.io.ByteArrayInputStream;
@@ -105,7 +107,7 @@ class AwsCredentials extends BaseStandardCredentials implements StringCredential
     public String getPrivateKey() {
         final String secretValue = getSecretString(getId());
 
-        if (isPemFormat(secretValue) || isOpenSshFormat(secretValue)) {
+        if (isPemFormat(secretValue) || isOpenSSHFormat(secretValue)) {
             return secretValue;
         } else {
             throw new CredentialsUnavailableException("privateKey", Messages.noPrivateKeyError());
@@ -157,12 +159,26 @@ class AwsCredentials extends BaseStandardCredentials implements StringCredential
             return false;
         }
 
-        return ((keyObject instanceof PEMKeyPair) || (keyObject instanceof PrivateKeyInfo));
+        return (keyObject instanceof PEMKeyPair) || (keyObject instanceof PrivateKeyInfo);
     }
 
-    private static boolean isOpenSshFormat(String privateKey) {
-        // FIXME implement
-        return false;
+    private static boolean isOpenSSHFormat(String privateKey) {
+        // The OpenSSH private key format is not like other standard key formats.
+        // Bouncycastle does not yet fully support parsing OpenSSH private keys, so we can only test
+        // whether the key looks 'roughly' correct - does it have the right header, and does it have
+        // some content.
+        final PemReader reader = new PemReader(new StringReader(privateKey));
+
+        final PemObject obj;
+        try {
+            obj = reader.readPemObject();
+        } catch (IOException e) {
+            return false;
+        }
+
+        return (obj != null) &&
+                (obj.getType().equals("OPENSSH PRIVATE KEY")) &&
+                (obj.getContent().length > 0);
     }
 
     @Extension

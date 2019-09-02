@@ -204,7 +204,7 @@ public class PluginIT {
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
-    public void shouldSupportSshPrivateKeyOpensshSecret() {
+    public void shouldSupportSshPrivateKeyOpenSSHSecret() {
         // Given
         final Result foo = createSecret(FOO, OPENSSH_PRIVATE_KEY, opts -> {
             opts.tags = Collections.singletonMap("username", "joe");
