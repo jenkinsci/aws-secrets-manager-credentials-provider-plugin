@@ -97,10 +97,14 @@ pipeline {
 
 A private key with a username.
 
-The private key value must satisfy the following requirements:
+The plugin supports the following private key formats and encoding schemes:
 
-- Encoding: PKCS#1 or PKCS#8
-- Format: OpenSSH or PEM
+- **Format** 
+  - PEM
+- **Encoding**
+  - PKCS#1 (starts with `-----BEGIN [ALGORITHM] PRIVATE KEY-----`)
+  - PKCS#8 (starts with `-----BEGIN PRIVATE KEY-----`)
+  - OpenSSH (starts with `-----BEGIN OPENSSH PRIVATE KEY-----`)
 
 ```bash
 ssh-keygen -t rsa -b 4096 -C 'acme@example.com' -f id_rsa
