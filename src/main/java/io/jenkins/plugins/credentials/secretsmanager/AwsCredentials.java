@@ -10,17 +10,11 @@ import com.cloudbees.plugins.credentials.common.StandardCertificateCredentials;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import com.cloudbees.plugins.credentials.impl.BaseStandardCredentials;
 
-import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
-import org.bouncycastle.openssl.PEMKeyPair;
-import org.bouncycastle.openssl.PEMParser;
-import org.bouncycastle.util.io.pem.PemObject;
-import org.bouncycastle.util.io.pem.PemReader;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.StringReader;
 import java.nio.ByteBuffer;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -35,6 +29,7 @@ import javax.annotation.Nonnull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.util.Secret;
+import io.jenkins.plugins.credentials.secretsmanager.util.SSHKeyValidator;
 
 /**
  * A multi-type credential class backed by AWS Secrets Manager, which detects its type at lookup
@@ -107,7 +102,7 @@ class AwsCredentials extends BaseStandardCredentials implements StringCredential
     public String getPrivateKey() {
         final String secretValue = getSecretString(getId());
 
-        if (isPemFormat(secretValue) || isOpenSSHFormat(secretValue)) {
+        if (isValidSSHKey(secretValue)) {
             return secretValue;
         } else {
             throw new CredentialsUnavailableException("privateKey", Messages.noPrivateKeyError());
@@ -150,35 +145,8 @@ class AwsCredentials extends BaseStandardCredentials implements StringCredential
         }
     }
 
-    private static boolean isPemFormat(String privateKey) {
-        final PEMParser pemParser = new PEMParser(new StringReader(privateKey));
-        final Object keyObject;
-        try {
-            keyObject = pemParser.readObject();
-        } catch (IOException e) {
-            return false;
-        }
-
-        return (keyObject instanceof PEMKeyPair) || (keyObject instanceof PrivateKeyInfo);
-    }
-
-    private static boolean isOpenSSHFormat(String privateKey) {
-        // The OpenSSH private key format is not like other standard key formats.
-        // Bouncycastle does not yet fully support parsing OpenSSH private keys, so we can only test
-        // whether the key looks 'roughly' correct - does it have the right header, and does it have
-        // some content.
-        final PemReader reader = new PemReader(new StringReader(privateKey));
-
-        final PemObject obj;
-        try {
-            obj = reader.readPemObject();
-        } catch (IOException e) {
-            return false;
-        }
-
-        return (obj != null) &&
-                (obj.getType().equals("OPENSSH PRIVATE KEY")) &&
-                (obj.getContent().length > 0);
+    private static boolean isValidSSHKey(String privateKey) {
+        return SSHKeyValidator.isValid(privateKey);
     }
 
     @Extension
