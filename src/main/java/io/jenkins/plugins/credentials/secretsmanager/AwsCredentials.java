@@ -46,6 +46,7 @@ class AwsCredentials extends BaseStandardCredentials implements StringCredential
     private static final char[] EMPTY_PASSWORD = {};
     private static final Secret NONE = Secret.fromString("");
     private static final long serialVersionUID = 1L;
+    private static final String USERNAME_TAG = "jenkins:credentials:username";
 
     private final Map<String, String> tags;
 
@@ -66,7 +67,7 @@ class AwsCredentials extends BaseStandardCredentials implements StringCredential
     @NonNull
     @Override
     public Secret getPassword() {
-        if (tags.containsKey("username")) {
+        if (tags.containsKey(USERNAME_TAG)) {
             // username/password
             return Secret.fromString(getSecretString(getId()));
         } else {
@@ -78,8 +79,8 @@ class AwsCredentials extends BaseStandardCredentials implements StringCredential
     @NonNull
     @Override
     public String getUsername() {
-        if (tags.containsKey("username")) {
-            return tags.get("username");
+        if (tags.containsKey(USERNAME_TAG)) {
+            return tags.get(USERNAME_TAG);
         } else {
             throw new CredentialsUnavailableException("username", Messages.noUsernameError());
         }
@@ -141,7 +142,7 @@ class AwsCredentials extends BaseStandardCredentials implements StringCredential
             // TODO configure the timeout
             return client.getSecretValue(request);
         } catch (AmazonClientException ex) {
-            throw new CredentialsUnavailableException("secret", Messages.couldNotRetrieveSecretError(secretName));
+            throw new CredentialsUnavailableException("secret", Messages.couldNotRetrieveCredentialError(secretName));
         }
     }
 

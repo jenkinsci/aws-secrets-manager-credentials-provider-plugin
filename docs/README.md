@@ -74,7 +74,7 @@ pipeline {
 A username and password pair.
 
 ```bash
-aws secretsmanager create-secret --name 'artifactory-login' --secret-string 'supersecret' --tags 'Key=username,Value=joe' --description 'Acme Corp Artifactory login'
+aws secretsmanager create-secret --name 'artifactory-login' --secret-string 'supersecret' --tags 'Key=jenkins:credentials:username,Value=joe' --description 'Acme Corp Artifactory login'
 ```
 
 ```groovy
@@ -108,7 +108,7 @@ The plugin supports the following private key formats and encoding schemes:
 
 ```bash
 ssh-keygen -t rsa -b 4096 -C 'acme@example.com' -f id_rsa
-aws secretsmanager create-secret --name 'ssh-key' --secret-string 'file://id_rsa' --tags 'Key=username,Value=joe' --description 'Acme Corp SSH key'
+aws secretsmanager create-secret --name 'ssh-key' --secret-string 'file://id_rsa' --tags 'Key=jenkins:credentials:username,Value=joe' --description 'Acme Corp SSH key'
 ```
 
 ```groovy
@@ -125,7 +125,7 @@ pipeline {
 
 ### Certificate
 
-A client certificate stored in a Java Keystore (.jks) file.
+A client certificate stored in a Java KeyStore (.jks) file.
 
 ```bash
 keytool -genkeypair -alias domain -keyalg RSA -validity 7 -keystore keystore.jks

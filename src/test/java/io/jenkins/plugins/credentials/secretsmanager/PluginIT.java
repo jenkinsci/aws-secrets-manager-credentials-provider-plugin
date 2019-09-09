@@ -138,7 +138,7 @@ public class PluginIT {
     public void shouldSupportUsernamePasswordSecret() {
         // Given
         final Result foo = createSecret(FOO, "supersecret", opts -> {
-            opts.tags = Collections.singletonMap("username", "joe");
+            opts.tags = Collections.singletonMap("jenkins:credentials:username", "joe");
         });
 
         // When
@@ -159,7 +159,7 @@ public class PluginIT {
     public void shouldAllowUsernamePasswordSecretToBeUsedAsStringSecret() {
         // Given
         final Result foo = createSecret(FOO, "supersecret", opts -> {
-            opts.tags = Collections.singletonMap("username", "joe");
+            opts.tags = Collections.singletonMap("jenkins:credentials:username", "joe");
         });
 
         // When
@@ -176,7 +176,7 @@ public class PluginIT {
     public void shouldSupportSshPrivateKeySecret() {
         // Given
         final Result foo = createSecret(FOO, SSH_PRIVATE_KEY, opts -> {
-            opts.tags = Collections.singletonMap("username", "joe");
+            opts.tags = Collections.singletonMap("jenkins:credentials:username", "joe");
         });
 
         // When
@@ -196,7 +196,7 @@ public class PluginIT {
     public void shouldAllowSshPrivateKeySecretToBeUsedAsStringSecret() {
         // Given
         final Result foo = createSecret(FOO, SSH_PRIVATE_KEY, opts -> {
-            opts.tags = Collections.singletonMap("username", "joe");
+            opts.tags = Collections.singletonMap("jenkins:credentials:username", "joe");
         });
 
         // When
@@ -213,7 +213,7 @@ public class PluginIT {
     public void shouldNotTolerateInvalidSshPrivateKeySecret() {
         // Given
         final Result foo = createSecret(FOO, "-----INVALID PRIVATE KEY", opts -> {
-            opts.tags = Collections.singletonMap("username", "joe");
+            opts.tags = Collections.singletonMap("jenkins:credentials:username", "joe");
         });
 
         // When
@@ -372,7 +372,7 @@ public class PluginIT {
     public void shouldTolerateSecretsWithNullTagValues() {
         // Given
         final Result foo = createSecret(FOO, "supersecret", opts -> {
-            opts.tags = Collections.singletonMap("username", null);
+            opts.tags = Collections.singletonMap("jenkins:credentials:username", null);
         });
 
         // When
