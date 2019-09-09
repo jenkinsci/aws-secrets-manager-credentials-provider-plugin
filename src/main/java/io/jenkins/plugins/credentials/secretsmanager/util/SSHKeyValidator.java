@@ -85,7 +85,7 @@ public abstract class SSHKeyValidator {
 
             try {
                 final PemObject obj = reader.readPemObject();
-                return obj.getType().equals("OPENSSH PRIVATE KEY") && (obj.getContent().length > 0);
+                return (obj != null) && obj.getType().equals("OPENSSH PRIVATE KEY") && (obj.getContent().length > 0);
             } catch (IOException e) {
                 return false;
             }

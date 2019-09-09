@@ -11,10 +11,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 @RunWith(Parameterized.class)
 public class SSHKeyValidatorTest {
 
-    private static final Case BROKEN_OPENSSH_PRIVATE_KEY = new Case.Builder()
-            .withDescription("Broken OpenSSH private key")
+    private static final Case BAD_CONTENT_PRIVATE_KEY = new Case.Builder()
+            .withDescription("Private key with bad content")
             .withKey("-----BEGIN OPENSSH PRIVATE KEY-----",
                      "abcdef")
+            .isNotValid();
+
+    private static final Case BAD_HEADER_PRIVATE_KEY = new Case.Builder()
+            .withDescription("Private key with bad header")
+            .withKey("-----INVALID PRIVATE KEY")
             .isNotValid();
 
     private static final Case EMPTY_OPENSSH_PRIVATE_KEY = new Case.Builder()
@@ -120,7 +125,8 @@ public class SSHKeyValidatorTest {
     @Parameterized.Parameters(name = "{0}")
     public static Iterable<Object> data() {
         return Arrays.asList(new Object[] {
-                BROKEN_OPENSSH_PRIVATE_KEY,
+                BAD_CONTENT_PRIVATE_KEY,
+                BAD_HEADER_PRIVATE_KEY,
                 NULL_PRIVATE_KEY,
                 EMPTY_OPENSSH_PRIVATE_KEY,
                 EMPTY_PKCS1_PRIVATE_KEY,

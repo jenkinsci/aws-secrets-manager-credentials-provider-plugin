@@ -45,6 +45,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -209,6 +210,26 @@ public class PluginIT {
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
+    public void shouldNotTolerateInvalidSshPrivateKeySecret() {
+        // Given
+        final Result foo = createSecret(FOO, "-----INVALID PRIVATE KEY", opts -> {
+            opts.tags = Collections.singletonMap("username", "joe");
+        });
+
+        // When
+        final Optional<SSHUserPrivateKey> credentials =
+                lookupCredentials(SSHUserPrivateKey.class).stream().findFirst();
+
+        // Then
+        assertSoftly(s -> {
+            s.assertThat(credentials).isPresent();
+            s.assertThat(credentials.get().getId()).as("ID").isEqualTo(foo.getName());
+            s.assertThatThrownBy(() -> credentials.get().getPrivateKeys()).as("Private Keys").isInstanceOf(CredentialsUnavailableException.class);
+        });
+    }
+
+    @Test
+    @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportCertificateSecret() throws KeyStoreException {
         // Given
         final String alias = "test";
@@ -217,7 +238,7 @@ public class PluginIT {
         final KeyStore keyStore = newKeyStore();
         keyStore.setKeyEntry(alias, keyPair.getPrivate(), EMPTY_PASSWORD, new Certificate[] {cert});
         // And
-        final Result foo = createSecret(FOO, saveKeyStore(keyStore));
+        final Result foo = createSecret(FOO, saveKeyStore(keyStore, EMPTY_PASSWORD));
 
         // When
         final List<CertCreds> credentials = lookupCredentials(StandardCertificateCredentials.class)
@@ -229,6 +250,24 @@ public class PluginIT {
         assertThat(credentials)
                 .extracting("id", "password", "keyStore")
                 .containsOnly(tuple(foo.getName(), EMPTY_PASSPHRASE, Collections.singletonMap(alias, Collections.singletonList(cert))));
+    }
+
+    @Test
+    @ConfiguredWithCode(value = "/integration.yml")
+    public void shouldNotTolerateInvalidCertificateSecret() {
+        // Given
+        final Result foo = createSecret(FOO, new byte[] {0x00, 0x01});
+
+        // When
+        final Optional<StandardCertificateCredentials> credentials =
+                lookupCredentials(StandardCertificateCredentials.class).stream().findFirst();
+
+        // Then
+        assertSoftly(s -> {
+            s.assertThat(credentials).isPresent();
+            s.assertThat(credentials.get().getId()).as("ID").isEqualTo(foo.getName());
+            s.assertThatThrownBy(() -> credentials.get().getKeyStore()).as("KeyStore").isInstanceOf(CredentialsUnavailableException.class);
+        });
     }
 
     @Test
@@ -375,9 +414,9 @@ public class PluginIT {
         return CredentialsProvider.lookupCredentials(type, r.jenkins, ACL.SYSTEM, Collections.emptyList());
     }
 
-    private static byte[] saveKeyStore(KeyStore keyStore) {
+    private static byte[] saveKeyStore(KeyStore keyStore, char[] password) {
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-            keyStore.store(baos, EMPTY_PASSWORD);
+            keyStore.store(baos, password);
             return baos.toByteArray();
         } catch (IOException | CertificateException | NoSuchAlgorithmException | KeyStoreException e) {
             throw new RuntimeException(e);
