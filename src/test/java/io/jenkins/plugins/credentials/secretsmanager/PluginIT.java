@@ -448,7 +448,7 @@ public class PluginIT {
 
     private static KeyStore newKeyStore() {
         try {
-            final KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+            final KeyStore keyStore = KeyStore.getInstance("PKCS12");
             keyStore.load(null, EMPTY_PASSWORD);
             return keyStore;
         } catch (IOException | CertificateException | NoSuchAlgorithmException | KeyStoreException e) {

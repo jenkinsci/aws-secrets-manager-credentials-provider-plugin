@@ -125,20 +125,20 @@ pipeline {
 
 ### Certificate
 
-A client certificate stored in a Java KeyStore (.jks) file.
+A client certificate in PKCS#12 format. (Note: the .p12 file must be encrypted with a zero-length password, as demonstrated below.)
 
 ```bash
-keytool -genkeypair -alias domain -keyalg RSA -validity 7 -keystore keystore.jks
-aws secretsmanager create-secret --name 'code-signing-cert' --secret-binary 'file://keystore.jks' --description 'Acme Corp code signing certificate'
+openssl pkcs12 -export -in /path/to/cert.pem -inkey /path/to/key.pem -out certificate.p12 -passout pass:
+aws secretsmanager create-secret --name 'code-signing-cert' --secret-binary 'fileb://certificate.p12' --description 'Acme Corp code signing certificate'
 ```
 
 ```groovy
 pipeline {
     stages {
         stage('Foo') {
-            // Makes the keystore available as a temporary .jks file on disk in Jenkins
-            withCredentials(bindings: [certificate(credentialsId: 'code-signing-cert', keystoreVariable: 'KEYSTORE_JKS')]) {
-                sh './gradlew -PstoreFile=$KEYSTORE_JKS clean assembleRelease'
+            // Makes the keystore available as a temporary file on disk in Jenkins
+            withCredentials(bindings: [certificate(credentialsId: 'code-signing-cert', keystoreVariable: 'STORE_FILE')]) {
+                sh './gradlew -PstoreFile=$STORE_FILE clean assembleRelease'
             }
         }
     }
