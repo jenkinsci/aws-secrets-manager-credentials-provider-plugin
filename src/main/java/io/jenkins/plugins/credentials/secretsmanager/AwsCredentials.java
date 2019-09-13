@@ -5,7 +5,9 @@ import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.amazonaws.services.secretsmanager.model.GetSecretValueRequest;
 import com.amazonaws.services.secretsmanager.model.GetSecretValueResult;
 import com.cloudbees.jenkins.plugins.sshcredentials.SSHUserPrivateKey;
+import com.cloudbees.plugins.credentials.CredentialsNameProvider;
 import com.cloudbees.plugins.credentials.CredentialsUnavailableException;
+import com.cloudbees.plugins.credentials.NameWith;
 import com.cloudbees.plugins.credentials.common.StandardCertificateCredentials;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import com.cloudbees.plugins.credentials.impl.BaseStandardCredentials;
@@ -41,6 +43,7 @@ import io.jenkins.plugins.credentials.secretsmanager.util.SSHKeyValidator;
  * the secretString must be in private key format, and username metadata must be present in the
  * secret's tags.)
  */
+@NameWith(value = AwsCredentials.NameProvider.class)
 class AwsCredentials extends BaseStandardCredentials implements StringCredentials, StandardUsernamePasswordCredentials, SSHUserPrivateKey, StandardCertificateCredentials {
 
     private static final char[] EMPTY_PASSWORD = {};
@@ -150,12 +153,17 @@ class AwsCredentials extends BaseStandardCredentials implements StringCredential
         return SSHKeyValidator.isValid(privateKey);
     }
 
+    public static class NameProvider extends CredentialsNameProvider<AwsCredentials> {
+        @NonNull
+        @Override
+        public String getName(@NonNull AwsCredentials c) {
+            return c.getId();
+        }
+    }
+
     @Extension
     @SuppressWarnings("unused")
     public static class DescriptorImpl extends BaseStandardCredentialsDescriptor {
-        public DescriptorImpl() {
-        }
-
         @Override
         @Nonnull
         public String getDisplayName() {

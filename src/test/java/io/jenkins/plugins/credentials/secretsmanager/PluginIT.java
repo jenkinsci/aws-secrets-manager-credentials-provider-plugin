@@ -7,6 +7,7 @@ import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.CredentialsScope;
 import com.cloudbees.plugins.credentials.CredentialsStore;
 import com.cloudbees.plugins.credentials.CredentialsUnavailableException;
+import com.cloudbees.plugins.credentials.common.IdCredentials;
 import com.cloudbees.plugins.credentials.common.StandardCertificateCredentials;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import com.cloudbees.plugins.credentials.domains.Domain;
@@ -50,6 +51,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import hudson.security.ACL;
+import hudson.util.ListBoxModel;
 import hudson.util.Secret;
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
 import io.jenkins.plugins.casc.misc.JenkinsConfiguredWithCodeRule;
@@ -271,6 +273,19 @@ public class PluginIT {
     }
 
     @Test
+    @ConfiguredWithCode(value = "/integration.yml")
+    public void shouldUseSecretNameAsCredentialName() {
+        // Given
+        final Result foo = createSecret(FOO, "supersecret");
+
+        // When
+        final List<String> credentialNames = lookupCredentialNames(StringCredentials.class);
+
+        // Then
+        assertThat(credentialNames).containsOnly(foo.getName());
+    }
+
+    @Test
     @ConfiguredWithCode(value = "/tags.yml")
     public void shouldFilterByTag() {
         // Given
@@ -412,6 +427,14 @@ public class PluginIT {
 
     private <C extends Credentials> List<C> lookupCredentials(Class<C> type) {
         return CredentialsProvider.lookupCredentials(type, r.jenkins, ACL.SYSTEM, Collections.emptyList());
+    }
+
+    private <C extends IdCredentials> List<String> lookupCredentialNames(Class<C> type) {
+        final ListBoxModel result = CredentialsProvider.listCredentials(type, r.jenkins, ACL.SYSTEM, null, null);
+
+        return result.stream()
+            .map(o -> o.name)
+            .collect(Collectors.toList());
     }
 
     private static byte[] saveKeyStore(KeyStore keyStore, char[] password) {
