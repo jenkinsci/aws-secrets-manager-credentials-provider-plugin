@@ -8,7 +8,6 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.stream.Collectors;
 
 import io.jenkins.plugins.credentials.secretsmanager.util.JenkinsConfiguredWithWebRule;
@@ -37,7 +36,7 @@ public class CheckConnectionIT {
 
             // When
             try {
-                getValidateButtons(form, "Test Connection").get(0).click();
+                getValidateButton(form).click();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -57,7 +56,7 @@ public class CheckConnectionIT {
 
             // When
             try {
-                getValidateButtons(form, "Test Connection").get(0).click();
+                getValidateButton(form).click();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -67,11 +66,12 @@ public class CheckConnectionIT {
         });
     }
 
-    private static List<HtmlButton> getValidateButtons(DomNode node, String textContent) {
+    private static HtmlButton getValidateButton(DomNode node) {
         return node.getByXPath("//span[contains(string(@class),'validate-button')]//button")
                 .stream()
                 .map(obj -> (HtmlButton) (obj))
-                .filter(button -> button.getTextContent().equals(textContent))
-                .collect(Collectors.toList());
+                .filter(button -> button.getTextContent().equals("Test Connection"))
+                .collect(Collectors.toList())
+                .get(0);
     }
 }
