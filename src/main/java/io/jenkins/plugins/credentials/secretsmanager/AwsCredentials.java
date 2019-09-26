@@ -31,7 +31,6 @@ import javax.annotation.Nonnull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.util.Secret;
-import io.jenkins.plugins.credentials.secretsmanager.util.SSHKeyValidator;
 
 /**
  * A multi-type credential class backed by AWS Secrets Manager, which detects its type at lookup

@@ -1,6 +1,13 @@
 package io.jenkins.plugins.credentials.secretsmanager;
 
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
+import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder;
+import com.amazonaws.services.secretsmanager.model.DeleteSecretRequest;
+import com.amazonaws.services.secretsmanager.model.ResourceNotFoundException;
+import com.amazonaws.services.secretsmanager.model.RestoreSecretRequest;
 import com.cloudbees.plugins.credentials.Credentials;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.CredentialsStore;
@@ -28,15 +35,17 @@ import hudson.util.ListBoxModel;
 import io.jenkins.plugins.casc.misc.JenkinsConfiguredWithCodeRule;
 import io.jenkins.plugins.credentials.secretsmanager.util.CreateSecretOperation;
 import io.jenkins.plugins.credentials.secretsmanager.util.CreateSecretOperation.Result;
-import io.jenkins.plugins.credentials.secretsmanager.util.DeleteSecretOperation;
-import io.jenkins.plugins.credentials.secretsmanager.util.RestoreSecretOperation;
-import io.jenkins.plugins.credentials.secretsmanager.util.TestUtils;
 
 public abstract class AbstractPluginIT {
 
     private static final String BAR = "bar";
+
     private static final String FOO = "foo";
-    private static final AWSSecretsManager CLIENT = TestUtils.getClientSecretsManager();
+
+    private final AWSSecretsManager client = AWSSecretsManagerClientBuilder.standard()
+            .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration("http://localhost:4584", "us-east-1"))
+            .withCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials("test", "test")))
+            .build();
 
     @Rule
     public JenkinsRule r = new JenkinsConfiguredWithCodeRule();
@@ -55,7 +64,7 @@ public abstract class AbstractPluginIT {
 
         for (String secretId: Arrays.asList(FOO, BAR)) {
             restoreSecret(secretId);
-            deleteSecret(secretId, opts -> opts.force = true);
+            forceDeleteSecret(secretId);
         }
     }
 
@@ -103,51 +112,68 @@ public abstract class AbstractPluginIT {
     }
 
     Result createSecret(String secretString) {
-        final CreateSecretOperation create = new CreateSecretOperation(CLIENT);
+        final CreateSecretOperation create = new CreateSecretOperation(client);
         // FIXME use a unique name
         return create.run(FOO, secretString);
     }
 
     Result createOtherSecret(String secretString) {
-        final CreateSecretOperation create = new CreateSecretOperation(CLIENT);
+        final CreateSecretOperation create = new CreateSecretOperation(client);
         // FIXME use a unique name
         return create.run(BAR, secretString);
     }
 
     Result createSecret(byte[] secretBinary) {
-        final CreateSecretOperation create = new CreateSecretOperation(CLIENT);
+        final CreateSecretOperation create = new CreateSecretOperation(client);
         // FIXME use a unique name
         return create.run(FOO, secretBinary);
     }
 
     Result createSecret(String secretString, Consumer<CreateSecretOperation.Opts> opts) {
-        final CreateSecretOperation create = new CreateSecretOperation(CLIENT);
+        final CreateSecretOperation create = new CreateSecretOperation(client);
         // FIXME use a unique name
         return create.run(FOO, secretString, opts);
     }
 
     Result createOtherSecret(String secretString, Consumer<CreateSecretOperation.Opts> opts) {
-        final CreateSecretOperation create = new CreateSecretOperation(CLIENT);
+        final CreateSecretOperation create = new CreateSecretOperation(client);
         // FIXME use a unique name
         return create.run(BAR, secretString, opts);
     }
 
     void deleteSecret(String secretId) {
-        final DeleteSecretOperation delete = new DeleteSecretOperation(CLIENT);
-        delete.run(secretId);
+        final DeleteSecretRequest request = new DeleteSecretRequest()
+                .withSecretId(secretId);
+
+        try {
+            client.deleteSecret(request);
+        } catch (ResourceNotFoundException e) {
+            // Don't care
+        }
     }
 
     CredentialsStore store() {
         return this.store;
     }
 
-    private void deleteSecret(String secretId, Consumer<DeleteSecretOperation.Opts> opts) {
-        final DeleteSecretOperation delete = new DeleteSecretOperation(CLIENT);
-        delete.run(secretId, opts);
+    private void forceDeleteSecret(String secretId) {
+        final DeleteSecretRequest request = new DeleteSecretRequest()
+                .withSecretId(secretId)
+                .withForceDeleteWithoutRecovery(true);
+
+        try {
+            client.deleteSecret(request);
+        } catch (ResourceNotFoundException e) {
+            // Don't care
+        }
     }
 
-    private static void restoreSecret(String secretId) {
-        final RestoreSecretOperation restore = new RestoreSecretOperation(CLIENT);
-        restore.run(secretId);
+    private void restoreSecret(String secretId) {
+        final RestoreSecretRequest request = new RestoreSecretRequest().withSecretId(secretId);
+        try {
+            client.restoreSecret(request);
+        } catch (ResourceNotFoundException e) {
+            // Don't care
+        }
     }
 }

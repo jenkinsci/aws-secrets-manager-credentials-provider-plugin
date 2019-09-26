@@ -1,4 +1,4 @@
-package io.jenkins.plugins.credentials.secretsmanager.util;
+package io.jenkins.plugins.credentials.secretsmanager;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

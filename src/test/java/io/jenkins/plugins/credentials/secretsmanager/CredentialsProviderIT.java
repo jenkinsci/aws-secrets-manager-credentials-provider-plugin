@@ -40,6 +40,8 @@ import static org.assertj.core.api.SoftAssertions.assertSoftly;
  */
 public class CredentialsProviderIT extends AbstractPluginIT implements CredentialTypeTests {
 
+    private static final Secret EMPTY_PASSPHRASE = Secret.fromString("");
+
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldStartEmpty() {
@@ -107,7 +109,9 @@ public class CredentialsProviderIT extends AbstractPluginIT implements Credentia
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportSshPrivateKeyCredentials() {
         // Given
-        final Result foo = createSecret(Fixtures.SSH_PRIVATE_KEY, opts -> {
+        final String privateKey = Crypto.newPrivateKey();
+        // And
+        final Result foo = createSecret(privateKey, opts -> {
             opts.tags = Collections.singletonMap("jenkins:credentials:username", "joe");
         });
 
@@ -117,7 +121,7 @@ public class CredentialsProviderIT extends AbstractPluginIT implements Credentia
         // Then
         assertThat(credentials)
                 .extracting("id", "username", "privateKey", "passphrase")
-                .containsOnly(tuple(foo.getName(), "joe", Fixtures.SSH_PRIVATE_KEY, Fixtures.EMPTY_PASSPHRASE));
+                .containsOnly(tuple(foo.getName(), "joe", privateKey, EMPTY_PASSPHRASE));
     }
 
     /*
@@ -127,7 +131,9 @@ public class CredentialsProviderIT extends AbstractPluginIT implements Credentia
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldAllowSshPrivateKeyCredentialsToBeUsedAsStringCredentials() {
         // Given
-        final Result foo = createSecret(Fixtures.SSH_PRIVATE_KEY, opts -> {
+        final String privateKey = Crypto.newPrivateKey();
+        // And
+        final Result foo = createSecret(privateKey, opts -> {
             opts.tags = Collections.singletonMap("jenkins:credentials:username", "joe");
         });
 
@@ -137,7 +143,7 @@ public class CredentialsProviderIT extends AbstractPluginIT implements Credentia
         // Then
         assertThat(credentials)
                 .extracting("id", "secret")
-                .containsOnly(tuple(foo.getName(), Secret.fromString(Fixtures.SSH_PRIVATE_KEY)));
+                .containsOnly(tuple(foo.getName(), Secret.fromString(privateKey)));
     }
 
     @Test
@@ -167,14 +173,15 @@ public class CredentialsProviderIT extends AbstractPluginIT implements Credentia
         final String alias = "test";
         final KeyPair keyPair = Crypto.newKeyPair();
         final Certificate cert = Crypto.newSelfSignedCertificate(keyPair);
-        final KeyStore keyStore = Crypto.newKeyStore(Fixtures.EMPTY_PASSWORD);
+        final char[] password = {};
+        final KeyStore keyStore = Crypto.newKeyStore(password);
         try {
-            keyStore.setKeyEntry(alias, keyPair.getPrivate(), Fixtures.EMPTY_PASSWORD, new Certificate[]{cert});
+            keyStore.setKeyEntry(alias, keyPair.getPrivate(), password, new Certificate[]{cert});
         } catch (KeyStoreException e) {
             throw new RuntimeException(e);
         }
         // And
-        final Result foo = createSecret(Crypto.saveKeyStore(keyStore, Fixtures.EMPTY_PASSWORD));
+        final Result foo = createSecret(Crypto.saveKeyStore(keyStore, password));
 
         // When
         final List<CertCreds> credentials = lookupCredentials(StandardCertificateCredentials.class)
@@ -185,7 +192,7 @@ public class CredentialsProviderIT extends AbstractPluginIT implements Credentia
         // Then
         assertThat(credentials)
                 .extracting("id", "password", "keyStore")
-                .containsOnly(tuple(foo.getName(), Fixtures.EMPTY_PASSPHRASE, Collections.singletonMap(alias, Collections.singletonList(cert))));
+                .containsOnly(tuple(foo.getName(), EMPTY_PASSPHRASE, Collections.singletonMap(alias, Collections.singletonList(cert))));
     }
 
     @Test

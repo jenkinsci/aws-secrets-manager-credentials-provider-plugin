@@ -1,4 +1,4 @@
-package io.jenkins.plugins.credentials.secretsmanager.util;
+package io.jenkins.plugins.credentials.secretsmanager;
 
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.openssl.PEMKeyPair;
@@ -11,7 +11,7 @@ import java.io.StringReader;
 import java.util.Arrays;
 import java.util.List;
 
-public abstract class SSHKeyValidator {
+abstract class SSHKeyValidator {
 
     private static Validator chain = new ValidatorChain(Arrays.asList(new PEMKeyPairValidator(), new PrivateKeyInfoValidator(), new OpenSSHPrivateKeyValidator()));
 
@@ -19,7 +19,7 @@ public abstract class SSHKeyValidator {
 
     }
 
-    public static boolean isValid(String str) {
+    static boolean isValid(String str) {
         if (str == null) {
             return false;
         }

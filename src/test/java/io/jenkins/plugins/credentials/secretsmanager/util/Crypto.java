@@ -5,17 +5,20 @@ import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
+import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -25,8 +28,24 @@ import java.util.Date;
  * Encapsulate BouncyCastle operations.
  */
 public abstract class Crypto {
+
     private Crypto() {
 
+    }
+
+    public static String newPrivateKey() {
+        final PrivateKey privateKey = newKeyPair().getPrivate();
+
+        try (StringWriter sw = new StringWriter()) {
+            final JcaPEMWriter writer = new JcaPEMWriter(sw);
+
+            writer.writeObject(privateKey);
+            writer.close();
+
+            return sw.getBuffer().toString();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static KeyPair newKeyPair() {

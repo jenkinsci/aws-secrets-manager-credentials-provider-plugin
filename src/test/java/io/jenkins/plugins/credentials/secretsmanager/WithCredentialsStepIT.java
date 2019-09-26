@@ -63,7 +63,9 @@ public class WithCredentialsStepIT extends AbstractPluginIT implements Credentia
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportSshPrivateKeyCredentials() {
         // Given
-        final CreateSecretOperation.Result foo = createSecret(Fixtures.SSH_PRIVATE_KEY, opts -> {
+        final String privateKey = Crypto.newPrivateKey();
+        // And
+        final CreateSecretOperation.Result foo = createSecret(privateKey, opts -> {
             opts.tags = Collections.singletonMap("jenkins:credentials:username", "joe");
         });
 
@@ -88,14 +90,15 @@ public class WithCredentialsStepIT extends AbstractPluginIT implements Credentia
         // Given
         final KeyPair keyPair = Crypto.newKeyPair();
         final Certificate cert = Crypto.newSelfSignedCertificate(keyPair);
-        final KeyStore keyStore = Crypto.newKeyStore(Fixtures.EMPTY_PASSWORD);
+        final char[] password = {};
+        final KeyStore keyStore = Crypto.newKeyStore(password);
         try {
-            keyStore.setKeyEntry("test", keyPair.getPrivate(), Fixtures.EMPTY_PASSWORD, new Certificate[]{cert});
+            keyStore.setKeyEntry("test", keyPair.getPrivate(), password, new Certificate[]{cert});
         } catch (KeyStoreException e) {
             throw new RuntimeException(e);
         }
         // And
-        final CreateSecretOperation.Result foo = createSecret(Crypto.saveKeyStore(keyStore, Fixtures.EMPTY_PASSWORD));
+        final CreateSecretOperation.Result foo = createSecret(Crypto.saveKeyStore(keyStore, password));
 
         // When
         final WorkflowRunResult result = runPipeline("",

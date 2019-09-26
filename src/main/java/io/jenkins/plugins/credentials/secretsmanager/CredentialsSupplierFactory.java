@@ -1,5 +1,7 @@
 package io.jenkins.plugins.credentials.secretsmanager;
 
+import com.google.common.base.Suppliers;
+
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.amazonaws.services.secretsmanager.AWSSecretsManagerClient;
@@ -7,11 +9,10 @@ import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder;
 import com.amazonaws.services.secretsmanager.model.SecretListEntry;
 import com.amazonaws.services.secretsmanager.model.Tag;
 import com.cloudbees.plugins.credentials.common.IdCredentials;
-import io.jenkins.plugins.credentials.secretsmanager.aws.ListSecretsOperation;
+
 import io.jenkins.plugins.credentials.secretsmanager.config.EndpointConfiguration;
 import io.jenkins.plugins.credentials.secretsmanager.config.Filters;
 import io.jenkins.plugins.credentials.secretsmanager.config.PluginConfiguration;
-import io.jenkins.plugins.credentials.secretsmanager.util.Memoizer;
 
 import java.time.Duration;
 import java.util.Collection;
@@ -20,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -27,7 +29,7 @@ import java.util.stream.Collectors;
 
 import jenkins.model.GlobalConfiguration;
 
-final class CredentialsSupplierFactory {
+abstract class CredentialsSupplierFactory {
 
     private CredentialsSupplierFactory() {
 
@@ -36,7 +38,7 @@ final class CredentialsSupplierFactory {
     static Supplier<Collection<IdCredentials>> create() {
         final Supplier<Collection<IdCredentials>> baseSupplier =
                 new LazyAwsCredentialsSupplier(CredentialsSupplierFactory::getPluginConfiguration);
-        return Memoizer.memoizeWithExpiration(baseSupplier, Duration.ofMinutes(5));
+        return memoizeWithExpiration(baseSupplier, Duration.ofMinutes(5));
     }
 
     private static PluginConfiguration getPluginConfiguration() {
@@ -142,5 +144,18 @@ final class CredentialsSupplierFactory {
                             .contains(tag))
                     .collect(Collectors.toList());
         }
+    }
+
+    /**
+     * Memoize a supplier function with expiration.
+     *
+     * @param <T> The return type of the supplier.
+     * @param base The supplier to memoize.
+     * @param duration The cache duration. Accurate to the nearest millisecond.
+     * @return The supplier, memoized.
+     */
+    private static <T> Supplier<T> memoizeWithExpiration(Supplier<T> base, Duration duration) {
+        return Suppliers.memoizeWithExpiration(base::get, duration.toMillis(),
+                TimeUnit.MILLISECONDS)::get;
     }
 }
