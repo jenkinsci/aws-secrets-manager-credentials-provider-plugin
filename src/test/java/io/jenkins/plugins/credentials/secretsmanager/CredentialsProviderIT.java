@@ -85,26 +85,6 @@ public class CredentialsProviderIT extends AbstractPluginIT implements Credentia
                 .containsOnly(tuple(foo.getName(), "joe", Secret.fromString("supersecret")));
     }
 
-    /*
-     * NOTE: This is not an officially supported feature. It may change without warning in future.
-     */
-    @Test
-    @ConfiguredWithCode(value = "/integration.yml")
-    public void shouldAllowUsernamePasswordCredentialsToBeUsedAsStringCredentials() {
-        // Given
-        final Result foo = createSecret("supersecret", opts -> {
-            opts.tags = Collections.singletonMap("jenkins:credentials:username", "joe");
-        });
-
-        // When
-        final List<StringCredentials> credentials = lookupCredentials(StringCredentials.class);
-
-        // Then
-        assertThat(credentials)
-                .extracting("id", "secret")
-                .containsOnly(tuple(foo.getName(), Secret.fromString("supersecret")));
-    }
-
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportSshPrivateKeyCredentials() {
@@ -129,6 +109,26 @@ public class CredentialsProviderIT extends AbstractPluginIT implements Credentia
      */
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
+    public void shouldAllowUsernamePasswordCredentialsToBeUsedAsStringCredentials() {
+        // Given
+        final Result foo = createSecret("supersecret", opts -> {
+            opts.tags = Collections.singletonMap("jenkins:credentials:username", "joe");
+        });
+
+        // When
+        final List<StringCredentials> credentials = lookupCredentials(StringCredentials.class);
+
+        // Then
+        assertThat(credentials)
+                .extracting("id", "secret")
+                .containsOnly(tuple(foo.getName(), Secret.fromString("supersecret")));
+    }
+
+    /*
+     * NOTE: This is not an officially supported feature. It may change without warning in future.
+     */
+    @Test
+    @ConfiguredWithCode(value = "/integration.yml")
     public void shouldAllowSshPrivateKeyCredentialsToBeUsedAsStringCredentials() {
         // Given
         final String privateKey = Crypto.newPrivateKey();
@@ -144,6 +144,29 @@ public class CredentialsProviderIT extends AbstractPluginIT implements Credentia
         assertThat(credentials)
                 .extracting("id", "secret")
                 .containsOnly(tuple(foo.getName(), Secret.fromString(privateKey)));
+    }
+
+    /*
+     * NOTE: This is not an officially supported feature. It may change without warning in future.
+     */
+    @Test
+    @ConfiguredWithCode(value = "/integration.yml")
+    public void shouldAllowSshPrivateKeyCredentialsToBeUsedAsUsernamePasswordCredentials() {
+        // Given
+        final String privateKey = Crypto.newPrivateKey();
+        // And
+        final Result foo = createSecret(privateKey, opts -> {
+            opts.tags = Collections.singletonMap("jenkins:credentials:username", "joe");
+        });
+
+        // When
+        final List<StandardUsernamePasswordCredentials> credentials =
+                lookupCredentials(StandardUsernamePasswordCredentials.class);
+
+        // Then
+        assertThat(credentials)
+                .extracting("id", "username", "password")
+                .containsOnly(tuple(foo.getName(), "joe", Secret.fromString(privateKey)));
     }
 
     @Test
