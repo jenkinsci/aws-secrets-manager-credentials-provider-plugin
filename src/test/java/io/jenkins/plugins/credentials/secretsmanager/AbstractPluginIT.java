@@ -38,8 +38,10 @@ import io.jenkins.plugins.credentials.secretsmanager.util.CreateSecretOperation.
 
 public abstract class AbstractPluginIT {
 
+    // TODO use a unique name
     private static final String BAR = "bar";
 
+    // TODO use a unique name
     private static final String FOO = "foo";
 
     private final AWSSecretsManager client = AWSSecretsManagerClientBuilder.standard()
@@ -113,31 +115,26 @@ public abstract class AbstractPluginIT {
 
     Result createSecret(String secretString) {
         final CreateSecretOperation create = new CreateSecretOperation(client);
-        // FIXME use a unique name
         return create.run(FOO, secretString);
     }
 
     Result createOtherSecret(String secretString) {
         final CreateSecretOperation create = new CreateSecretOperation(client);
-        // FIXME use a unique name
         return create.run(BAR, secretString);
     }
 
     Result createSecret(byte[] secretBinary) {
         final CreateSecretOperation create = new CreateSecretOperation(client);
-        // FIXME use a unique name
         return create.run(FOO, secretBinary);
     }
 
     Result createSecret(String secretString, Consumer<CreateSecretOperation.Opts> opts) {
         final CreateSecretOperation create = new CreateSecretOperation(client);
-        // FIXME use a unique name
         return create.run(FOO, secretString, opts);
     }
 
     Result createOtherSecret(String secretString, Consumer<CreateSecretOperation.Opts> opts) {
         final CreateSecretOperation create = new CreateSecretOperation(client);
-        // FIXME use a unique name
         return create.run(BAR, secretString, opts);
     }
 

@@ -15,6 +15,8 @@ import org.kohsuke.stapler.export.ExportedBean;
 import java.util.Collections;
 import java.util.List;
 
+import javax.annotation.Nonnull;
+
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import hudson.model.ModelObject;
@@ -32,6 +34,7 @@ public class AwsCredentialsStore extends CredentialsStore {
         this.provider = provider;
     }
 
+    @Nonnull
     @Override
     public ModelObject getContext() {
         return Jenkins.getInstance();
@@ -44,6 +47,7 @@ public class AwsCredentialsStore extends CredentialsStore {
                 && Jenkins.getInstance().getACL().hasPermission(authentication, permission);
     }
 
+    @Nonnull
     @Override
     public List<Credentials> getCredentials(@NonNull Domain domain) {
         // Only the global domain is supported
@@ -56,7 +60,7 @@ public class AwsCredentialsStore extends CredentialsStore {
     }
 
     @Override
-    public boolean addCredentials(Domain domain, Credentials credentials) {
+    public boolean addCredentials(@Nonnull Domain domain, @Nonnull Credentials credentials) {
         throw new UnsupportedOperationException(
                 "Jenkins may not add credentials to AWS Secrets Manager");
     }

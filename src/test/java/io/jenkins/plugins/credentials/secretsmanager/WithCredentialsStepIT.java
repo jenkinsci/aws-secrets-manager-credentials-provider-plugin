@@ -72,8 +72,8 @@ public class WithCredentialsStepIT extends AbstractPluginIT implements Credentia
         // When
         final WorkflowRunResult result = runPipeline("",
                 "node {",
-                "  withCredentials([sshUserPrivateKey(credentialsId: '" + foo.getName() + "', keyFileVariable: 'KEYFILE', usernameVariable: 'USR')]) {",
-                "    echo \"Credential: {username: $USR, keyFile: $KEYFILE}\"",
+                "  withCredentials([sshUserPrivateKey(credentialsId: '" + foo.getName() + "', keyFileVariable: 'KEYFILE', usernameVariable: 'USERNAME')]) {",
+                "    echo \"Credential: {username: $USERNAME, keyFile: $KEYFILE}\"",
                 "  }",
                 "}");
 

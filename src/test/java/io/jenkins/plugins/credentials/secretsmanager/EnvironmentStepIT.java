@@ -7,6 +7,7 @@ import java.util.Collections;
 
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
 import io.jenkins.plugins.credentials.secretsmanager.util.CreateSecretOperation;
+import io.jenkins.plugins.credentials.secretsmanager.util.Crypto;
 
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
 
@@ -75,9 +76,36 @@ public class EnvironmentStepIT extends AbstractPluginIT implements CredentialTyp
         });
     }
 
-    @Ignore("Declarative Pipeline only supports SSH key bindings from version 1.3.7")
+    // FIXME this support was only added in a higher pipeline-model-definition plugin version than we use. maybe we should disable SSH key support for now
+    @Test
+    @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportSshPrivateKeyCredentials() {
+        // Given
+        final CreateSecretOperation.Result foo = createSecret(Crypto.newPrivateKey(), opts -> {
+            opts.tags = Collections.singletonMap("jenkins:credentials:username", "joe");
+        });
 
+        // When
+        final WorkflowRunResult result = runPipeline("",
+                "pipeline {",
+                "  agent any",
+                "  stages {",
+                "    stage('Example') {",
+                "      environment {",
+                "        FOO = credentials('" + foo.getName() + "')",
+                "      }",
+                "      steps {",
+                "        echo \"{variable: $FOO, username: $FOO_USR, passphrase: $FOO_PSW}\"",
+                "      }",
+                "    }",
+                "  }",
+                "}");
+
+        // Then
+        assertSoftly(s -> {
+            s.assertThat(result.log).as("Log").contains("{variable: ****, username: ****, passphrase: ****}");
+            s.assertThat(result.result).as("Result").isEqualTo(hudson.model.Result.SUCCESS);
+        });
     }
 
     @Ignore("Declarative Pipeline does not yet support certificate bindings")
