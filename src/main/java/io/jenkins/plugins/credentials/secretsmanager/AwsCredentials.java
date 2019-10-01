@@ -137,19 +137,10 @@ class AwsCredentials extends BaseStandardCredentials implements StringCredential
         return result.getSecretBinary();
     }
 
-    Map<String, String> getTags() {
-        return tags;
-    }
-
-    GetSecretValueResult getSecretValue() {
-        return getSecretValue(getId());
-    }
-
     private GetSecretValueResult getSecretValue(String secretName) {
         final GetSecretValueRequest request = new GetSecretValueRequest().withSecretId(secretName);
 
         try {
-            // TODO configure the timeout
             return client.getSecretValue(request);
         } catch (AmazonClientException ex) {
             throw new CredentialsUnavailableException("secret", Messages.couldNotRetrieveCredentialError(secretName));

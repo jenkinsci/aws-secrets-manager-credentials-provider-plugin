@@ -77,9 +77,7 @@ public class EnvironmentStepIT extends AbstractPluginIT implements CredentialTyp
         });
     }
 
-    // FIXME this support was only added in a higher pipeline-model-definition plugin version than we use. maybe we should disable SSH key support for now
-    @Test
-    @ConfiguredWithCode(value = "/integration.yml")
+    @Ignore("Declarative Pipeline gained SSH key binding support in a higher plugin version than we can currently support")
     public void shouldSupportSshPrivateKeyCredentials() {
         // Given
         final CreateSecretOperation.Result foo = createSecret(Crypto.newPrivateKey(), opts -> {

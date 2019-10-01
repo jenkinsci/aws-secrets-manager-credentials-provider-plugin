@@ -1,10 +1,18 @@
 package io.jenkins.plugins.credentials.secretsmanager.config;
 
+import com.amazonaws.client.builder.AwsClientBuilder;
+import com.amazonaws.services.secretsmanager.AWSSecretsManager;
+import com.amazonaws.services.secretsmanager.AWSSecretsManagerClient;
+import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder;
+
 import net.sf.json.JSONObject;
 
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.StaplerRequest;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import hudson.Extension;
 import jenkins.model.GlobalConfiguration;
@@ -12,6 +20,8 @@ import jenkins.model.GlobalConfiguration;
 @Extension
 @Symbol("awsCredentialsProvider")
 public class PluginConfiguration extends GlobalConfiguration {
+
+    private static final Logger LOG = Logger.getLogger(PluginConfiguration.class.getName());
 
     /**
      * The AWS Secrets Manager endpoint configuration. If this is null, the default will be used. If
@@ -23,6 +33,27 @@ public class PluginConfiguration extends GlobalConfiguration {
 
     public PluginConfiguration() {
         load();
+    }
+
+    public static PluginConfiguration getInstance() {
+        return all().get(PluginConfiguration.class);
+    }
+
+    public AWSSecretsManager getClient() {
+        final AWSSecretsManagerClientBuilder builder = AWSSecretsManagerClient.builder();
+        final EndpointConfiguration ec = getEndpointConfiguration();
+        final AWSSecretsManager client;
+        if (ec == null || (ec.getServiceEndpoint() == null || ec.getSigningRegion() == null)) {
+            LOG.log(Level.CONFIG, "Default Endpoint Configuration");
+            client = builder.build();
+        } else {
+            LOG.log(Level.CONFIG, "Custom Endpoint Configuration: {0}", ec);
+            final AwsClientBuilder.EndpointConfiguration endpointConfiguration =
+                    new AwsClientBuilder.EndpointConfiguration(ec.getServiceEndpoint(),
+                            ec.getSigningRegion());
+            client = builder.withEndpointConfiguration(endpointConfiguration).build();
+        }
+        return client;
     }
 
     public EndpointConfiguration getEndpointConfiguration() {

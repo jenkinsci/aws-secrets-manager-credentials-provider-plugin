@@ -2,17 +2,10 @@ package io.jenkins.plugins.credentials.secretsmanager;
 
 import com.google.common.base.Suppliers;
 
-import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
-import com.amazonaws.services.secretsmanager.AWSSecretsManagerClient;
-import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder;
 import com.amazonaws.services.secretsmanager.model.SecretListEntry;
 import com.amazonaws.services.secretsmanager.model.Tag;
 import com.cloudbees.plugins.credentials.common.IdCredentials;
-
-import io.jenkins.plugins.credentials.secretsmanager.config.EndpointConfiguration;
-import io.jenkins.plugins.credentials.secretsmanager.config.Filters;
-import io.jenkins.plugins.credentials.secretsmanager.config.PluginConfiguration;
 
 import java.time.Duration;
 import java.util.Collection;
@@ -27,7 +20,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import jenkins.model.GlobalConfiguration;
+import io.jenkins.plugins.credentials.secretsmanager.config.Filters;
+import io.jenkins.plugins.credentials.secretsmanager.config.PluginConfiguration;
 
 abstract class CredentialsSupplierFactory {
 
@@ -37,12 +31,8 @@ abstract class CredentialsSupplierFactory {
 
     static Supplier<Collection<IdCredentials>> create() {
         final Supplier<Collection<IdCredentials>> baseSupplier =
-                new LazyAwsCredentialsSupplier(CredentialsSupplierFactory::getPluginConfiguration);
+                new LazyAwsCredentialsSupplier(PluginConfiguration::getInstance);
         return memoizeWithExpiration(baseSupplier, Duration.ofMinutes(5));
-    }
-
-    private static PluginConfiguration getPluginConfiguration() {
-        return GlobalConfiguration.all().get(PluginConfiguration.class);
     }
 
     private static class LazyAwsCredentialsSupplier implements Supplier<Collection<IdCredentials>> {
@@ -61,19 +51,7 @@ abstract class CredentialsSupplierFactory {
             final PluginConfiguration config = configurationSupplier.get();
 
             // secrets manager
-            final AWSSecretsManagerClientBuilder builder = AWSSecretsManagerClient.builder();
-            final EndpointConfiguration ec = config.getEndpointConfiguration();
-            final AWSSecretsManager client;
-            if (ec == null || (ec.getServiceEndpoint() == null || ec.getSigningRegion() == null)) {
-                LOG.log(Level.CONFIG, "Default Endpoint Configuration");
-                client = builder.build();
-            } else {
-                LOG.log(Level.CONFIG, "Custom Endpoint Configuration: {0}", ec);
-                final AwsClientBuilder.EndpointConfiguration endpointConfiguration =
-                        new AwsClientBuilder.EndpointConfiguration(ec.getServiceEndpoint(),
-                                                                   ec.getSigningRegion());
-                client = builder.withEndpointConfiguration(endpointConfiguration).build();
-            }
+            final AWSSecretsManager client = config.getClient();
 
             Supplier<List<SecretListEntry>> strategy = new ListSecretsOperation(client);
 
