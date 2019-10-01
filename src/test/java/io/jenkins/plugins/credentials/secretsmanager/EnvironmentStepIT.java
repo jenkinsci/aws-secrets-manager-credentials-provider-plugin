@@ -8,6 +8,7 @@ import java.util.Collections;
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
 import io.jenkins.plugins.credentials.secretsmanager.util.CreateSecretOperation;
 import io.jenkins.plugins.credentials.secretsmanager.util.Crypto;
+import io.jenkins.plugins.credentials.secretsmanager.util.Strings;
 
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
 
@@ -23,7 +24,7 @@ public class EnvironmentStepIT extends AbstractPluginIT implements CredentialTyp
         final CreateSecretOperation.Result foo = createSecret("supersecret");
 
         // When
-        final WorkflowRunResult result = runPipeline("",
+        final WorkflowRunResult result = runPipeline(Strings.m("",
                 "pipeline {",
                 "  agent none",
                 "  stages {",
@@ -36,7 +37,7 @@ public class EnvironmentStepIT extends AbstractPluginIT implements CredentialTyp
                 "      }",
                 "    }",
                 "  }",
-                "}");
+                "}"));
 
         // Then
         assertSoftly(s -> {
@@ -54,7 +55,7 @@ public class EnvironmentStepIT extends AbstractPluginIT implements CredentialTyp
         });
 
         // When
-        final WorkflowRunResult result = runPipeline("",
+        final WorkflowRunResult result = runPipeline(Strings.m("",
                 "pipeline {",
                 "  agent none",
                 "  stages {",
@@ -67,7 +68,7 @@ public class EnvironmentStepIT extends AbstractPluginIT implements CredentialTyp
                 "      }",
                 "    }",
                 "  }",
-                "}");
+                "}"));
 
         // Then
         assertSoftly(s -> {
@@ -86,7 +87,7 @@ public class EnvironmentStepIT extends AbstractPluginIT implements CredentialTyp
         });
 
         // When
-        final WorkflowRunResult result = runPipeline("",
+        final WorkflowRunResult result = runPipeline(Strings.m("",
                 "pipeline {",
                 "  agent any",
                 "  stages {",
@@ -99,7 +100,7 @@ public class EnvironmentStepIT extends AbstractPluginIT implements CredentialTyp
                 "      }",
                 "    }",
                 "  }",
-                "}");
+                "}"));
 
         // Then
         assertSoftly(s -> {

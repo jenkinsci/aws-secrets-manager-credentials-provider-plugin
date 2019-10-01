@@ -16,9 +16,10 @@ import hudson.Extension;
 /**
  * Patch the credentials binding behavior of AwsCredentials so it works like the standard
  * single-type binders from pipeline-model-definition plugin.
+ *
+ * This handler is only activated if the pipeline-model-definition plugin is installed.
  */
-// FIXME make this an OptionalExtension (and make pipeline-model-definition an optional dependency)
-@Extension
+@Extension(optional = true)
 @SuppressWarnings("unused")
 public class AwsCredentialsHandler extends CredentialsBindingHandler<AwsCredentials> {
 

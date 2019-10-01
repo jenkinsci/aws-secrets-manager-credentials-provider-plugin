@@ -70,11 +70,6 @@ public abstract class AbstractPluginIT {
         }
     }
 
-    WorkflowRunResult runPipeline(String... definition) {
-        final String def = String.join("\n", definition);
-        return this.runPipeline(def);
-    }
-
     WorkflowRunResult runPipeline(String definition) {
         try {
             final WorkflowJob project = r.jenkins.createProject(WorkflowJob.class, "example");

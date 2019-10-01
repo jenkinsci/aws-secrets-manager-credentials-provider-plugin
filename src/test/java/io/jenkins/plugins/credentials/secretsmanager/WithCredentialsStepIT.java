@@ -11,6 +11,7 @@ import java.util.Collections;
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
 import io.jenkins.plugins.credentials.secretsmanager.util.CreateSecretOperation;
 import io.jenkins.plugins.credentials.secretsmanager.util.Crypto;
+import io.jenkins.plugins.credentials.secretsmanager.util.Strings;
 
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
 
@@ -26,10 +27,10 @@ public class WithCredentialsStepIT extends AbstractPluginIT implements Credentia
         final CreateSecretOperation.Result foo = createSecret("supersecret");
 
         // When
-        final WorkflowRunResult result = runPipeline("",
+        final WorkflowRunResult result = runPipeline(Strings.m("",
                 "withCredentials([string(credentialsId: '" + foo.getName() + "', variable: 'VAR')]) {",
                 "  echo \"Credential: $VAR\"",
-                "}");
+                "}"));
 
         // Then
         assertSoftly(s -> {
@@ -47,10 +48,10 @@ public class WithCredentialsStepIT extends AbstractPluginIT implements Credentia
         });
 
         // When
-        final WorkflowRunResult result = runPipeline("",
+        final WorkflowRunResult result = runPipeline(Strings.m("",
                 "withCredentials([usernamePassword(credentialsId: '" + foo.getName() + "', usernameVariable: 'USR', passwordVariable: 'PSW')]) {",
                 "  echo \"Credential: {username: $USR, password: $PSW}\"",
-                "}");
+                "}"));
 
         // Then
         assertSoftly(s -> {
@@ -70,12 +71,12 @@ public class WithCredentialsStepIT extends AbstractPluginIT implements Credentia
         });
 
         // When
-        final WorkflowRunResult result = runPipeline("",
+        final WorkflowRunResult result = runPipeline(Strings.m("",
                 "node {",
                 "  withCredentials([sshUserPrivateKey(credentialsId: '" + foo.getName() + "', keyFileVariable: 'KEYFILE', usernameVariable: 'USERNAME')]) {",
                 "    echo \"Credential: {username: $USERNAME, keyFile: $KEYFILE}\"",
                 "  }",
-                "}");
+                "}"));
 
         // Then
         assertSoftly(s -> {
@@ -101,12 +102,12 @@ public class WithCredentialsStepIT extends AbstractPluginIT implements Credentia
         final CreateSecretOperation.Result foo = createSecret(Crypto.saveKeyStore(keyStore, password));
 
         // When
-        final WorkflowRunResult result = runPipeline("",
+        final WorkflowRunResult result = runPipeline(Strings.m("",
                 "node {",
                 "  withCredentials([certificate(credentialsId: '" + foo.getName() + "', keystoreVariable: 'KEYSTORE')]) {",
                 "    echo \"Credential: {keystore: $KEYSTORE}\"",
                 "  }",
-                "}");
+                "}"));
 
         // Then
         assertSoftly(s -> {
@@ -114,4 +115,5 @@ public class WithCredentialsStepIT extends AbstractPluginIT implements Credentia
             s.assertThat(result.result).as("Result").isEqualTo(hudson.model.Result.SUCCESS);
         });
     }
+
 }

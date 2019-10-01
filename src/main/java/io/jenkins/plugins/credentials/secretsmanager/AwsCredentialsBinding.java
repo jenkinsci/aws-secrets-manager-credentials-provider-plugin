@@ -201,7 +201,11 @@ public class AwsCredentialsBinding extends MultiBinding<AwsCredentials> {
         }
     }
 
-    @Extension
+    /**
+     * The plugin should work without pipeline-model-definition or credentials-binding plugins being
+     * installed.
+     */
+    @Extension(optional = true)
     @SuppressWarnings("unused")
     public static class DescriptorImpl extends BindingDescriptor<AwsCredentials> {
 
