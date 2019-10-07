@@ -2,7 +2,6 @@ package io.jenkins.plugins.credentials.secretsmanager;
 
 import com.google.common.base.Suppliers;
 
-import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.amazonaws.services.secretsmanager.model.SecretListEntry;
 import com.amazonaws.services.secretsmanager.model.Tag;
 import com.cloudbees.plugins.credentials.common.IdCredentials;
@@ -30,30 +29,20 @@ abstract class CredentialsSupplierFactory {
     }
 
     static Supplier<Collection<IdCredentials>> create() {
-        final Supplier<Collection<IdCredentials>> baseSupplier =
-                new LazyAwsCredentialsSupplier(PluginConfiguration::getInstance);
+        final Supplier<Collection<IdCredentials>> baseSupplier = new LazyAwsCredentialsSupplier();
         return memoizeWithExpiration(baseSupplier, Duration.ofMinutes(5));
     }
 
     private static class LazyAwsCredentialsSupplier implements Supplier<Collection<IdCredentials>> {
 
-        private static final Logger LOG = Logger.getLogger(
-                LazyAwsCredentialsSupplier.class.getName());
-
-        private final Supplier<PluginConfiguration> configurationSupplier;
-
-        private LazyAwsCredentialsSupplier(Supplier<PluginConfiguration> configurationSupplier) {
-            this.configurationSupplier = configurationSupplier;
-        }
+        private static final Logger LOG = Logger.getLogger(LazyAwsCredentialsSupplier.class.getName());
 
         @Override
         public Collection<IdCredentials> get() {
-            final PluginConfiguration config = configurationSupplier.get();
+            final PluginConfiguration config = PluginConfiguration.getInstance();
 
             // secrets manager
-            final AWSSecretsManager client = config.getClient();
-
-            Supplier<List<SecretListEntry>> strategy = new ListSecretsOperation(client);
+            Supplier<List<SecretListEntry>> strategy = new ListSecretsOperation(config.getClient());
 
             // tag filtering
             final Filters filters = config.getFilters();
@@ -64,7 +53,7 @@ abstract class CredentialsSupplierFactory {
                 strategy = new ListSecretsFilter(strategy, new Tag().withKey(key).withValue(value));
             }
 
-            return new AwsCredentialsSupplier(client, strategy).get();
+            return new AwsCredentialsSupplier(strategy).get();
         }
     }
 
@@ -72,11 +61,9 @@ abstract class CredentialsSupplierFactory {
 
         private static final Logger LOG = Logger.getLogger(AwsCredentialsSupplier.class.getName());
 
-        private final AWSSecretsManager client;
         private final Supplier<List<SecretListEntry>> strategy;
 
-        AwsCredentialsSupplier(AWSSecretsManager client, Supplier<List<SecretListEntry>> strategy) {
-            this.client = client;
+        AwsCredentialsSupplier(Supplier<List<SecretListEntry>> strategy) {
             this.strategy = strategy;
         }
 
@@ -94,7 +81,7 @@ abstract class CredentialsSupplierFactory {
                         .stream()
                         .filter(tag -> (tag.getKey() != null) && (tag.getValue() != null))
                         .collect(Collectors.toMap(Tag::getKey, Tag::getValue));
-                final IdCredentials cred = new AwsCredentials(name, description, tags, client);
+                final IdCredentials cred = new AwsCredentials(name, description, tags);
                 credentials.put(name, cred);
             }
 

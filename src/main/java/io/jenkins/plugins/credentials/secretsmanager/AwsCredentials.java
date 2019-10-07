@@ -31,6 +31,7 @@ import javax.annotation.Nonnull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.util.Secret;
+import io.jenkins.plugins.credentials.secretsmanager.config.PluginConfiguration;
 
 /**
  * A multi-type credential class backed by AWS Secrets Manager, which detects its type at lookup
@@ -48,16 +49,19 @@ class AwsCredentials extends BaseStandardCredentials implements StringCredential
     private static final char[] EMPTY_PASSWORD = {};
     private static final Secret NONE = Secret.fromString("");
     private static final long serialVersionUID = 1L;
-    private static final String USERNAME_TAG = "jenkins:credentials:username";
+    static final String USERNAME_TAG = "jenkins:credentials:username";
+
+    public Map<String, String> getTags() {
+        return tags;
+    }
 
     private final Map<String, String> tags;
 
-    private final transient AWSSecretsManager client;
+    private transient final AWSSecretsManager client = PluginConfiguration.getInstance().getClient();
 
-    AwsCredentials(String id, String description, Map<String, String> tags, AWSSecretsManager client) {
+    AwsCredentials(String id, String description, Map<String, String> tags) {
         super(id, description);
         this.tags = tags;
-        this.client = client;
     }
 
     @Nonnull
@@ -135,6 +139,10 @@ class AwsCredentials extends BaseStandardCredentials implements StringCredential
     private ByteBuffer getSecretBinary(String secretName) {
         final GetSecretValueResult result = this.getSecretValue(secretName);
         return result.getSecretBinary();
+    }
+
+    GetSecretValueResult getSecretValue() {
+        return getSecretValue(this.getId());
     }
 
     private GetSecretValueResult getSecretValue(String secretName) {

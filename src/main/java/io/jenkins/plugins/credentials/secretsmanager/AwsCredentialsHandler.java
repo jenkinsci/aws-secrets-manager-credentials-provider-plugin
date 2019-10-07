@@ -1,13 +1,13 @@
 package io.jenkins.plugins.credentials.secretsmanager;
 
-import com.amazonaws.AmazonClientException;
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
-import com.amazonaws.services.secretsmanager.model.GetSecretValueRequest;
 import com.amazonaws.services.secretsmanager.model.GetSecretValueResult;
+import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.CredentialsUnavailableException;
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
 
 import org.jenkinsci.plugins.pipeline.modeldefinition.credentials.impl.StringCredentialsHandler;
+import org.jenkinsci.plugins.pipeline.modeldefinition.credentials.impl.UsernamePasswordHandler;
 import org.jenkinsci.plugins.pipeline.modeldefinition.model.CredentialsBindingHandler;
 
 import java.util.Collections;
@@ -17,7 +17,9 @@ import java.util.Map;
 import javax.annotation.Nonnull;
 
 import hudson.Extension;
+import hudson.security.ACL;
 import io.jenkins.plugins.credentials.secretsmanager.config.PluginConfiguration;
+import jenkins.model.Jenkins;
 
 /**
  * Patch the credentials binding behavior of AwsCredentials so it works like the standard
@@ -40,15 +42,16 @@ public class AwsCredentialsHandler extends CredentialsBindingHandler<AwsCredenti
     @Nonnull
     @Override
     public List<Map<String, Object>> getWithCredentialsParameters(String credentialsId) {
-        // TODO get the secret's tags, to add support for Username With Password and SSH Private Key credentials
-        final GetSecretValueResult result = getSecretValue(credentialsId);
-        final CredentialsType credentialsType = detect(result);
-
-        return credentialsType.match(new CredentialsType.Matcher<List<Map<String, Object>>>() {
+        return detectType(credentialsId).match(new CredentialsType.Matcher<List<Map<String, Object>>>() {
 
             @Override
             public List<Map<String, Object>> string() {
                 return new StringCredentialsHandler().getWithCredentialsParameters(credentialsId);
+            }
+
+            @Override
+            public List<Map<String, Object>> usernamePassword() {
+                return new UsernamePasswordHandler().getWithCredentialsParameters(credentialsId);
             }
 
             @Override
@@ -58,19 +61,22 @@ public class AwsCredentialsHandler extends CredentialsBindingHandler<AwsCredenti
         });
     }
 
-    private GetSecretValueResult getSecretValue(String secretName) {
-        final GetSecretValueRequest request = new GetSecretValueRequest().withSecretId(secretName);
+    private static CredentialsType detectType(String credentialsId) {
+        final AwsCredentials credential =
+                CredentialsProvider.lookupCredentials(AwsCredentials.class, Jenkins.get(), ACL.SYSTEM, Collections.emptyList())
+                .stream()
+                .filter(c -> c.getId().equals(credentialsId))
+                .findFirst()
+                .orElseThrow(() -> new CredentialsUnavailableException("secret", Messages.couldNotRetrieveCredentialError(credentialsId)));
 
-        try {
-            return client.getSecretValue(request);
-        } catch (AmazonClientException ex) {
-            throw new CredentialsUnavailableException("secret", Messages.couldNotRetrieveCredentialError(secretName));
-        }
-    }
+        final GetSecretValueResult result = credential.getSecretValue();
+        final Map<String, String> tags = credential.getTags();
 
-    private static CredentialsType detect(GetSecretValueResult result) {
+        if ((result.getSecretString() != null)) {
+            if (tags.containsKey(AwsCredentials.USERNAME_TAG) && !SSHKeyValidator.isValid(result.getSecretString())) {
+                return CredentialsType.usernamePassword();
+            }
 
-        if ((result.getSecretString() != null) && !SSHKeyValidator.isValid(result.getSecretString())) {
             return CredentialsType.string();
         }
 
@@ -87,6 +93,10 @@ public class AwsCredentialsHandler extends CredentialsBindingHandler<AwsCredenti
             return new StringHolder();
         }
 
+        static CredentialsType usernamePassword() {
+            return new UsernamePasswordHolder();
+        }
+
         // When the AWS secret value did not match any supported type
         static CredentialsType none() {
             return new None();
@@ -98,6 +108,8 @@ public class AwsCredentialsHandler extends CredentialsBindingHandler<AwsCredenti
             R none();
 
             R string();
+
+            R usernamePassword();
         }
 
         private static class StringHolder extends CredentialsType {
@@ -117,6 +129,16 @@ public class AwsCredentialsHandler extends CredentialsBindingHandler<AwsCredenti
             @Override
             <R> R match(Matcher<R> matcher) {
                 return matcher.none();
+            }
+        }
+
+        private static class UsernamePasswordHolder extends CredentialsType {
+
+            private UsernamePasswordHolder() {}
+
+            @Override
+            <R> R match(Matcher<R> matcher) {
+                return matcher.usernamePassword();
             }
         }
     }
