@@ -1,11 +1,11 @@
 package io.jenkins.plugins.credentials.secretsmanager;
 
-import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.amazonaws.services.secretsmanager.model.GetSecretValueResult;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.CredentialsUnavailableException;
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
 
+import org.jenkinsci.plugins.pipeline.modeldefinition.credentials.impl.SSHUserPrivateKeyHandler;
 import org.jenkinsci.plugins.pipeline.modeldefinition.credentials.impl.StringCredentialsHandler;
 import org.jenkinsci.plugins.pipeline.modeldefinition.credentials.impl.UsernamePasswordHandler;
 import org.jenkinsci.plugins.pipeline.modeldefinition.model.CredentialsBindingHandler;
@@ -18,7 +18,6 @@ import javax.annotation.Nonnull;
 
 import hudson.Extension;
 import hudson.security.ACL;
-import io.jenkins.plugins.credentials.secretsmanager.config.PluginConfiguration;
 import jenkins.model.Jenkins;
 
 /**
@@ -30,8 +29,6 @@ import jenkins.model.Jenkins;
 @Extension(optional = true)
 @SuppressWarnings("unused")
 public class AwsCredentialsHandler extends CredentialsBindingHandler<AwsCredentials> {
-
-    private transient final AWSSecretsManager client = PluginConfiguration.getInstance().getClient();
 
     @Nonnull
     @Override
@@ -47,6 +44,11 @@ public class AwsCredentialsHandler extends CredentialsBindingHandler<AwsCredenti
             @Override
             public List<Map<String, Object>> string() {
                 return new StringCredentialsHandler().getWithCredentialsParameters(credentialsId);
+            }
+
+            @Override
+            public List<Map<String, Object>> sshUserPrivateKey() {
+                return new SSHUserPrivateKeyHandler().getWithCredentialsParameters(credentialsId);
             }
 
             @Override
@@ -72,9 +74,13 @@ public class AwsCredentialsHandler extends CredentialsBindingHandler<AwsCredenti
         final GetSecretValueResult result = credential.getSecretValue();
         final Map<String, String> tags = credential.getTags();
 
-        if ((result.getSecretString() != null)) {
-            if (tags.containsKey(AwsCredentials.USERNAME_TAG) && !SSHKeyValidator.isValid(result.getSecretString())) {
-                return CredentialsType.usernamePassword();
+        if (result.getSecretString() != null) {
+            if (tags.containsKey(AwsCredentials.USERNAME_TAG)) {
+                if (SSHKeyValidator.isValid(result.getSecretString())) {
+                    return CredentialsType.sshUserPrivateKey();
+                } else {
+                    return CredentialsType.usernamePassword();
+                }
             }
 
             return CredentialsType.string();
@@ -97,6 +103,10 @@ public class AwsCredentialsHandler extends CredentialsBindingHandler<AwsCredenti
             return new UsernamePasswordHolder();
         }
 
+        static CredentialsType sshUserPrivateKey() {
+            return new SshUserPrivateKeyHolder();
+        }
+
         // When the AWS secret value did not match any supported type
         static CredentialsType none() {
             return new None();
@@ -109,12 +119,12 @@ public class AwsCredentialsHandler extends CredentialsBindingHandler<AwsCredenti
 
             R string();
 
+            R sshUserPrivateKey();
+
             R usernamePassword();
         }
 
         private static class StringHolder extends CredentialsType {
-
-            private StringHolder() {}
 
             @Override
             <R> R match(Matcher<R> matcher) {
@@ -124,8 +134,6 @@ public class AwsCredentialsHandler extends CredentialsBindingHandler<AwsCredenti
 
         private static class None extends CredentialsType {
 
-            private None() {}
-
             @Override
             <R> R match(Matcher<R> matcher) {
                 return matcher.none();
@@ -134,11 +142,17 @@ public class AwsCredentialsHandler extends CredentialsBindingHandler<AwsCredenti
 
         private static class UsernamePasswordHolder extends CredentialsType {
 
-            private UsernamePasswordHolder() {}
-
             @Override
             <R> R match(Matcher<R> matcher) {
                 return matcher.usernamePassword();
+            }
+        }
+
+        private static class SshUserPrivateKeyHolder extends CredentialsType {
+
+            @Override
+            <R> R match(Matcher<R> matcher) {
+                return matcher.sshUserPrivateKey();
             }
         }
     }

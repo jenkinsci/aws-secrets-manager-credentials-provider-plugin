@@ -13,7 +13,7 @@ import io.jenkins.plugins.credentials.secretsmanager.util.Strings;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
 
 /**
- * The plugin should support the Jenkinsfile 'environment' step with credentials() binding.
+ * The plugin should support the Jenkins Declarative Pipeline 'environment' step.
  */
 public class EnvironmentStepIT extends AbstractPluginIT implements CredentialTypeTests {
 
@@ -77,7 +77,8 @@ public class EnvironmentStepIT extends AbstractPluginIT implements CredentialTyp
         });
     }
 
-    @Ignore("Declarative Pipeline gained SSH key binding support in a higher plugin version than we can currently support")
+    @Test
+    @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportSshPrivateKeyCredentials() {
         // Given
         final CreateSecretOperation.Result foo = createSecret(Crypto.newPrivateKey(), opts -> {
@@ -94,7 +95,7 @@ public class EnvironmentStepIT extends AbstractPluginIT implements CredentialTyp
                 "        FOO = credentials('" + foo.getName() + "')",
                 "      }",
                 "      steps {",
-                "        echo \"{variable: $FOO, username: $FOO_USR, passphrase: $FOO_PSW}\"",
+                "        echo \"{variable: $FOO, username: $FOO_USR}\"",
                 "      }",
                 "    }",
                 "  }",
@@ -102,7 +103,7 @@ public class EnvironmentStepIT extends AbstractPluginIT implements CredentialTyp
 
         // Then
         assertSoftly(s -> {
-            s.assertThat(result.log).as("Log").contains("{variable: ****, username: ****, passphrase: ****}");
+            s.assertThat(result.log).as("Log").contains("{variable: ****, username: ****}");
             s.assertThat(result.result).as("Result").isEqualTo(hudson.model.Result.SUCCESS);
         });
     }

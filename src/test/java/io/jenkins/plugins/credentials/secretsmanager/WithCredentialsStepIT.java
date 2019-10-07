@@ -16,7 +16,7 @@ import io.jenkins.plugins.credentials.secretsmanager.util.Strings;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
 
 /**
- * The plugin should support the Jenkinsfile 'withCredentials' step.
+ * The plugin should support the Jenkins Scripted Pipeline 'withCredentials' step.
  */
 public class WithCredentialsStepIT extends AbstractPluginIT implements CredentialTypeTests {
 
