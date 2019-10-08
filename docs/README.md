@@ -174,7 +174,7 @@ aws secretsmanager create-secret --name 'code-signing-cert' --secret-binary 'fil
 
 ```groovy
 node {
-    withCredentials(bindings: [certificate(credentialsId: 'code-signing-cert', keystoreVariable: 'STORE_FILE')]) {
+    withCredentials([certificate(credentialsId: 'code-signing-cert', keystoreVariable: 'STORE_FILE')]) {
         echo 'Hello world'
     }
 }
