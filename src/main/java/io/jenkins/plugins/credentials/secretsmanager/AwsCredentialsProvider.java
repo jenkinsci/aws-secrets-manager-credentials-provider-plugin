@@ -20,6 +20,8 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.annotation.Nonnull;
+
 @Extension
 public class AwsCredentialsProvider extends CredentialsProvider {
 
@@ -32,7 +34,7 @@ public class AwsCredentialsProvider extends CredentialsProvider {
 
     @Override
     @NonNull
-    public <C extends Credentials> List<C> getCredentials(Class<C> type,
+    public <C extends Credentials> List<C> getCredentials(@Nonnull Class<C> type,
                                                           ItemGroup itemGroup,
                                                           Authentication authentication) {
         if (ACL.SYSTEM.equals(authentication)) {
