@@ -173,13 +173,9 @@ aws secretsmanager create-secret --name 'code-signing-cert' --secret-binary 'fil
 #### Scripted Pipeline
 
 ```groovy
-pipeline {
-    stages {
-        stage('Foo') {
-            withCredentials(bindings: [certificate(credentialsId: 'code-signing-cert', keystoreVariable: 'STORE_FILE')]) {
-                echo 'Hello world'
-            }
-        }
+node {
+    withCredentials(bindings: [certificate(credentialsId: 'code-signing-cert', keystoreVariable: 'STORE_FILE')]) {
+        echo 'Hello world'
     }
 }
 ```
