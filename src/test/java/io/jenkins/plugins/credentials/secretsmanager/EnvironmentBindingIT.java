@@ -15,7 +15,7 @@ import static org.assertj.core.api.SoftAssertions.assertSoftly;
 /**
  * The plugin should support the Jenkins Declarative Pipeline 'environment' step.
  */
-public class EnvironmentStepIT extends AbstractPluginIT implements CredentialTypeTests {
+public class EnvironmentBindingIT extends AbstractPluginIT implements CredentialsTests {
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
@@ -108,7 +108,7 @@ public class EnvironmentStepIT extends AbstractPluginIT implements CredentialTyp
         });
     }
 
-    @Ignore("Declarative Pipeline does not yet support certificate bindings")
+    @Ignore("Declarative Pipeline does not support certificate bindings")
     public void shouldSupportCertificateCredentials() {
 
     }

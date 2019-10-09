@@ -30,7 +30,7 @@ Install and configure the plugin.
 
 ### IAM
 
-Give Jenkins an [IAM policy](iam/index.md) with read access to Secrets Manager.
+Give your Jenkins master(s) and agent(s) an [IAM policy](iam/index.md) with read access to Secrets Manager.
 
 Required permissions:
 

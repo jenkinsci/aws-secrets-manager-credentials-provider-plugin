@@ -13,12 +13,8 @@ import org.junit.Test;
 
 import java.security.KeyPair;
 import java.security.KeyStore;
-import java.security.KeyStoreException;
 import java.security.cert.Certificate;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -26,9 +22,9 @@ import java.util.stream.Collectors;
 
 import hudson.util.Secret;
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
-import io.jenkins.plugins.credentials.secretsmanager.util.Crypto;
 import io.jenkins.plugins.credentials.secretsmanager.util.CreateSecretOperation;
 import io.jenkins.plugins.credentials.secretsmanager.util.CreateSecretOperation.Result;
+import io.jenkins.plugins.credentials.secretsmanager.util.Crypto;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -36,9 +32,9 @@ import static org.assertj.core.api.Assertions.tuple;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
 
 /**
- * The plugin should support CredentialsProvider usage. (This is the most direct way of using it.)
+ * The plugin should support CredentialsProvider usage to list available credentials.
  */
-public class CredentialsProviderIT extends AbstractPluginIT implements CredentialTypeTests {
+public class CredentialsProviderIT extends AbstractPluginIT implements CredentialsTests {
 
     private static final Secret EMPTY_PASSPHRASE = Secret.fromString("");
 
@@ -197,19 +193,14 @@ public class CredentialsProviderIT extends AbstractPluginIT implements Credentia
         final KeyPair keyPair = Crypto.newKeyPair();
         final Certificate cert = Crypto.newSelfSignedCertificate(keyPair);
         final char[] password = {};
-        final KeyStore keyStore = Crypto.newKeyStore(password);
-        try {
-            keyStore.setKeyEntry(alias, keyPair.getPrivate(), password, new Certificate[]{cert});
-        } catch (KeyStoreException e) {
-            throw new RuntimeException(e);
-        }
+        final KeyStore keyStore = Crypto.singletonKeyStore(alias, keyPair.getPrivate(), password, new Certificate[]{cert});
         // And
         final Result foo = createSecret(Crypto.saveKeyStore(keyStore, password));
 
         // When
         final List<CertCreds> credentials = lookupCredentials(StandardCertificateCredentials.class)
                 .stream()
-                .map(cred -> new CertCreds(cred.getId(), keystoreToMap(cred.getKeyStore()), cred.getPassword()))
+                .map(cred -> new CertCreds(cred.getId(), Crypto.keystoreToMap(cred.getKeyStore()), cred.getPassword()))
                 .collect(Collectors.toList());
 
         // Then
@@ -366,24 +357,6 @@ public class CredentialsProviderIT extends AbstractPluginIT implements Credentia
         assertThatExceptionOfType(UnsupportedOperationException.class)
                 .isThrownBy(() -> store().removeCredentials(Domain.global(), new StringCredentialsImpl(CredentialsScope.GLOBAL, "foo", "desc", Secret.fromString("password"))))
                 .withMessage("Jenkins may not remove credentials from AWS Secrets Manager");
-    }
-
-    private static Map<String, List<Certificate>> keystoreToMap(KeyStore keyStore) {
-        final Map<String, List<Certificate>> ks = new HashMap<>();
-
-        try {
-            final Enumeration<String> aliases = keyStore.aliases();
-            while (aliases.hasMoreElements()) {
-                final String a = aliases.nextElement();
-                final Certificate[] certificateChain = keyStore.getCertificateChain(a);
-                final List<Certificate> certificateChainList = Arrays.asList(certificateChain);
-                ks.put(a, certificateChainList);
-            }
-        } catch (KeyStoreException e) {
-            throw new RuntimeException(e);
-        }
-
-        return ks;
     }
 
     /*

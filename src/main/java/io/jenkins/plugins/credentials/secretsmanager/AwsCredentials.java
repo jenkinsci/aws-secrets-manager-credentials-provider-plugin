@@ -31,7 +31,6 @@ import javax.annotation.Nonnull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.util.Secret;
-import io.jenkins.plugins.credentials.secretsmanager.config.PluginConfiguration;
 
 /**
  * A multi-type credential class backed by AWS Secrets Manager, which detects its type at lookup
@@ -51,23 +50,23 @@ class AwsCredentials extends BaseStandardCredentials implements StringCredential
     private static final long serialVersionUID = 1L;
     static final String USERNAME_TAG = "jenkins:credentials:username";
 
-    public Map<String, String> getTags() {
-        return tags;
-    }
-
+    private final AwsSecretsManagerConfig config;
     private final Map<String, String> tags;
 
-    private transient final AWSSecretsManager client = PluginConfiguration.getInstance().getClient();
-
-    AwsCredentials(String id, String description, Map<String, String> tags) {
+    AwsCredentials(String id, String description, AwsSecretsManagerConfig config, Map<String, String> tags) {
         super(id, description);
+        this.config = config;
         this.tags = tags;
+    }
+
+    public Map<String, String> getTags() {
+        return tags;
     }
 
     @Nonnull
     @Override
     public Secret getSecret() {
-        return Secret.fromString(getSecretString(getId()));
+        return Secret.fromString(getSecretString());
     }
 
     @NonNull
@@ -75,7 +74,7 @@ class AwsCredentials extends BaseStandardCredentials implements StringCredential
     public Secret getPassword() {
         if (tags.containsKey(USERNAME_TAG)) {
             // username/password
-            return Secret.fromString(getSecretString(getId()));
+            return Secret.fromString(getSecretString());
         } else {
             // certificate
             return NONE;
@@ -100,16 +99,16 @@ class AwsCredentials extends BaseStandardCredentials implements StringCredential
     @NonNull
     @Override
     public List<String> getPrivateKeys() {
-        return Collections.singletonList(this.getPrivateKey());
+        return Collections.singletonList(getPrivateKey());
     }
 
     @NonNull
     @Deprecated
     @Override
     public String getPrivateKey() {
-        final String secretValue = getSecretString(getId());
+        final String secretValue = getSecretString();
 
-        if (isValidSSHKey(secretValue)) {
+        if (SSHKeyValidator.isValid(secretValue)) {
             return secretValue;
         } else {
             throw new CredentialsUnavailableException("privateKey", Messages.noPrivateKeyError());
@@ -119,7 +118,7 @@ class AwsCredentials extends BaseStandardCredentials implements StringCredential
     @NonNull
     @Override
     public KeyStore getKeyStore() {
-        final ByteBuffer secretValue = getSecretBinary(getId());
+        final ByteBuffer secretValue = getSecretBinary();
 
         try (InputStream stream = new ByteArrayInputStream(secretValue.array())) {
             final KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
@@ -131,32 +130,24 @@ class AwsCredentials extends BaseStandardCredentials implements StringCredential
         }
     }
 
-    private String getSecretString(String secretName) {
-        final GetSecretValueResult result = this.getSecretValue(secretName);
+    private String getSecretString() {
+        final GetSecretValueResult result = getSecretValue();
         return result.getSecretString();
     }
 
-    private ByteBuffer getSecretBinary(String secretName) {
-        final GetSecretValueResult result = this.getSecretValue(secretName);
+    private ByteBuffer getSecretBinary() {
+        final GetSecretValueResult result = getSecretValue();
         return result.getSecretBinary();
     }
 
     GetSecretValueResult getSecretValue() {
-        return getSecretValue(this.getId());
-    }
-
-    private GetSecretValueResult getSecretValue(String secretName) {
-        final GetSecretValueRequest request = new GetSecretValueRequest().withSecretId(secretName);
+        final AWSSecretsManager client = config.build();
 
         try {
-            return client.getSecretValue(request);
+            return client.getSecretValue(new GetSecretValueRequest().withSecretId(getId()));
         } catch (AmazonClientException ex) {
-            throw new CredentialsUnavailableException("secret", Messages.couldNotRetrieveCredentialError(secretName));
+            throw new CredentialsUnavailableException("secret", Messages.couldNotRetrieveCredentialError(getId()));
         }
-    }
-
-    private static boolean isValidSSHKey(String privateKey) {
-        return SSHKeyValidator.isValid(privateKey);
     }
 
     public static class NameProvider extends CredentialsNameProvider<AwsCredentials> {

@@ -2,10 +2,7 @@ package io.jenkins.plugins.credentials.secretsmanager;
 
 import org.junit.Test;
 
-/**
- * Ensure that all credential access methods are tested for all common credential types.
- */
-public interface CredentialTypeTests {
+public interface CredentialsTests {
     @Test
     void shouldSupportStringCredentials();
 

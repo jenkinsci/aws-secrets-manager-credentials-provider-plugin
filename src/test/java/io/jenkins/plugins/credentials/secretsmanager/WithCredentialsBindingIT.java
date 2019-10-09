@@ -4,7 +4,6 @@ import org.junit.Test;
 
 import java.security.KeyPair;
 import java.security.KeyStore;
-import java.security.KeyStoreException;
 import java.security.cert.Certificate;
 import java.util.Collections;
 
@@ -18,7 +17,7 @@ import static org.assertj.core.api.SoftAssertions.assertSoftly;
 /**
  * The plugin should support the Jenkins Scripted Pipeline 'withCredentials' step.
  */
-public class WithCredentialsStepIT extends AbstractPluginIT implements CredentialTypeTests {
+public class WithCredentialsBindingIT extends AbstractPluginIT implements CredentialsTests {
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
@@ -92,12 +91,7 @@ public class WithCredentialsStepIT extends AbstractPluginIT implements Credentia
         final KeyPair keyPair = Crypto.newKeyPair();
         final Certificate cert = Crypto.newSelfSignedCertificate(keyPair);
         final char[] password = {};
-        final KeyStore keyStore = Crypto.newKeyStore(password);
-        try {
-            keyStore.setKeyEntry("test", keyPair.getPrivate(), password, new Certificate[]{cert});
-        } catch (KeyStoreException e) {
-            throw new RuntimeException(e);
-        }
+        final KeyStore keyStore = Crypto.singletonKeyStore("test", keyPair.getPrivate(), password, new Certificate[]{cert});
         // And
         final CreateSecretOperation.Result foo = createSecret(Crypto.saveKeyStore(keyStore, password));
 
