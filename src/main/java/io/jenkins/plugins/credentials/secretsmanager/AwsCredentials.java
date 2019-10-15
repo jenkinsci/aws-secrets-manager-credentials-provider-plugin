@@ -1,9 +1,5 @@
 package io.jenkins.plugins.credentials.secretsmanager;
 
-import com.amazonaws.AmazonClientException;
-import com.amazonaws.services.secretsmanager.AWSSecretsManager;
-import com.amazonaws.services.secretsmanager.model.GetSecretValueRequest;
-import com.amazonaws.services.secretsmanager.model.GetSecretValueResult;
 import com.cloudbees.jenkins.plugins.sshcredentials.SSHUserPrivateKey;
 import com.cloudbees.plugins.credentials.CredentialsNameProvider;
 import com.cloudbees.plugins.credentials.CredentialsUnavailableException;
@@ -17,7 +13,6 @@ import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.ByteBuffer;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -43,19 +38,17 @@ import hudson.util.Secret;
  * secret's tags.)
  */
 @NameWith(value = AwsCredentials.NameProvider.class)
-class AwsCredentials extends BaseStandardCredentials implements StringCredentials, StandardUsernamePasswordCredentials, SSHUserPrivateKey, StandardCertificateCredentials {
+abstract class AwsCredentials extends BaseStandardCredentials implements StringCredentials, StandardUsernamePasswordCredentials, SSHUserPrivateKey, StandardCertificateCredentials {
 
     private static final char[] EMPTY_PASSWORD = {};
     private static final Secret NONE = Secret.fromString("");
-    private static final long serialVersionUID = 1L;
+
     static final String USERNAME_TAG = "jenkins:credentials:username";
 
-    private final AwsSecretsManagerConfig config;
     private final Map<String, String> tags;
 
-    AwsCredentials(String id, String description, AwsSecretsManagerConfig config, Map<String, String> tags) {
+    AwsCredentials(String id, String description, Map<String, String> tags) {
         super(id, description);
-        this.config = config;
         this.tags = tags;
     }
 
@@ -118,9 +111,9 @@ class AwsCredentials extends BaseStandardCredentials implements StringCredential
     @NonNull
     @Override
     public KeyStore getKeyStore() {
-        final ByteBuffer secretValue = getSecretBinary();
+        final byte[] secretValue = getSecretBinary();
 
-        try (InputStream stream = new ByteArrayInputStream(secretValue.array())) {
+        try (InputStream stream = new ByteArrayInputStream(secretValue)) {
             final KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
             // JDK9 workaround: PKCS#12 keystores must have at least an empty password (not null)
             keyStore.load(stream, EMPTY_PASSWORD);
@@ -131,24 +124,34 @@ class AwsCredentials extends BaseStandardCredentials implements StringCredential
     }
 
     private String getSecretString() {
-        final GetSecretValueResult result = getSecretValue();
-        return result.getSecretString();
+        return getSecretValue().match(new SecretValue.Matcher<String>() {
+            @Override
+            public String string(String str) {
+                return str;
+            }
+
+            @Override
+            public String binary(byte[] bytes) {
+                return null;
+            }
+        });
     }
 
-    private ByteBuffer getSecretBinary() {
-        final GetSecretValueResult result = getSecretValue();
-        return result.getSecretBinary();
+    private byte[] getSecretBinary() {
+        return getSecretValue().match(new SecretValue.Matcher<byte[]>() {
+            @Override
+            public byte[] string(String str) {
+                return null;
+            }
+
+            @Override
+            public byte[] binary(byte[] bytes) {
+                return bytes;
+            }
+        });
     }
 
-    GetSecretValueResult getSecretValue() {
-        final AWSSecretsManager client = config.build();
-
-        try {
-            return client.getSecretValue(new GetSecretValueRequest().withSecretId(getId()));
-        } catch (AmazonClientException ex) {
-            throw new CredentialsUnavailableException("secret", Messages.couldNotRetrieveCredentialError(getId()));
-        }
-    }
+    abstract SecretValue getSecretValue();
 
     public static class NameProvider extends CredentialsNameProvider<AwsCredentials> {
         @NonNull

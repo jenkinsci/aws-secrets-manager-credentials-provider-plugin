@@ -118,7 +118,7 @@ public class AwsCredentialsProvider extends CredentialsProvider {
                     final Map<String, String> tags = Optional.ofNullable(s.getTags()).orElse(Collections.emptyList()).stream()
                             .filter(tag -> (tag.getKey() != null) && (tag.getValue() != null))
                             .collect(Collectors.toMap(Tag::getKey, Tag::getValue));
-                    return new AwsCredentials(name, description, AwsSecretsManagerConfig.fromBuilder(builder), tags);
+                    return new RealAwsCredentials(name, description, tags, client);
                 })
                 .collect(Collectors.toMap(IdCredentials::getId, cred -> cred));
 

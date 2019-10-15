@@ -1,6 +1,5 @@
 package io.jenkins.plugins.credentials.secretsmanager;
 
-import com.amazonaws.services.secretsmanager.model.GetSecretValueResult;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.CredentialsUnavailableException;
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
@@ -71,22 +70,28 @@ public class AwsCredentialsHandler extends CredentialsBindingHandler<AwsCredenti
                 .findFirst()
                 .orElseThrow(() -> new CredentialsUnavailableException("secret", Messages.couldNotRetrieveCredentialError(credentialsId)));
 
-        final GetSecretValueResult result = credential.getSecretValue();
+        final SecretValue result = credential.getSecretValue();
         final Map<String, String> tags = credential.getTags();
 
-        if (result.getSecretString() != null) {
-            if (tags.containsKey(AwsCredentials.USERNAME_TAG)) {
-                if (SSHKeyValidator.isValid(result.getSecretString())) {
-                    return CredentialsType.sshUserPrivateKey();
-                } else {
-                    return CredentialsType.usernamePassword();
+        return result.match(new SecretValue.Matcher<CredentialsType>() {
+            @Override
+            public CredentialsType string(String str) {
+                if (tags.containsKey(AwsCredentials.USERNAME_TAG)) {
+                    if (SSHKeyValidator.isValid(str)) {
+                        return CredentialsType.sshUserPrivateKey();
+                    } else {
+                        return CredentialsType.usernamePassword();
+                    }
                 }
+
+                return CredentialsType.string();
             }
 
-            return CredentialsType.string();
-        }
-
-        return CredentialsType.none();
+            @Override
+            public CredentialsType binary(byte[] bytes) {
+                return CredentialsType.none();
+            }
+        });
     }
 
     /**

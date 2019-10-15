@@ -4,14 +4,17 @@ import org.junit.Test;
 
 public interface CredentialsTests {
     @Test
-    void shouldSupportStringCredentials();
+    void shouldHaveName();
 
     @Test
-    void shouldSupportUsernamePasswordCredentials();
+    void shouldAppearInCredentialsProvider();
 
     @Test
-    void shouldSupportSshPrivateKeyCredentials();
+    void shouldSupportWithCredentialsBinding();
 
     @Test
-    void shouldSupportCertificateCredentials();
+    void shouldSupportEnvironmentBinding();
+
+    @Test
+    void shouldSupportSnapshots();
 }
