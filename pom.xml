@@ -136,10 +136,6 @@
                         </goals>
                     </execution>
                 </executions>
-                <configuration>
-                    <!-- Workaround: Write failsafe reports to surefire reports directory so Jenkins can find them -->
-                    <reportsDirectory>${project.build.directory}/surefire-reports</reportsDirectory>
-                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
