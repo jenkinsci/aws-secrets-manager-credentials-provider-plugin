@@ -40,10 +40,6 @@ public class SSHKeyValidatorTest {
                      "-----END PRIVATE KEY-----")
             .isNotValid();
 
-    private static final Case NULL_PRIVATE_KEY = new Case.Builder()
-            .withDescription("Null private key")
-            .isNotValid();
-
     private static final Case OPENSSH_PRIVATE_KEY = new Case.Builder()
             .withDescription("OpenSSH private key")
             .withKey("-----BEGIN OPENSSH PRIVATE KEY-----",
@@ -127,7 +123,6 @@ public class SSHKeyValidatorTest {
         return Arrays.asList(new Object[] {
                 BAD_CONTENT_PRIVATE_KEY,
                 BAD_HEADER_PRIVATE_KEY,
-                NULL_PRIVATE_KEY,
                 EMPTY_OPENSSH_PRIVATE_KEY,
                 EMPTY_PKCS1_PRIVATE_KEY,
                 EMPTY_PKCS8_PRIVATE_KEY,

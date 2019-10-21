@@ -20,10 +20,6 @@ abstract class SSHKeyValidator {
     }
 
     static boolean isValid(String str) {
-        if (str == null) {
-            return false;
-        }
-
         return chain.isValid(str);
     }
 

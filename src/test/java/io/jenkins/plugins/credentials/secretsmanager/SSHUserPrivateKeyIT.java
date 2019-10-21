@@ -5,17 +5,24 @@ import com.cloudbees.plugins.credentials.CredentialsUnavailableException;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.experimental.runners.Enclosed;
+import org.junit.runner.RunWith;
 
+import java.security.KeyPair;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import hudson.model.Label;
+import hudson.slaves.DumbSlave;
 import hudson.util.ListBoxModel;
 import hudson.util.Secret;
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
 import io.jenkins.plugins.credentials.secretsmanager.util.CreateSecretOperation;
 import io.jenkins.plugins.credentials.secretsmanager.util.Crypto;
+import io.jenkins.plugins.credentials.secretsmanager.util.git.GitSshServer;
 import io.jenkins.plugins.credentials.secretsmanager.util.Strings;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,6 +32,7 @@ import static org.assertj.core.api.SoftAssertions.assertSoftly;
 /**
  * The plugin should support SSH private key credentials.
  */
+@RunWith(Enclosed.class)
 public class SSHUserPrivateKeyIT extends AbstractPluginIT implements CredentialsTests {
 
     private static final Secret EMPTY_PASSPHRASE = Secret.fromString("");
@@ -196,5 +204,44 @@ public class SSHUserPrivateKeyIT extends AbstractPluginIT implements Credentials
         assertThat(credentials)
                 .extracting("id", "username", "password")
                 .containsOnly(tuple(foo.getName(), "joe", Secret.fromString(PRIVATE_KEY)));
+    }
+
+    public static class GitPluginIT extends AbstractPluginIT {
+
+        private final String repo = "foo";
+        private final KeyPair sshKey = Crypto.newKeyPair();
+        private final String username = "joe";
+
+        @Rule
+        public final GitSshServer git = new GitSshServer.Builder()
+                .withRepos(repo)
+                .withUsers(Collections.singletonMap(username, sshKey))
+                .build();
+
+        @Test
+        @ConfiguredWithCode(value = "/integration.yml")
+        public void shouldSupportGitPlugin() throws Exception {
+            final String agentName = "agent";
+            final DumbSlave agent = r.createOnlineSlave(Label.get(agentName));
+
+            // Given
+            final CreateSecretOperation.Result foo = createSecret(Crypto.save(sshKey.getPrivate()), opts -> {
+                opts.tags = Collections.singletonMap("jenkins:credentials:username", username);
+            });
+
+            // When
+            String pipeline = Strings.m("",
+                    "node('" + agentName + "') {",
+                    "  git url: '" + git.getCloneUrl(repo, username) + "', credentialsId: '" + foo.getName() + "', branch: 'master'",
+                    "}");
+            final WorkflowRunResult result = runPipeline(pipeline);
+
+            // Then
+            assertSoftly(s -> {
+                s.assertThat(result.log).as("Log").contains("Commit message: \"Initial commit\"");
+                s.assertThat(result.result).as("Result").isEqualTo(hudson.model.Result.SUCCESS);
+            });
+        }
+
     }
 }

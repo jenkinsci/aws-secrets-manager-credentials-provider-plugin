@@ -44,7 +44,7 @@ public class StandardCertificateCredentialsIT extends AbstractPluginIT implement
         // Given
         final KeyStore keyStore = Crypto.singletonKeyStore(ALIAS, KEY_PAIR.getPrivate(), PASSWORD, new Certificate[]{CERT});
         // And
-        final CreateSecretOperation.Result foo = createSecret(Crypto.saveKeyStore(keyStore, PASSWORD));
+        final CreateSecretOperation.Result foo = createSecret(Crypto.save(keyStore, PASSWORD));
 
         // When
         final ListBoxModel list = listCredentials(StandardCertificateCredentials.class);
@@ -61,7 +61,7 @@ public class StandardCertificateCredentialsIT extends AbstractPluginIT implement
         // Given
         final KeyStore keyStore = Crypto.singletonKeyStore(ALIAS, KEY_PAIR.getPrivate(), PASSWORD, new Certificate[]{CERT});
         // And
-        final CreateSecretOperation.Result foo = createSecret(Crypto.saveKeyStore(keyStore, PASSWORD));
+        final CreateSecretOperation.Result foo = createSecret(Crypto.save(keyStore, PASSWORD));
 
         // When
         final List<CertCreds> credentials = lookupCredentials(StandardCertificateCredentials.class)
@@ -81,7 +81,7 @@ public class StandardCertificateCredentialsIT extends AbstractPluginIT implement
         // Given
         final KeyStore keyStore = Crypto.singletonKeyStore(ALIAS, KEY_PAIR.getPrivate(), PASSWORD, new Certificate[]{CERT});
         // And
-        final CreateSecretOperation.Result foo = createSecret(Crypto.saveKeyStore(keyStore, PASSWORD));
+        final CreateSecretOperation.Result foo = createSecret(Crypto.save(keyStore, PASSWORD));
 
         // When
         final WorkflowRunResult result = runPipeline(Strings.m("",
@@ -109,7 +109,7 @@ public class StandardCertificateCredentialsIT extends AbstractPluginIT implement
         // Given
         final KeyStore keyStore = Crypto.singletonKeyStore(ALIAS, KEY_PAIR.getPrivate(), PASSWORD, new Certificate[]{CERT});
         // And
-        final CreateSecretOperation.Result foo = createSecret(Crypto.saveKeyStore(keyStore, PASSWORD));
+        final CreateSecretOperation.Result foo = createSecret(Crypto.save(keyStore, PASSWORD));
         // And
         final StandardCertificateCredentials before = lookupCredential(AwsCredentials.class, foo.getName());
 

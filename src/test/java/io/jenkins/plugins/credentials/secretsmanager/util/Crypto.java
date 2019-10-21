@@ -42,17 +42,7 @@ public abstract class Crypto {
 
     public static String newPrivateKey() {
         final PrivateKey privateKey = newKeyPair().getPrivate();
-
-        try (StringWriter sw = new StringWriter()) {
-            final JcaPEMWriter writer = new JcaPEMWriter(sw);
-
-            writer.writeObject(privateKey);
-            writer.close();
-
-            return sw.getBuffer().toString();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        return save(privateKey);
     }
 
     public static KeyPair newKeyPair() {
@@ -62,11 +52,24 @@ public abstract class Crypto {
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
-        keyPairGenerator.initialize(512);
+        keyPairGenerator.initialize(2048);
         return keyPairGenerator.generateKeyPair();
     }
 
-    public static byte[] saveKeyStore(KeyStore keyStore, char[] password) {
+    public static String save(Key key) {
+        try (StringWriter sw = new StringWriter()) {
+            final JcaPEMWriter writer = new JcaPEMWriter(sw);
+
+            writer.writeObject(key);
+            writer.close();
+
+            return sw.getBuffer().toString();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static byte[] save(KeyStore keyStore, char[] password) {
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
             keyStore.store(baos, password);
             return baos.toByteArray();
