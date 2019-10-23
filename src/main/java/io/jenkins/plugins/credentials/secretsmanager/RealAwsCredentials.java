@@ -7,10 +7,13 @@ import com.amazonaws.services.secretsmanager.model.GetSecretValueResult;
 import com.cloudbees.plugins.credentials.CredentialsUnavailableException;
 
 import java.util.Map;
+import java.util.logging.Logger;
 
 import hudson.Extension;
 
 class RealAwsCredentials extends AwsCredentials {
+
+    private static final Logger LOG = Logger.getLogger(RealAwsCredentials.class.getName());
 
     private static final long serialVersionUID = 1L;
 
@@ -33,6 +36,9 @@ class RealAwsCredentials extends AwsCredentials {
             }
             return null;
         } catch (AmazonClientException ex) {
+            LOG.warning("AWS Secrets Manager retrieval error");
+            LOG.warning(ex.getMessage());
+
             throw new CredentialsUnavailableException("secret", Messages.couldNotRetrieveCredentialError(getId()));
         }
     }

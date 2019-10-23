@@ -215,14 +215,14 @@ public class SSHUserPrivateKeyIT extends AbstractPluginIT implements Credentials
         @Rule
         public final GitSshServer git = new GitSshServer.Builder()
                 .withRepos(repo)
-                .withUsers(Collections.singletonMap(username, sshKey))
+                .withUsers(Collections.singletonMap(username, sshKey.getPublic()))
                 .build();
 
         @Test
         @ConfiguredWithCode(value = "/integration.yml")
         public void shouldSupportGitPlugin() throws Exception {
-            final String agentName = "agent";
-            final DumbSlave agent = r.createOnlineSlave(Label.get(agentName));
+            final String slaveName = "agent";
+            final DumbSlave slave = r.createSlave(Label.get(slaveName));
 
             // Given
             final CreateSecretOperation.Result foo = createSecret(Crypto.save(sshKey.getPrivate()), opts -> {
@@ -231,7 +231,7 @@ public class SSHUserPrivateKeyIT extends AbstractPluginIT implements Credentials
 
             // When
             String pipeline = Strings.m("",
-                    "node('" + agentName + "') {",
+                    "node('" + slaveName + "') {",
                     "  git url: '" + git.getCloneUrl(repo, username) + "', credentialsId: '" + foo.getName() + "', branch: 'master'",
                     "}");
             final WorkflowRunResult result = runPipeline(pipeline);
