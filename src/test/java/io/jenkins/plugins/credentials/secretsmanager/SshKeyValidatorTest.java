@@ -9,7 +9,7 @@ import java.util.Arrays;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(Parameterized.class)
-public class SSHKeyValidatorTest {
+public class SshKeyValidatorTest {
 
     private static final Case BAD_CONTENT_PRIVATE_KEY = new Case.Builder()
             .withDescription("Private key with bad content")
@@ -135,13 +135,13 @@ public class SSHKeyValidatorTest {
 
     private final Case testCase;
 
-    public SSHKeyValidatorTest(Case testCase) {
+    public SshKeyValidatorTest(Case testCase) {
         this.testCase = testCase;
     }
 
     @Test
     public void shouldValidate() {
-        assertThat(SSHKeyValidator.isValid(testCase.key)).isEqualTo(testCase.isValid);
+        assertThat(SshKeyValidator.isValid(testCase.key)).isEqualTo(testCase.isValid);
     }
 
     private static class Case {

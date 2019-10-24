@@ -21,9 +21,8 @@ import jenkins.model.Jenkins;
 
 /**
  * Patch the credentials binding behavior of AwsCredentials so it works like the standard
- * single-type binders from pipeline-model-definition plugin.
- *
- * This handler is only activated if the pipeline-model-definition plugin is installed.
+ * single-type binders from pipeline-model-definition plugin. This handler is only activated if the
+ * pipeline-model-definition plugin is installed.
  */
 @Extension(optional = true)
 @SuppressWarnings("unused")
@@ -77,7 +76,7 @@ public class AwsCredentialsHandler extends CredentialsBindingHandler<AwsCredenti
             @Override
             public CredentialsType string(String str) {
                 if (tags.containsKey(AwsCredentials.USERNAME_TAG)) {
-                    if (SSHKeyValidator.isValid(str)) {
+                    if (SshKeyValidator.isValid(str)) {
                         return CredentialsType.sshUserPrivateKey();
                     } else {
                         return CredentialsType.usernamePassword();

@@ -13,8 +13,8 @@ public class AwsCredentialsSnapshotTaker extends CredentialsSnapshotTaker<AwsCre
     }
 
     @Override
-    public AwsCredentials snapshot(AwsCredentials c) {
-        final SecretValue result = c.getSecretValue();
-        return new AwsCredentialsSnapshot(c.getId(), c.getDescription(), c.getTags(), result);
+    public AwsCredentials snapshot(AwsCredentials credential) {
+        final SecretValue result = credential.getSecretValue();
+        return new AwsCredentialsSnapshot(credential.getId(), credential.getDescription(), credential.getTags(), result);
     }
 }

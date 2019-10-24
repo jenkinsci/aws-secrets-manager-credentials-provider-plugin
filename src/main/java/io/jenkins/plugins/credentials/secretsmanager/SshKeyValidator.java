@@ -11,11 +11,11 @@ import java.io.StringReader;
 import java.util.Arrays;
 import java.util.List;
 
-abstract class SSHKeyValidator {
+abstract class SshKeyValidator {
 
-    private static Validator chain = new ValidatorChain(Arrays.asList(new PEMKeyPairValidator(), new PrivateKeyInfoValidator(), new OpenSSHPrivateKeyValidator()));
+    private static Validator chain = new ValidatorChain(Arrays.asList(new PemKeyPairValidator(), new PrivateKeyInfoValidator(), new OpenSshPrivateKeyValidator()));
 
-    private SSHKeyValidator() {
+    private SshKeyValidator() {
 
     }
 
@@ -41,7 +41,7 @@ abstract class SSHKeyValidator {
         }
     }
 
-    private static class PEMKeyPairValidator implements Validator {
+    private static class PemKeyPairValidator implements Validator {
 
         @Override
         public boolean isValid(String str) {
@@ -49,7 +49,7 @@ abstract class SSHKeyValidator {
             try {
                 final Object object = parser.readObject();
                 return (object instanceof PEMKeyPair);
-            } catch (IOException e) {
+            } catch (IOException ex) {
                 return false;
             }
         }
@@ -63,13 +63,13 @@ abstract class SSHKeyValidator {
             try {
                 final Object object = parser.readObject();
                 return (object instanceof PrivateKeyInfo);
-            } catch (IOException e) {
+            } catch (IOException ex) {
                 return false;
             }
         }
     }
 
-    private static class OpenSSHPrivateKeyValidator implements Validator {
+    private static class OpenSshPrivateKeyValidator implements Validator {
 
         @Override
         public boolean isValid(String str) {
@@ -82,7 +82,7 @@ abstract class SSHKeyValidator {
             try {
                 final PemObject obj = reader.readPemObject();
                 return (obj != null) && obj.getType().equals("OPENSSH PRIVATE KEY") && (obj.getContent().length > 0);
-            } catch (IOException e) {
+            } catch (IOException ex) {
                 return false;
             }
         }

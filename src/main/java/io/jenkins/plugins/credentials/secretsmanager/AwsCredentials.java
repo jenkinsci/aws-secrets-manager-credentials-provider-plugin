@@ -30,8 +30,8 @@ import hudson.util.Secret;
 /**
  * A multi-type credential class backed by AWS Secrets Manager, which detects its type at lookup
  * time.
- * <p>
- * NOTE: The underlying AWS secret must have the necessary format and metadata to be used as a
+ *
+ * <p>NOTE: The underlying AWS secret must have the necessary format and metadata to be used as a
  * particular credential type. If these things are not present, the relevant accessor method(s) will
  * fail at lookup time. (For example, to use the AWS secret as a Jenkins {@link SSHUserPrivateKey},
  * the secretString must be in private key format, and username metadata must be present in the
@@ -101,7 +101,7 @@ abstract class AwsCredentials extends BaseStandardCredentials implements StringC
     public String getPrivateKey() {
         final String secretValue = getSecretString();
 
-        if (SSHKeyValidator.isValid(secretValue)) {
+        if (SshKeyValidator.isValid(secretValue)) {
             return secretValue;
         } else {
             throw new CredentialsUnavailableException("privateKey", Messages.noPrivateKeyError());
@@ -118,7 +118,7 @@ abstract class AwsCredentials extends BaseStandardCredentials implements StringC
             // JDK9 workaround: PKCS#12 keystores must have at least an empty password (not null)
             keyStore.load(stream, EMPTY_PASSWORD);
             return keyStore;
-        } catch (IOException | CertificateException | KeyStoreException | NoSuchAlgorithmException e) {
+        } catch (IOException | CertificateException | KeyStoreException | NoSuchAlgorithmException ex) {
             throw new CredentialsUnavailableException("keyStore", Messages.noCertificateError());
         }
     }
@@ -156,8 +156,8 @@ abstract class AwsCredentials extends BaseStandardCredentials implements StringC
     public static class NameProvider extends CredentialsNameProvider<AwsCredentials> {
         @NonNull
         @Override
-        public String getName(@NonNull AwsCredentials c) {
-            return c.getId();
+        public String getName(@NonNull AwsCredentials credential) {
+            return credential.getId();
         }
     }
 
