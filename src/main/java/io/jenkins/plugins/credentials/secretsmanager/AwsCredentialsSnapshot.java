@@ -2,6 +2,7 @@ package io.jenkins.plugins.credentials.secretsmanager;
 
 import java.util.Map;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 
 /**
@@ -18,6 +19,7 @@ class AwsCredentialsSnapshot extends AwsCredentials {
         this.result = result;
     }
 
+    @NonNull
     @Override
     SecretValue getSecretValue() {
         return result;

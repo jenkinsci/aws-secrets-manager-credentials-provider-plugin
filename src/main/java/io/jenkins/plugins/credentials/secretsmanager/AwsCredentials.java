@@ -40,8 +40,8 @@ import hudson.util.Secret;
 @NameWith(value = AwsCredentials.NameProvider.class)
 abstract class AwsCredentials extends BaseStandardCredentials implements StringCredentials, StandardUsernamePasswordCredentials, SSHUserPrivateKey, StandardCertificateCredentials {
 
-    private static final char[] EMPTY_PASSWORD = {};
-    private static final Secret NONE = Secret.fromString("");
+    private static final char[] NO_PASSWORD = {};
+    private static final Secret NO_SECRET = Secret.fromString("");
 
     static final String USERNAME_TAG = "jenkins:credentials:username";
 
@@ -70,7 +70,7 @@ abstract class AwsCredentials extends BaseStandardCredentials implements StringC
             return Secret.fromString(getSecretString());
         } else {
             // certificate
-            return NONE;
+            return NO_SECRET;
         }
     }
 
@@ -86,7 +86,7 @@ abstract class AwsCredentials extends BaseStandardCredentials implements StringC
 
     @Override
     public Secret getPassphrase() {
-        return NONE;
+        return NO_SECRET;
     }
 
     @NonNull
@@ -116,7 +116,7 @@ abstract class AwsCredentials extends BaseStandardCredentials implements StringC
         try (InputStream stream = new ByteArrayInputStream(secretValue)) {
             final KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
             // JDK9 workaround: PKCS#12 keystores must have at least an empty password (not null)
-            keyStore.load(stream, EMPTY_PASSWORD);
+            keyStore.load(stream, NO_PASSWORD);
             return keyStore;
         } catch (IOException | CertificateException | KeyStoreException | NoSuchAlgorithmException ex) {
             throw new CredentialsUnavailableException("keyStore", Messages.noCertificateError());
@@ -151,6 +151,7 @@ abstract class AwsCredentials extends BaseStandardCredentials implements StringC
         });
     }
 
+    @NonNull
     abstract SecretValue getSecretValue();
 
     public static class NameProvider extends CredentialsNameProvider<AwsCredentials> {
