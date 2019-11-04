@@ -13,6 +13,7 @@ Access credentials from AWS Secrets Manager in your Jenkins jobs.
 - Read-only view of Secrets Manager.
 - Credential metadata caching (duration: 5 minutes).
 - Jenkins [Configuration As Code](https://github.com/jenkinsci/configuration-as-code-plugin) support.
+- [Cross-account](http://docs.aws.amazon.com/IAM/latest/UserGuide/tutorial_cross-account-with-roles.html) Secrets Manager support with IAM roles.
 
 Settings:
 
@@ -30,7 +31,7 @@ Install and configure the plugin.
 
 ### IAM
 
-Give Jenkins an [IAM policy](iam/index.md) with read access to Secrets Manager.
+Give Jenkins read access to Secrets Manager with an [IAM policy](iam/index.md).
 
 Required permissions:
 
@@ -40,6 +41,8 @@ Required permissions:
 Optional permissions:
 
 - `kms:Decrypt` (if you use a customer-managed KMS key to encrypt the secret)
+
+**:warning: We strongly recommend that you use an AWS machine authentication method (such as [EC2 Instance Profiles](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_switch-role-ec2_instance-profiles.html) or [EKS Service Roles](https://docs.aws.amazon.com/eks/latest/userguide/service_IAM_role.html)) to authenticate Jenkins with Secrets Manager.**
 
 ## Usage
 
