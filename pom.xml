@@ -11,7 +11,7 @@
 
     <groupId>io.jenkins.plugins</groupId>
     <artifactId>aws-secrets-manager-credentials-provider</artifactId>
-    <version>${revision}${changelist}</version>
+    <version>0.1.0-beta-1</version>
     <packaging>hpi</packaging>
 
     <name>AWS Secrets Manager Credentials Provider</name>
@@ -42,7 +42,7 @@
         <connection>https://github.com/jenkinsci/${project.artifactId}-plugin.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/jenkinsci/${project.artifactId}-plugin.git</developerConnection>
         <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
-        <tag>${scmTag}</tag>
+        <tag>0.1.0-beta-1</tag>
     </scm>
 
     <properties>
