@@ -13,42 +13,39 @@ public class PluginCasCConfigurationTest extends AbstractPluginConfigurationTest
     @Rule
     public JenkinsRule r = new JenkinsConfiguredWithCodeRule();
 
-    private PluginConfiguration getPluginConfiguration() {
+    @Override
+    protected PluginConfiguration getPluginConfiguration() {
         return (PluginConfiguration) r.jenkins.getDescriptor(PluginConfiguration.class);
+    }
+
+    @Override
+    protected void setEndpointConfiguration(String serviceEndpoint, String signingRegion) {
+        // no-op (configured by annotations)
+    }
+
+    @Override
+    protected void setTagFilters(String key, String value) {
+        // no-op (configured by annotations)
     }
 
     @Override
     @Test
     @ConfiguredWithCode("/default.yml")
     public void shouldHaveDefaultConfiguration() {
-        final PluginConfiguration config = getPluginConfiguration();
-
-        assertSoftly(s -> {
-            s.assertThat(config.getEndpointConfiguration()).as("Endpoint Configuration").isNull();
-            s.assertThat(config.getFilters()).as("Filters").isNull();
-        });
+        super.shouldHaveDefaultConfiguration();
     }
 
     @Override
     @Test
     @ConfiguredWithCode("/custom-endpoint-configuration.yml")
     public void shouldCustomiseEndpointConfiguration() {
-        final PluginConfiguration config = getPluginConfiguration();
-
-        assertSoftly(s -> {
-            s.assertThat(config.getEndpointConfiguration().getServiceEndpoint()).as("Service Endpoint").isEqualTo("http://localhost:4584");
-            s.assertThat(config.getEndpointConfiguration().getSigningRegion()).as("Signing Region").isEqualTo("us-east-1");
-        });
+        super.shouldCustomiseEndpointConfiguration();
     }
 
     @Override
     @Test
     @ConfiguredWithCode("/custom-tag.yml")
     public void shouldCustomiseTagFilter() {
-        final PluginConfiguration config = getPluginConfiguration();
-
-        assertThat(config.getFilters().getTag())
-                .extracting("key", "value")
-                .containsOnly("product", "foobar");
+        super.shouldCustomiseTagFilter();
     }
 }

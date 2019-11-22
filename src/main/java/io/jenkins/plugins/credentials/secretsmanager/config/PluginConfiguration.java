@@ -25,6 +25,10 @@ public class PluginConfiguration extends GlobalConfiguration {
         load();
     }
 
+    public static PluginConfiguration getInstance() {
+        return all().get(PluginConfiguration.class);
+    }
+
     public EndpointConfiguration getEndpointConfiguration() {
         return endpointConfiguration;
     }

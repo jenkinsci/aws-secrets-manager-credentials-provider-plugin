@@ -1,4 +1,4 @@
-package io.jenkins.plugins.credentials.secretsmanager.aws;
+package io.jenkins.plugins.credentials.secretsmanager;
 
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.amazonaws.services.secretsmanager.model.ListSecretsRequest;
@@ -15,11 +15,11 @@ import java.util.stream.Collectors;
  * Look up all secrets in Secrets Manager using the ListSecrets command. Paginate through secrets
  * until there are none left to get.
  */
-public class ListSecretsOperation implements Supplier<List<SecretListEntry>> {
+class ListSecretsOperation implements Supplier<List<SecretListEntry>> {
 
     private final AWSSecretsManager client;
 
-    public ListSecretsOperation(AWSSecretsManager client) {
+    ListSecretsOperation(AWSSecretsManager client) {
         this.client = client;
     }
 

@@ -24,8 +24,8 @@ public class JenkinsConfiguredWithWebRule extends JenkinsRule {
             configurator.accept(form);
 
             super.submit(form);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to configure Jenkins");
+        } catch (Exception ex) {
+            throw new RuntimeException("Failed to configure Jenkins", ex);
         }
     }
 }

@@ -1,0 +1,159 @@
+package io.jenkins.plugins.credentials.secretsmanager;
+
+import com.cloudbees.plugins.credentials.CredentialsUnavailableException;
+import com.cloudbees.plugins.credentials.common.StandardCertificateCredentials;
+
+import org.junit.Ignore;
+import org.junit.Test;
+
+import java.security.KeyPair;
+import java.security.KeyStore;
+import java.security.cert.Certificate;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import hudson.util.ListBoxModel;
+import hudson.util.Secret;
+import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
+import io.jenkins.plugins.credentials.secretsmanager.util.CreateSecretOperation;
+import io.jenkins.plugins.credentials.secretsmanager.util.Crypto;
+import io.jenkins.plugins.credentials.secretsmanager.util.Strings;
+
+import static io.jenkins.plugins.credentials.secretsmanager.util.Crypto.keystoreToMap;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
+import static org.assertj.core.api.SoftAssertions.assertSoftly;
+
+/**
+ * The plugin should support Certificate credentials.
+ */
+public class StandardCertificateCredentialsIT extends AbstractPluginIT implements CredentialsTests {
+
+    private static final String ALIAS = "test";
+    private static final Secret EMPTY_PASSPHRASE = Secret.fromString("");
+    private static final KeyPair KEY_PAIR = Crypto.newKeyPair();
+    private static final char[] PASSWORD = new char[]{};
+    private static final Certificate CERT = Crypto.newSelfSignedCertificate(KEY_PAIR);
+
+    @Test
+    @ConfiguredWithCode(value = "/integration.yml")
+    public void shouldHaveName() {
+        // Given
+        final KeyStore keyStore = Crypto.singletonKeyStore(ALIAS, KEY_PAIR.getPrivate(), PASSWORD, new Certificate[]{CERT});
+        // And
+        final CreateSecretOperation.Result foo = createSecret(Crypto.save(keyStore, PASSWORD));
+
+        // When
+        final ListBoxModel list = listCredentials(StandardCertificateCredentials.class);
+
+        // Then
+        assertThat(list)
+                .extracting("name", "value")
+                .containsOnly(tuple(foo.getName(), foo.getName()));
+    }
+
+    @Test
+    @ConfiguredWithCode(value = "/integration.yml")
+    public void shouldAppearInCredentialsProvider() {
+        // Given
+        final KeyStore keyStore = Crypto.singletonKeyStore(ALIAS, KEY_PAIR.getPrivate(), PASSWORD, new Certificate[]{CERT});
+        // And
+        final CreateSecretOperation.Result foo = createSecret(Crypto.save(keyStore, PASSWORD));
+
+        // When
+        final List<CertCreds> credentials = lookupCredentials(StandardCertificateCredentials.class)
+                .stream()
+                .map(cred -> new CertCreds(cred.getId(), Crypto.keystoreToMap(cred.getKeyStore()), cred.getPassword()))
+                .collect(Collectors.toList());
+
+        // Then
+        assertThat(credentials)
+                .extracting("id", "password", "keyStore")
+                .containsOnly(tuple(foo.getName(), EMPTY_PASSPHRASE, Collections.singletonMap(ALIAS, Collections.singletonList(CERT))));
+    }
+
+    @Test
+    @ConfiguredWithCode(value = "/integration.yml")
+    public void shouldSupportWithCredentialsBinding() {
+        // Given
+        final KeyStore keyStore = Crypto.singletonKeyStore(ALIAS, KEY_PAIR.getPrivate(), PASSWORD, new Certificate[]{CERT});
+        // And
+        final CreateSecretOperation.Result foo = createSecret(Crypto.save(keyStore, PASSWORD));
+
+        // When
+        final WorkflowRunResult result = runPipeline(Strings.m("",
+                "node {",
+                "  withCredentials([certificate(credentialsId: '" + foo.getName() + "', keystoreVariable: 'KEYSTORE')]) {",
+                "    echo \"Credential: {keystore: $KEYSTORE}\"",
+                "  }",
+                "}"));
+
+        // Then
+        assertSoftly(s -> {
+            s.assertThat(result.log).as("Log").contains("Credential: {keystore: ****}");
+            s.assertThat(result.result).as("Result").isEqualTo(hudson.model.Result.SUCCESS);
+        });
+    }
+
+    @Ignore("Declarative Pipeline does not support certificate bindings")
+    public void shouldSupportEnvironmentBinding() {
+
+    }
+
+    @Test
+    @ConfiguredWithCode(value = "/integration.yml")
+    public void shouldSupportSnapshots() {
+        // Given
+        final KeyStore keyStore = Crypto.singletonKeyStore(ALIAS, KEY_PAIR.getPrivate(), PASSWORD, new Certificate[]{CERT});
+        // And
+        final CreateSecretOperation.Result foo = createSecret(Crypto.save(keyStore, PASSWORD));
+        // And
+        final StandardCertificateCredentials before = lookupCredential(AwsCredentials.class, foo.getName());
+
+        // When
+        final StandardCertificateCredentials after = snapshot(before);
+
+        // Then
+        assertSoftly(s -> {
+            s.assertThat(after.getId()).as("ID").isEqualTo(foo.getName());
+            s.assertThat(after.getPassword()).as("Password").isEqualTo(EMPTY_PASSPHRASE);
+            s.assertThat(keystoreToMap(after.getKeyStore())).as("KeyStore").containsEntry(ALIAS, Collections.singletonList(CERT));
+        });
+    }
+
+    @Test
+    @ConfiguredWithCode(value = "/integration.yml")
+    public void shouldNotTolerateMalformattedKeyStore() {
+        // Given
+        final CreateSecretOperation.Result foo = createSecret(new byte[] {0x00, 0x01});
+
+        // When
+        final Optional<StandardCertificateCredentials> credentials =
+                lookupCredentials(StandardCertificateCredentials.class).stream().findFirst();
+
+        // Then
+        assertSoftly(s -> {
+            s.assertThat(credentials).isPresent();
+            s.assertThat(credentials.get().getId()).as("ID").isEqualTo(foo.getName());
+            s.assertThatThrownBy(() -> credentials.get().getKeyStore()).as("KeyStore").isInstanceOf(CredentialsUnavailableException.class);
+        });
+    }
+
+    /*
+     * KeyStore does not have a proper equals() implementation so we have to work around this.
+     */
+    private static class CertCreds {
+        final String id;
+        final Map<String, List<Certificate>> keyStore;
+        final Secret password;
+
+        CertCreds(String id, Map<String, List<Certificate>> keyStore, Secret password) {
+            this.id = id;
+            this.keyStore = keyStore;
+            this.password = password;
+        }
+    }
+}

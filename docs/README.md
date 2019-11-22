@@ -1,4 +1,4 @@
-# AWS Secrets Manager Credentials Provider Plugin
+# AWS Secrets Manager Credentials Provider
 
 [![Build Status](https://ci.jenkins.io/buildStatus/icon?job=Plugins/aws-secrets-manager-credentials-provider-plugin/master)](https://ci.jenkins.io/blue/organizations/jenkins/Plugins%2Faws-secrets-manager-credentials-provider-plugin/activity/)
 [![Jenkins Plugin](https://img.shields.io/jenkins/plugin/v/aws-secrets-manager-credentials-provider.svg)](https://plugins.jenkins.io/aws-secrets-manager-credentials-provider)
@@ -13,6 +13,7 @@ Access credentials from AWS Secrets Manager in your Jenkins jobs.
 - Read-only view of Secrets Manager.
 - Credential metadata caching (duration: 5 minutes).
 - Jenkins [Configuration As Code](https://github.com/jenkinsci/configuration-as-code-plugin) support.
+- [Cross-account](http://docs.aws.amazon.com/IAM/latest/UserGuide/tutorial_cross-account-with-roles.html) Secrets Manager support with IAM roles.
 
 Settings:
 
@@ -28,9 +29,9 @@ Settings:
 
 Install and configure the plugin.
 
-### AWS IAM
+### IAM
 
-Give Jenkins an [IAM policy](https://docs.aws.amazon.com/secretsmanager/latest/userguide/auth-and-access_identity-based-policies.html) with read access to AWS Secrets Manager.
+Give Jenkins read access to Secrets Manager with an [IAM policy](iam/index.md).
 
 Required permissions:
 
@@ -39,46 +40,145 @@ Required permissions:
 
 Optional permissions:
 
-- `kms:Decrypt` (if you use a customer-managed AWS KMS key to encrypt the secret)
+- `kms:Decrypt` (if you use a customer-managed KMS key to encrypt the secret)
 
-### AWS Secrets Manager
+**:warning: We strongly recommend that you use an AWS machine authentication method (such as [EC2 Instance Profiles](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_switch-role-ec2_instance-profiles.html) or [EKS Service Roles](https://docs.aws.amazon.com/eks/latest/userguide/service_IAM_role.html)) to authenticate Jenkins with Secrets Manager.**
 
-Upload secrets to AWS Secrets Manager in the format "one secret value = one AWS Secret" (see the [AWS documentation](https://docs.aws.amazon.com/cli/latest/reference/secretsmanager/create-secret.html)).
+## Usage
 
-Text:
+1. **Upload the secret** to Secrets Manager as shown below (see also the [AWS documentation](https://docs.aws.amazon.com/cli/latest/reference/secretsmanager/create-secret.html)).
+2. **Reference the secret** by name in your Jenkins job.
 
-```bash
-aws secretsmanager create-secret --name 'newrelic-token' --description 'Acme Corp Newrelic API token' --secret-string 'abc123'
-```
+A Secrets Manager secret acts as one of the following Jenkins credential types, depending on the data and metadata that you put in it. 
 
-Username + Password:
+### Secret Text
 
-```bash
-aws secretsmanager create-secret --name 'artifactory-username' --description 'Acme Corp Artifactory username' --secret-string 'joe'
-aws secretsmanager create-secret --name 'artifactory-password' --description 'Acme Corp Artifactory password' --secret-string 'supersecret'
-```
-
-SSH key:
+A simple secret string.
 
 ```bash
-ssh-keygen -t rsa -b 4096 -C 'acme@example.com' -f id_rsa
-aws secretsmanager create-secret --name 'ssh-key' --description 'Acme Corp SSH key' --secret-string 'file://id_rsa'
+aws secretsmanager create-secret --name 'newrelic-api-key' --secret-string 'abc123' --description 'Acme Corp Newrelic API key'
 ```
 
-## Usage 
-
-Reference a secret in Secrets Manager by its name in a build job:
+#### Declarative Pipeline
 
 ```groovy
 pipeline {
     environment {
-        ARTIFACTORY_USERNAME = credentials("artifactory-username")
-        ARTIFACTORY_PASSWORD = credentials("artifactory-password")
+        NEWRELIC_API_KEY = credentials('newrelic-api-key')
     }
     stages {
-        stage("Deploy") {
-            sh "mvn deploy"
+        stage('Foo') {
+            echo 'Hello world'
         }
+    }
+}
+```
+
+#### Scripted Pipeline
+
+```groovy
+node {
+    withCredentials([string(credentialsId: 'newrelic-api-key', variable: 'NEWRELIC_API_KEY')]) {
+        echo 'Hello world'
+    }
+}
+```
+
+### Username with Password
+
+A username and password pair.
+
+```bash
+aws secretsmanager create-secret --name 'artifactory' --secret-string 'supersecret' --tags 'Key=jenkins:credentials:username,Value=joe' --description 'Acme Corp Artifactory login'
+```
+
+#### Declarative Pipeline
+
+```groovy
+pipeline {
+    environment {
+        // Creates variables ARTIFACTORY=joe:supersecret, ARTIFACTORY_USR=joe, ARTIFACTORY_PSW=supersecret
+        ARTIFACTORY = credentials('artifactory')
+    }
+    stages {
+        stage('Foo') {
+            echo 'Hello world'
+        }
+    }
+}
+```
+
+#### Scripted Pipeline
+
+```groovy
+node {
+    withCredentials([usernamePassword(credentialsId: 'artifactory', usernameVariable: 'ARTIFACTORY_USR', passwordVariable: 'ARTIFACTORY_PSW')]) {
+        echo 'Hello world'
+    }
+}
+```
+
+### SSH User Private Key
+
+A private key with a username.
+
+The plugin supports the following private key formats and encoding schemes:
+
+- **Format** 
+  - PEM
+- **Encoding**
+  - PKCS#1 (starts with `-----BEGIN [ALGORITHM] PRIVATE KEY-----`)
+  - PKCS#8 (starts with `-----BEGIN PRIVATE KEY-----`)
+  - OpenSSH (starts with `-----BEGIN OPENSSH PRIVATE KEY-----`)
+
+```bash
+ssh-keygen -t rsa -b 4096 -C 'acme@example.com' -f id_rsa
+aws secretsmanager create-secret --name 'ssh-key' --secret-string 'file://id_rsa' --tags 'Key=jenkins:credentials:username,Value=joe' --description 'Acme Corp SSH key'
+```
+
+#### Declarative Pipeline
+
+```groovy
+pipeline {
+    environment {
+        // Creates variables KEY=/temp/path/to/key, KEY_USR=joe
+        KEY = credentials('ssh-key')
+    }
+    stages {
+        stage('Foo') {
+            echo 'Hello world'
+        }
+    }
+}
+```
+
+#### Scripted Pipeline
+
+```groovy
+node {
+    withCredentials([sshUserPrivateKey(credentialsId: 'ssh-key', keyFileVariable: 'KEY', usernameVariable: 'KEY_USR')]) {
+        echo 'Hello world'
+    }
+}
+```
+
+### Certificate
+
+A client certificate in PKCS#12 format.
+
+The plugin requires the .p12 file to be encrypted with a zero-length password, as demonstrated below.
+
+```bash
+openssl pkcs12 -export -in /path/to/cert.pem -inkey /path/to/key.pem -out certificate.p12 -passout pass:
+aws secretsmanager create-secret --name 'code-signing-cert' --secret-binary 'fileb://certificate.p12' --description 'Acme Corp code signing certificate'
+```
+
+#### Scripted Pipeline
+
+```groovy
+node {
+    withCredentials([certificate(credentialsId: 'code-signing-cert', keystoreVariable: 'STORE_FILE')]) {
+        echo 'Hello world'
     }
 }
 ```
@@ -111,8 +211,7 @@ unclassified:
 
 ## Bugs
 
-- All secrets must be uploaded via the AWS CLI or API. This is because the AWS Web console *currently* insists on wrapping your secret string in JSON.
-- All secrets must be in "secret string" format (not "secret binary") as Jenkins will parse them into (UTF-8) string credentials. You can base64 encode a binary secret to work around this.
+All secrets must be uploaded via the AWS CLI or API. This is because the AWS Web console *currently* insists on wrapping your secret string in JSON.
 
 ## Development
 
