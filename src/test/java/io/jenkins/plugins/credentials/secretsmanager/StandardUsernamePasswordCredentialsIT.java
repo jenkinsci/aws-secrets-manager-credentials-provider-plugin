@@ -2,9 +2,15 @@ package io.jenkins.plugins.credentials.secretsmanager;
 
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 
+import hudson.model.Label;
+import hudson.slaves.DumbSlave;
+import io.jenkins.plugins.credentials.secretsmanager.util.Crypto;
+import io.jenkins.plugins.credentials.secretsmanager.util.git.GitSshServer;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
+import org.junit.Rule;
 import org.junit.Test;
 
+import java.security.KeyPair;
 import java.util.Collections;
 import java.util.List;
 
@@ -13,6 +19,8 @@ import hudson.util.Secret;
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
 import io.jenkins.plugins.credentials.secretsmanager.util.CreateSecretOperation;
 import io.jenkins.plugins.credentials.secretsmanager.util.Strings;
+import org.junit.experimental.runners.Enclosed;
+import org.junit.runner.RunWith;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
@@ -21,6 +29,7 @@ import static org.assertj.core.api.SoftAssertions.assertSoftly;
 /**
  * The plugin should support Username With Password credentials.
  */
+@RunWith(Enclosed.class)
 public class StandardUsernamePasswordCredentialsIT extends AbstractPluginIT implements CredentialsTests {
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
@@ -146,5 +155,37 @@ public class StandardUsernamePasswordCredentialsIT extends AbstractPluginIT impl
         assertThat(credentials)
                 .extracting("id", "secret")
                 .containsOnly(tuple(foo.getName(), Secret.fromString("supersecret")));
+    }
+
+    public static class GitPluginIT extends AbstractPluginIT {
+
+        private final String username = "joe";
+
+        @Test
+        @ConfiguredWithCode(value = "/integration.yml")
+        public void shouldSupportGitPlugin() throws Exception {
+            final String slaveName = "agent";
+            r.createSlave(Label.get(slaveName));
+
+            // Given
+            final CreateSecretOperation.Result foo = createSecret("supersecret", opts -> {
+                opts.tags = Collections.singletonMap("jenkins:credentials:username", username);
+            });
+
+            // When
+            // FIXME make a local Git HTTP server
+            String pipeline = Strings.m("",
+                    "node('" + slaveName + "') {",
+                    "  git url: 'https://github.com/jenkinsci/aws-secrets-manager-credentials-provider-plugin.git', credentialsId: '" + foo.getName() + "', branch: 'master'",
+                    "}");
+            final WorkflowRunResult result = runPipeline(pipeline);
+
+            // Then
+            assertSoftly(s -> {
+                s.assertThat(result.log).as("Log").contains("Commit message: \"Initial commit\"");
+                s.assertThat(result.result).as("Result").isEqualTo(hudson.model.Result.SUCCESS);
+            });
+        }
+
     }
 }
