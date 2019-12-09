@@ -239,4 +239,4 @@ In your IDE:
 
 ## Screenshots
 
-![Credentials screen](img/plugin.png)
+![Credentials screen](/docs/img/plugin.png)
