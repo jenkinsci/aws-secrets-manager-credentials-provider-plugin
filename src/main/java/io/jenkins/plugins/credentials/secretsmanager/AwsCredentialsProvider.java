@@ -1,5 +1,7 @@
 package io.jenkins.plugins.credentials.secretsmanager;
 
+import com.amazonaws.auth.AWSSessionCredentials;
+import com.amazonaws.auth.AWSSessionCredentialsProvider;
 import com.google.common.base.Suppliers;
 
 import com.amazonaws.client.builder.AwsClientBuilder;
@@ -13,6 +15,7 @@ import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.CredentialsStore;
 import com.cloudbees.plugins.credentials.common.IdCredentials;
 
+import io.jenkins.plugins.aws.global_configuration.CredentialsAwsGlobalConfiguration;
 import org.acegisecurity.Authentication;
 
 import java.time.Duration;
@@ -100,6 +103,12 @@ public class AwsCredentialsProvider extends CredentialsProvider {
             final AwsClientBuilder.EndpointConfiguration endpointConfiguration = new AwsClientBuilder.EndpointConfiguration(ec.getServiceEndpoint(), ec.getSigningRegion());
             builder.setEndpointConfiguration(endpointConfiguration);
         }
+
+        final CredentialsAwsGlobalConfiguration awsGlobalConfiguration = CredentialsAwsGlobalConfiguration.get();
+        final String region = awsGlobalConfiguration.getRegion();
+        final String credentialsId = awsGlobalConfiguration.getCredentialsId();
+        final AWSSessionCredentials awsSessionCredentials = awsGlobalConfiguration.sessionCredentials(builder, region, credentialsId);
+        builder.setCredentials(new FixedAwsSessionCredentialsProvider(awsSessionCredentials));
         final AWSSecretsManager client = builder.build();
 
         final Predicate<SecretListEntry> secretFilter;
@@ -123,5 +132,24 @@ public class AwsCredentialsProvider extends CredentialsProvider {
                 .collect(Collectors.toMap(IdCredentials::getId, cred -> cred));
 
         return credentials.values();
+    }
+
+    private static class FixedAwsSessionCredentialsProvider implements AWSSessionCredentialsProvider {
+
+        private final AWSSessionCredentials creds;
+
+        private FixedAwsSessionCredentialsProvider(AWSSessionCredentials creds) {
+            this.creds = creds;
+        }
+
+        @Override
+        public AWSSessionCredentials getCredentials() {
+            return creds;
+        }
+
+        @Override
+        public void refresh() {
+            // no-op
+        }
     }
 }
