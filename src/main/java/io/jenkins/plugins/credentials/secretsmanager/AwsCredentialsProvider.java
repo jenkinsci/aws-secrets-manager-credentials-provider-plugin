@@ -110,6 +110,8 @@ public class AwsCredentialsProvider extends CredentialsProvider {
             secretFilter = s -> true;
         }
 
+        AwsCredentialsFactory credFactory = new AwsCredentialsFactory();
+
         final Map<String, IdCredentials> credentials = new ListSecretsOperation(client).get().stream()
                 .filter(secretFilter)
                 .map(s -> {
@@ -118,7 +120,7 @@ public class AwsCredentialsProvider extends CredentialsProvider {
                     final Map<String, String> tags = Optional.ofNullable(s.getTags()).orElse(Collections.emptyList()).stream()
                             .filter(tag -> (tag.getKey() != null) && (tag.getValue() != null))
                             .collect(Collectors.toMap(Tag::getKey, Tag::getValue));
-                    return new RealAwsCredentials(name, description, tags, client);
+                    return credFactory.create(name, description, tags, client);
                 })
                 .collect(Collectors.toMap(IdCredentials::getId, cred -> cred));
 

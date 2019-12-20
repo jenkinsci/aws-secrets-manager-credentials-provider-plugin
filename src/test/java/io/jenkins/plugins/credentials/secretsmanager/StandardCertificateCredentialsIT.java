@@ -111,7 +111,7 @@ public class StandardCertificateCredentialsIT extends AbstractPluginIT implement
         // And
         final CreateSecretOperation.Result foo = createSecret(Crypto.save(keyStore, PASSWORD));
         // And
-        final StandardCertificateCredentials before = lookupCredential(AwsCredentials.class, foo.getName());
+        final StandardCertificateCredentials before = lookupCredential(StandardCertificateCredentials.class, foo.getName());
 
         // When
         final StandardCertificateCredentials after = snapshot(before);

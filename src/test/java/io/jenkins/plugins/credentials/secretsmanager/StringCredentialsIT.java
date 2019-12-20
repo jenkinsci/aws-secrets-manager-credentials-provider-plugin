@@ -104,7 +104,7 @@ public class StringCredentialsIT extends AbstractPluginIT implements Credentials
         // Given
         final CreateSecretOperation.Result foo = createSecret("supersecret");
         // And
-        final StringCredentials before = lookupCredential(AwsCredentials.class, foo.getName());
+        final StringCredentials before = lookupCredential(StringCredentials.class, foo.getName());
 
         // When
         final StringCredentials after = snapshot(before);

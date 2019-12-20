@@ -2,6 +2,7 @@ package io.jenkins.plugins.credentials.secretsmanager;
 
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 
+import com.google.common.collect.Maps;
 import hudson.model.Label;
 import hudson.slaves.DumbSlave;
 import io.jenkins.plugins.credentials.secretsmanager.util.Crypto;
@@ -24,6 +25,7 @@ import java.nio.file.Paths;
 import java.security.KeyPair;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import hudson.util.ListBoxModel;
 import hudson.util.Secret;
@@ -137,7 +139,7 @@ public class StandardUsernamePasswordCredentialsIT extends AbstractPluginIT impl
             opts.tags = Collections.singletonMap("jenkins:credentials:username", "joe");
         });
         // And
-        final StandardUsernamePasswordCredentials before = lookupCredential(AwsCredentials.class, foo.getName());
+        final StandardUsernamePasswordCredentials before = lookupCredential(StandardUsernamePasswordCredentials.class, foo.getName());
 
         // When
         final StandardUsernamePasswordCredentials after = snapshot(before);
@@ -172,24 +174,6 @@ public class StandardUsernamePasswordCredentialsIT extends AbstractPluginIT impl
 
         private final String username = "joe";
 
-        private Path repoDir;
-        Repository repo;
-        CreateSecretOperation.Result foo;
-
-        @Before
-        public void setup() throws IOException {
-            repoDir = Files.createTempDirectory("git_plugin_repo");
-            repo = FileRepositoryBuilder.create(Paths.get(repoDir.toString(), "/.git").toFile());
-            foo = createSecret("supersecret", opts -> {
-                opts.tags = Collections.singletonMap("jenkins:credentials:username", username);
-            });
-        }
-
-        @After
-        public void tearDown() throws IOException {
-            Files.deleteIfExists(repoDir);
-        }
-
         @Test
         @ConfiguredWithCode(value = "/integration.yml")
         public void shouldSupportGitPlugin() throws Exception {
@@ -197,23 +181,23 @@ public class StandardUsernamePasswordCredentialsIT extends AbstractPluginIT impl
             r.createSlave(Label.get(slaveName));
 
             // Given
-
+            CreateSecretOperation.Result foo = createSecret("supersecret", opts -> {
+                opts.tags = Maps.newHashMap();
+                opts.tags.put("jenkins:credentials:username", username);
+                opts.tags.put("jenkins:credentials:type", "username_password");
+            });
 
             // When
             // Create a new repository; the path must exist
             String pipeline = Strings.m("",
                     "node('" + slaveName + "') {",
-                    "  git url: 'file://" + repo.getDirectory() + "', credentialsId: '" + foo.getName() + "', branch: 'master'",
+                    "  git url: 'https://github.com/jenkinsci/aws-secrets-manager-credentials-provider-plugin.git', credentialsId: '" + foo.getName() + "', branch: 'master'",
                     "}");
-//            String pipeline = Strings.m("",
-//                    "node('" + slaveName + "') {",
-//                    "  git url: 'https://github.com/jenkinsci/aws-secrets-manager-credentials-provider-plugin.git', credentialsId: '" + foo.getName() + "', branch: 'master'",
-//                    "}");
             final WorkflowRunResult result = runPipeline(pipeline);
 
             // Then
             assertSoftly(s -> {
-                s.assertThat(result.log).as("Log").contains("Commit message: \"Initial commit\"");
+                s.assertThat(result.log).as("Log").contains("using credential " + foo.getName());
                 s.assertThat(result.result).as("Result").isEqualTo(hudson.model.Result.SUCCESS);
             });
         }

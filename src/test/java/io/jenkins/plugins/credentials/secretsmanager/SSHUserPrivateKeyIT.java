@@ -134,7 +134,7 @@ public class SSHUserPrivateKeyIT extends AbstractPluginIT implements Credentials
             opts.tags = Collections.singletonMap("jenkins:credentials:username", "joe");
         });
         // And
-        final SSHUserPrivateKey before = lookupCredential(AwsCredentials.class, foo.getName());
+        final SSHUserPrivateKey before = lookupCredential(SSHUserPrivateKey.class, foo.getName());
 
         // When
         final SSHUserPrivateKey after = snapshot(before);

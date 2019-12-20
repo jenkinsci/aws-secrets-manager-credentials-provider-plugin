@@ -38,7 +38,7 @@ import hudson.util.Secret;
  * secret's tags.)
  */
 @NameWith(value = AwsCredentials.NameProvider.class)
-abstract class AwsCredentials extends BaseStandardCredentials implements StringCredentials, StandardUsernamePasswordCredentials, SSHUserPrivateKey, StandardCertificateCredentials {
+abstract class AwsCredentials extends BaseStandardCredentials {
 
     private static final char[] NO_PASSWORD = {};
     private static final Secret NO_SECRET = Secret.fromString("");
@@ -57,13 +57,11 @@ abstract class AwsCredentials extends BaseStandardCredentials implements StringC
     }
 
     @Nonnull
-    @Override
     public Secret getSecret() {
         return Secret.fromString(getSecretString());
     }
 
     @NonNull
-    @Override
     public Secret getPassword() {
         if (tags.containsKey(USERNAME_TAG)) {
             // username/password
@@ -75,7 +73,6 @@ abstract class AwsCredentials extends BaseStandardCredentials implements StringC
     }
 
     @NonNull
-    @Override
     public String getUsername() {
         if (tags.containsKey(USERNAME_TAG)) {
             return tags.get(USERNAME_TAG);
@@ -84,20 +81,17 @@ abstract class AwsCredentials extends BaseStandardCredentials implements StringC
         }
     }
 
-    @Override
     public Secret getPassphrase() {
         return NO_SECRET;
     }
 
     @NonNull
-    @Override
     public List<String> getPrivateKeys() {
         return Collections.singletonList(getPrivateKey());
     }
 
     @NonNull
     @Deprecated
-    @Override
     public String getPrivateKey() {
         final String secretValue = getSecretString();
 
@@ -109,7 +103,6 @@ abstract class AwsCredentials extends BaseStandardCredentials implements StringC
     }
 
     @NonNull
-    @Override
     public KeyStore getKeyStore() {
         final byte[] secretValue = getSecretBinary();
 
