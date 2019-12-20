@@ -4,28 +4,11 @@ import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredenti
 
 import com.google.common.collect.Maps;
 import hudson.model.Label;
-import hudson.slaves.DumbSlave;
-import io.jenkins.plugins.credentials.secretsmanager.util.Crypto;
-import io.jenkins.plugins.credentials.secretsmanager.util.git.GitSshServer;
-import org.eclipse.jgit.lib.Repository;
-import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
-import org.jenkinsci.plugins.gitserver.FileBackedHttpGitRepository;
-import org.jenkinsci.plugins.gitserver.HttpGitRepository;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.security.KeyPair;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import hudson.util.ListBoxModel;
 import hudson.util.Secret;
