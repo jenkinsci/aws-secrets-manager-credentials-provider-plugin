@@ -89,7 +89,7 @@ node {
 A username and password pair.
 
 ```bash
-aws secretsmanager create-secret --name 'artifactory' --secret-string 'supersecret' --tags 'Key=jenkins:credentials:username,Value=joe' --description 'Acme Corp Artifactory login'
+aws secretsmanager create-secret --name 'artifactory' --secret-string 'supersecret' --tags 'Key=jenkins:credentials:username,Value=joe Key=jenkins:credentials:type,Value=username_password' --description 'Acme Corp Artifactory login'
 ```
 
 #### Declarative Pipeline
