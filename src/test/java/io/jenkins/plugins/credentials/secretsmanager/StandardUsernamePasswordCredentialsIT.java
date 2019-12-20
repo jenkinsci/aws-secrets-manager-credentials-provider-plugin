@@ -6,10 +6,21 @@ import hudson.model.Label;
 import hudson.slaves.DumbSlave;
 import io.jenkins.plugins.credentials.secretsmanager.util.Crypto;
 import io.jenkins.plugins.credentials.secretsmanager.util.git.GitSshServer;
+import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
+import org.jenkinsci.plugins.gitserver.FileBackedHttpGitRepository;
+import org.jenkinsci.plugins.gitserver.HttpGitRepository;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.KeyPair;
 import java.util.Collections;
 import java.util.List;
@@ -161,6 +172,24 @@ public class StandardUsernamePasswordCredentialsIT extends AbstractPluginIT impl
 
         private final String username = "joe";
 
+        private Path repoDir;
+        Repository repo;
+        CreateSecretOperation.Result foo;
+
+        @Before
+        public void setup() throws IOException {
+            repoDir = Files.createTempDirectory("git_plugin_repo");
+            repo = FileRepositoryBuilder.create(Paths.get(repoDir.toString(), "/.git").toFile());
+            foo = createSecret("supersecret", opts -> {
+                opts.tags = Collections.singletonMap("jenkins:credentials:username", username);
+            });
+        }
+
+        @After
+        public void tearDown() throws IOException {
+            Files.deleteIfExists(repoDir);
+        }
+
         @Test
         @ConfiguredWithCode(value = "/integration.yml")
         public void shouldSupportGitPlugin() throws Exception {
@@ -168,16 +197,18 @@ public class StandardUsernamePasswordCredentialsIT extends AbstractPluginIT impl
             r.createSlave(Label.get(slaveName));
 
             // Given
-            final CreateSecretOperation.Result foo = createSecret("supersecret", opts -> {
-                opts.tags = Collections.singletonMap("jenkins:credentials:username", username);
-            });
+
 
             // When
-            // FIXME make a local Git HTTP server
+            // Create a new repository; the path must exist
             String pipeline = Strings.m("",
                     "node('" + slaveName + "') {",
-                    "  git url: 'https://github.com/jenkinsci/aws-secrets-manager-credentials-provider-plugin.git', credentialsId: '" + foo.getName() + "', branch: 'master'",
+                    "  git url: 'file://" + repo.getDirectory() + "', credentialsId: '" + foo.getName() + "', branch: 'master'",
                     "}");
+//            String pipeline = Strings.m("",
+//                    "node('" + slaveName + "') {",
+//                    "  git url: 'https://github.com/jenkinsci/aws-secrets-manager-credentials-provider-plugin.git', credentialsId: '" + foo.getName() + "', branch: 'master'",
+//                    "}");
             final WorkflowRunResult result = runPipeline(pipeline);
 
             // Then

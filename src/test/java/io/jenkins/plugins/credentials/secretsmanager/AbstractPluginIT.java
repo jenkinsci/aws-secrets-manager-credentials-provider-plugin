@@ -5,9 +5,7 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder;
-import com.amazonaws.services.secretsmanager.model.DeleteSecretRequest;
-import com.amazonaws.services.secretsmanager.model.ResourceNotFoundException;
-import com.amazonaws.services.secretsmanager.model.RestoreSecretRequest;
+import com.amazonaws.services.secretsmanager.model.*;
 import com.cloudbees.plugins.credentials.Credentials;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.CredentialsStore;
@@ -27,6 +25,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -40,11 +39,9 @@ import io.jenkins.plugins.credentials.secretsmanager.util.CreateSecretOperation.
 
 public abstract class AbstractPluginIT {
 
-    // TODO use a unique name
-    private static final String BAR = "bar";
+    private static final String BAR = "bar-" + UUID.randomUUID().toString();
 
-    // TODO use a unique name
-    private static final String FOO = "foo";
+    private static final String FOO = "foo-" + UUID.randomUUID().toString();
 
     private final AWSSecretsManager client = AWSSecretsManagerClientBuilder.standard()
             .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration("http://localhost:4584", "us-east-1"))
@@ -63,7 +60,7 @@ public abstract class AbstractPluginIT {
     }
 
     @Before
-    public void setup() {
+    public void setup() throws IOException {
         store = CredentialsProvider.lookupStores(r.jenkins).iterator().next();
 
         for (String secretId: Arrays.asList(FOO, BAR)) {
