@@ -4,11 +4,7 @@ import com.cloudbees.jenkins.plugins.sshcredentials.SSHUserPrivateKey;
 import com.cloudbees.plugins.credentials.CredentialsNameProvider;
 import com.cloudbees.plugins.credentials.CredentialsUnavailableException;
 import com.cloudbees.plugins.credentials.NameWith;
-import com.cloudbees.plugins.credentials.common.StandardCertificateCredentials;
-import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import com.cloudbees.plugins.credentials.impl.BaseStandardCredentials;
-
-import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

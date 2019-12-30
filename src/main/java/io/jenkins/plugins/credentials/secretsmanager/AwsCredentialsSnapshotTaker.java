@@ -6,6 +6,7 @@ import com.cloudbees.plugins.credentials.CredentialsSnapshotTaker;
 import com.cloudbees.plugins.credentials.common.StandardCertificateCredentials;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import hudson.Extension;
+import hudson.util.Secret;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 
 @Extension
@@ -20,14 +21,18 @@ public class AwsCredentialsSnapshotTaker extends CredentialsSnapshotTaker<AwsCre
     public AwsCredentials snapshot(AwsCredentials credential) {
         final SecretValue result = credential.getSecretValue();
 
+        AwsCredentials returnValue;
         if (credential instanceof StringCredentials ||
                 credential instanceof SSHUserPrivateKey ||
                 credential instanceof StandardCertificateCredentials) {
-            return new AwsCredentialsSnapshot(credential.getId(), credential.getDescription(), credential.getTags(), result);
+            returnValue = new AwsCredentialsSnapshot(credential.getId(), credential.getDescription(), credential.getTags(), result);
         } else if (credential instanceof StandardUsernamePasswordCredentials) {
-            return new AwsCredentialsUsernameAndPasswordSnapshot(credential.getId(), credential.getDescription(), credential.getTags(), result);
+            Secret secret = credential.getSecret();
+            returnValue = new AwsCredentialsUsernameAndPasswordSnapshot(credential.getId(), credential.getDescription(), credential.getTags(), result, secret);
+        } else {
+            returnValue = new AwsCredentialsSnapshot(credential.getId(), credential.getDescription(), credential.getTags(), result);
         }
 
-        return new AwsCredentialsSnapshot(credential.getId(), credential.getDescription(), credential.getTags(), result);
+        return returnValue;
     }
 }
