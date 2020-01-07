@@ -1,14 +1,13 @@
 package io.jenkins.plugins.credentials.secretsmanager;
 
-import org.jenkinsci.plugins.plaincredentials.StringCredentials;
-import org.junit.Test;
-
-import java.util.Collections;
-import java.util.List;
-
 import hudson.util.Secret;
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
 import io.jenkins.plugins.credentials.secretsmanager.util.CreateSecretOperation;
+import io.jenkins.plugins.credentials.secretsmanager.util.Maps;
+import org.jenkinsci.plugins.plaincredentials.StringCredentials;
+import org.junit.Test;
+
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
@@ -19,11 +18,15 @@ public class FiltersIT extends AbstractPluginIT {
     public void shouldFilterByTag() {
         // Given
         final CreateSecretOperation.Result foo = createSecret("supersecret", opts -> {
-            opts.tags = Collections.singletonMap("product", "roadrunner");
+            opts.tags = Maps.of(
+                    "jenkins:credentials:type", "string",
+                    "product", "roadrunner");
         });
         // And
         final CreateSecretOperation.Result bar = createOtherSecret("supersecret", opts -> {
-            opts.tags = Collections.singletonMap("product", "coyote");
+            opts.tags = Maps.of(
+                    "jenkins:credentials:type", "string",
+                    "product", "coyote");
         });
 
         // When

@@ -98,9 +98,9 @@ public abstract class Crypto {
         }
     }
 
-    public static X509Certificate newSelfSignedCertificate(KeyPair keyPair) {
+    public static X509Certificate newSelfSignedCertificate(String name, KeyPair keyPair) {
         try {
-            final X500Name cn = new X500Name("CN=localhost");
+            final X500Name cn = new X500Name(name);
             final X509v3CertificateBuilder b = new JcaX509v3CertificateBuilder(
                     cn,
                     BigInteger.valueOf(Math.abs(new SecureRandom().nextInt())),

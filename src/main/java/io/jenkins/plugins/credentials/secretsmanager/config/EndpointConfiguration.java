@@ -7,8 +7,8 @@ import com.amazonaws.services.secretsmanager.AWSSecretsManagerClient;
 import com.amazonaws.services.secretsmanager.model.ListSecretsRequest;
 
 import hudson.util.FormValidation;
-import io.jenkins.plugins.credentials.secretsmanager.Messages;
 
+import io.jenkins.plugins.credentials.secretsmanager.Messages;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;

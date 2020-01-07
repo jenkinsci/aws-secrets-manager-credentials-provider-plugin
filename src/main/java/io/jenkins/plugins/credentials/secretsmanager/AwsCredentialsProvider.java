@@ -1,5 +1,8 @@
 package io.jenkins.plugins.credentials.secretsmanager;
 
+import com.cloudbees.plugins.credentials.common.StandardCredentials;
+import com.google.common.base.Suppliers;
+
 import com.amazonaws.SdkBaseException;
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
@@ -11,7 +14,26 @@ import com.cloudbees.plugins.credentials.Credentials;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.CredentialsStore;
 import com.cloudbees.plugins.credentials.common.IdCredentials;
-import com.google.common.base.Suppliers;
+
+import io.jenkins.plugins.credentials.secretsmanager.factory.CredentialsFactory;
+import org.acegisecurity.Authentication;
+
+import java.time.Duration;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import javax.annotation.Nonnull;
+
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.model.ItemGroup;
@@ -21,17 +43,6 @@ import io.jenkins.plugins.credentials.secretsmanager.config.EndpointConfiguratio
 import io.jenkins.plugins.credentials.secretsmanager.config.Filters;
 import io.jenkins.plugins.credentials.secretsmanager.config.PluginConfiguration;
 import jenkins.model.Jenkins;
-import org.acegisecurity.Authentication;
-
-import javax.annotation.Nonnull;
-import java.time.Duration;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 @Extension
 public class AwsCredentialsProvider extends CredentialsProvider {
@@ -107,16 +118,28 @@ public class AwsCredentialsProvider extends CredentialsProvider {
 
         final Map<String, IdCredentials> credentials = new ListSecretsOperation(client).get().stream()
                 .filter(secretFilter)
-                .map(s -> {
+                .flatMap(s -> {
                     final String name = s.getName();
                     final String description = Optional.ofNullable(s.getDescription()).orElse("");
                     final Map<String, String> tags = Optional.ofNullable(s.getTags()).orElse(Collections.emptyList()).stream()
                             .filter(tag -> (tag.getKey() != null) && (tag.getValue() != null))
                             .collect(Collectors.toMap(Tag::getKey, Tag::getValue));
-                    return new RealAwsCredentials(name, description, tags, client);
+                    final Optional<StandardCredentials> cred = CredentialsFactory.create(name, description, tags, client);
+                    return optionalToStream(cred);
                 })
                 .collect(Collectors.toMap(IdCredentials::getId, cred -> cred));
 
         return credentials.values();
+    }
+
+    /**
+     * Polyfill for Java 9 Optional::stream.
+     *
+     * @param thing the optional
+     * @param <T> the type
+     * @return the stream
+     */
+    private static <T> Stream<T> optionalToStream(Optional<T> thing) {
+        return thing.map(Stream::of).orElse(Stream.empty());
     }
 }

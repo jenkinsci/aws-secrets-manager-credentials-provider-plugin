@@ -1,26 +1,14 @@
 package io.jenkins.plugins.credentials.secretsmanager;
 
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
-
-import hudson.model.Label;
-import hudson.slaves.DumbSlave;
-import io.jenkins.plugins.credentials.secretsmanager.util.Crypto;
-import io.jenkins.plugins.credentials.secretsmanager.util.git.GitSshServer;
-import org.jenkinsci.plugins.plaincredentials.StringCredentials;
-import org.junit.Rule;
-import org.junit.Test;
-
-import java.security.KeyPair;
-import java.util.Collections;
-import java.util.List;
-
 import hudson.util.ListBoxModel;
 import hudson.util.Secret;
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
 import io.jenkins.plugins.credentials.secretsmanager.util.CreateSecretOperation;
 import io.jenkins.plugins.credentials.secretsmanager.util.Strings;
-import org.junit.experimental.runners.Enclosed;
-import org.junit.runner.RunWith;
+import org.junit.Test;
+
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
@@ -29,15 +17,16 @@ import static org.assertj.core.api.SoftAssertions.assertSoftly;
 /**
  * The plugin should support Username With Password credentials.
  */
-@RunWith(Enclosed.class)
 public class StandardUsernamePasswordCredentialsIT extends AbstractPluginIT implements CredentialsTests {
+
+    private static final String USERNAME = "joe";
+    private static final String PASSWORD = "supersecret";
+
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldHaveName() {
         // Given
-        final CreateSecretOperation.Result foo = createSecret("supersecret", opts -> {
-            opts.tags = Collections.singletonMap("jenkins:credentials:username", "joe");
-        });
+        final CreateSecretOperation.Result foo = createUsernamePasswordSecret(USERNAME, PASSWORD);
 
         // When
         final ListBoxModel list = listCredentials(StandardUsernamePasswordCredentials.class);
@@ -45,16 +34,14 @@ public class StandardUsernamePasswordCredentialsIT extends AbstractPluginIT impl
         // Then
         assertThat(list)
                 .extracting("name", "value")
-                .containsOnly(tuple(foo.getName(), foo.getName()));
+                .containsOnly(tuple(USERNAME + "/******", foo.getName()));
     }
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldAppearInCredentialsProvider() {
         // Given
-        final CreateSecretOperation.Result foo = createSecret("supersecret", opts -> {
-            opts.tags = Collections.singletonMap("jenkins:credentials:username", "joe");
-        });
+        final CreateSecretOperation.Result foo = createUsernamePasswordSecret(USERNAME, PASSWORD);
 
         // When
         final List<StandardUsernamePasswordCredentials> credentials =
@@ -63,16 +50,14 @@ public class StandardUsernamePasswordCredentialsIT extends AbstractPluginIT impl
         // Then
         assertThat(credentials)
                 .extracting("id", "username", "password")
-                .containsOnly(tuple(foo.getName(), "joe", Secret.fromString("supersecret")));
+                .containsOnly(tuple(foo.getName(), USERNAME, Secret.fromString(PASSWORD)));
     }
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportWithCredentialsBinding() {
         // Given
-        final CreateSecretOperation.Result foo = createSecret("supersecret", opts -> {
-            opts.tags = Collections.singletonMap("jenkins:credentials:username", "joe");
-        });
+        final CreateSecretOperation.Result foo = createUsernamePasswordSecret(USERNAME, PASSWORD);
 
         // When
         final WorkflowRunResult result = runPipeline(Strings.m("",
@@ -91,9 +76,7 @@ public class StandardUsernamePasswordCredentialsIT extends AbstractPluginIT impl
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportEnvironmentBinding() {
         // Given
-        final CreateSecretOperation.Result foo = createSecret("supersecret", opts -> {
-            opts.tags = Collections.singletonMap("jenkins:credentials:username", "joe");
-        });
+        final CreateSecretOperation.Result foo = createUsernamePasswordSecret(USERNAME, PASSWORD);
 
         // When
         final WorkflowRunResult result = runPipeline(Strings.m("",
@@ -122,11 +105,9 @@ public class StandardUsernamePasswordCredentialsIT extends AbstractPluginIT impl
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportSnapshots() {
         // Given
-        final CreateSecretOperation.Result foo = createSecret("supersecret", opts -> {
-            opts.tags = Collections.singletonMap("jenkins:credentials:username", "joe");
-        });
+        final CreateSecretOperation.Result foo = createUsernamePasswordSecret(USERNAME, PASSWORD);
         // And
-        final StandardUsernamePasswordCredentials before = lookupCredential(AwsCredentials.class, foo.getName());
+        final StandardUsernamePasswordCredentials before = lookupCredential(StandardUsernamePasswordCredentials.class, foo.getName());
 
         // When
         final StandardUsernamePasswordCredentials after = snapshot(before);
@@ -134,58 +115,6 @@ public class StandardUsernamePasswordCredentialsIT extends AbstractPluginIT impl
         // Then
         assertThat(after)
                 .extracting("id", "username", "password")
-                .containsOnly(foo.getName(), "joe", Secret.fromString("supersecret"));
-    }
-
-    /*
-     * NOTE: This is not an officially supported feature. It may change without warning in future.
-     */
-    @Test
-    @ConfiguredWithCode(value = "/integration.yml")
-    public void shouldAllowUsageAsStringCredentials() {
-        // Given
-        final CreateSecretOperation.Result foo = createSecret("supersecret", opts -> {
-            opts.tags = Collections.singletonMap("jenkins:credentials:username", "joe");
-        });
-
-        // When
-        final List<StringCredentials> credentials = lookupCredentials(StringCredentials.class);
-
-        // Then
-        assertThat(credentials)
-                .extracting("id", "secret")
-                .containsOnly(tuple(foo.getName(), Secret.fromString("supersecret")));
-    }
-
-    public static class GitPluginIT extends AbstractPluginIT {
-
-        private final String username = "joe";
-
-        @Test
-        @ConfiguredWithCode(value = "/integration.yml")
-        public void shouldSupportGitPlugin() throws Exception {
-            final String slaveName = "agent";
-            r.createSlave(Label.get(slaveName));
-
-            // Given
-            final CreateSecretOperation.Result foo = createSecret("supersecret", opts -> {
-                opts.tags = Collections.singletonMap("jenkins:credentials:username", username);
-            });
-
-            // When
-            // FIXME make a local Git HTTP server
-            String pipeline = Strings.m("",
-                    "node('" + slaveName + "') {",
-                    "  git url: 'https://github.com/jenkinsci/aws-secrets-manager-credentials-provider-plugin.git', credentialsId: '" + foo.getName() + "', branch: 'master'",
-                    "}");
-            final WorkflowRunResult result = runPipeline(pipeline);
-
-            // Then
-            assertSoftly(s -> {
-                s.assertThat(result.log).as("Log").contains("Commit message: \"Initial commit\"");
-                s.assertThat(result.result).as("Result").isEqualTo(hudson.model.Result.SUCCESS);
-            });
-        }
-
+                .containsOnly(foo.getName(), USERNAME, Secret.fromString(PASSWORD));
     }
 }

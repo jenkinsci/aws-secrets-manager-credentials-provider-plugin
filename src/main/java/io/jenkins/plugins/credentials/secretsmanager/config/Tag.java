@@ -1,5 +1,6 @@
 package io.jenkins.plugins.credentials.secretsmanager.config;
 
+import io.jenkins.plugins.credentials.secretsmanager.Messages;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
@@ -11,7 +12,6 @@ import javax.annotation.Nonnull;
 import hudson.Extension;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
-import io.jenkins.plugins.credentials.secretsmanager.Messages;
 
 public class Tag extends AbstractDescribableImpl<Tag> implements Serializable {
 

@@ -36,7 +36,8 @@ public class StandardCertificateCredentialsIT extends AbstractPluginIT implement
     private static final Secret EMPTY_PASSPHRASE = Secret.fromString("");
     private static final KeyPair KEY_PAIR = Crypto.newKeyPair();
     private static final char[] PASSWORD = new char[]{};
-    private static final Certificate CERT = Crypto.newSelfSignedCertificate(KEY_PAIR);
+    private static final String CN = "CN=localhost";
+    private static final Certificate CERT = Crypto.newSelfSignedCertificate(CN, KEY_PAIR);
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
@@ -44,7 +45,7 @@ public class StandardCertificateCredentialsIT extends AbstractPluginIT implement
         // Given
         final KeyStore keyStore = Crypto.singletonKeyStore(ALIAS, KEY_PAIR.getPrivate(), PASSWORD, new Certificate[]{CERT});
         // And
-        final CreateSecretOperation.Result foo = createSecret(Crypto.save(keyStore, PASSWORD));
+        final CreateSecretOperation.Result foo = createCertificateSecret(Crypto.save(keyStore, PASSWORD));
 
         // When
         final ListBoxModel list = listCredentials(StandardCertificateCredentials.class);
@@ -52,7 +53,7 @@ public class StandardCertificateCredentialsIT extends AbstractPluginIT implement
         // Then
         assertThat(list)
                 .extracting("name", "value")
-                .containsOnly(tuple(foo.getName(), foo.getName()));
+                .containsOnly(tuple(CN, foo.getName()));
     }
 
     @Test
@@ -61,7 +62,7 @@ public class StandardCertificateCredentialsIT extends AbstractPluginIT implement
         // Given
         final KeyStore keyStore = Crypto.singletonKeyStore(ALIAS, KEY_PAIR.getPrivate(), PASSWORD, new Certificate[]{CERT});
         // And
-        final CreateSecretOperation.Result foo = createSecret(Crypto.save(keyStore, PASSWORD));
+        final CreateSecretOperation.Result foo = createCertificateSecret(Crypto.save(keyStore, PASSWORD));
 
         // When
         final List<CertCreds> credentials = lookupCredentials(StandardCertificateCredentials.class)
@@ -81,7 +82,7 @@ public class StandardCertificateCredentialsIT extends AbstractPluginIT implement
         // Given
         final KeyStore keyStore = Crypto.singletonKeyStore(ALIAS, KEY_PAIR.getPrivate(), PASSWORD, new Certificate[]{CERT});
         // And
-        final CreateSecretOperation.Result foo = createSecret(Crypto.save(keyStore, PASSWORD));
+        final CreateSecretOperation.Result foo = createCertificateSecret(Crypto.save(keyStore, PASSWORD));
 
         // When
         final WorkflowRunResult result = runPipeline(Strings.m("",
@@ -109,9 +110,9 @@ public class StandardCertificateCredentialsIT extends AbstractPluginIT implement
         // Given
         final KeyStore keyStore = Crypto.singletonKeyStore(ALIAS, KEY_PAIR.getPrivate(), PASSWORD, new Certificate[]{CERT});
         // And
-        final CreateSecretOperation.Result foo = createSecret(Crypto.save(keyStore, PASSWORD));
+        final CreateSecretOperation.Result foo = createCertificateSecret(Crypto.save(keyStore, PASSWORD));
         // And
-        final StandardCertificateCredentials before = lookupCredential(AwsCredentials.class, foo.getName());
+        final StandardCertificateCredentials before = lookupCredential(StandardCertificateCredentials.class, foo.getName());
 
         // When
         final StandardCertificateCredentials after = snapshot(before);
@@ -128,7 +129,7 @@ public class StandardCertificateCredentialsIT extends AbstractPluginIT implement
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldNotTolerateMalformattedKeyStore() {
         // Given
-        final CreateSecretOperation.Result foo = createSecret(new byte[] {0x00, 0x01});
+        final CreateSecretOperation.Result foo = createCertificateSecret(new byte[] {0x00, 0x01});
 
         // When
         final Optional<StandardCertificateCredentials> credentials =
