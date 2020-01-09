@@ -14,6 +14,8 @@ import com.cloudbees.plugins.credentials.CredentialsStore;
 import com.cloudbees.plugins.credentials.common.IdCredentials;
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
 
+import io.jenkins.plugins.credentials.secretsmanager.factory.Tags;
+import io.jenkins.plugins.credentials.secretsmanager.factory.Type;
 import io.jenkins.plugins.credentials.secretsmanager.util.Maps;
 import org.apache.commons.lang3.SerializationUtils;
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
@@ -119,14 +121,14 @@ public abstract class AbstractPluginIT {
         final CreateSecretOperation create = new CreateSecretOperation(client);
 
         return create.run(FOO, secretString, opts -> {
-            opts.tags = Collections.singletonMap("jenkins:credentials:type", "string");
+            opts.tags = Collections.singletonMap(Tags.type, Type.string);
         });
     }
 
     Result createOtherStringSecret(String secretString) {
         final CreateSecretOperation create = new CreateSecretOperation(client);
         return create.run(BAR, secretString, opts -> {
-            opts.tags = Collections.singletonMap("jenkins:credentials:type", "string");
+            opts.tags = Collections.singletonMap(Tags.type, Type.string);
         });
     }
 
@@ -135,8 +137,8 @@ public abstract class AbstractPluginIT {
 
         return create.run(FOO, password, opts -> {
             opts.tags = Maps.of(
-                    "jenkins:credentials:type", "usernamePassword",
-                    "jenkins:credentials:username", username);
+                    Tags.type, Type.usernamePassword,
+                    Tags.username, username);
         });
     }
 
@@ -145,15 +147,15 @@ public abstract class AbstractPluginIT {
 
         return create.run(FOO, privateKey, opts -> {
             opts.tags = Maps.of(
-                    "jenkins:credentials:type", "sshUserPrivateKey",
-                    "jenkins:credentials:username", username);
+                    Tags.type, Type.sshUserPrivateKey,
+                    Tags.username, username);
         });
     }
 
     Result createCertificateSecret(byte[] secretBinary) {
         final CreateSecretOperation create = new CreateSecretOperation(client);
         return create.run(FOO, secretBinary, opts -> {
-            opts.tags = Collections.singletonMap("jenkins:credentials:type", "certificate");
+            opts.tags = Collections.singletonMap(Tags.type, Type.certificate);
         });
     }
 

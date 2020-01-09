@@ -4,6 +4,8 @@ import com.cloudbees.plugins.credentials.CredentialsScope;
 import com.cloudbees.plugins.credentials.CredentialsUnavailableException;
 import com.cloudbees.plugins.credentials.domains.Domain;
 
+import io.jenkins.plugins.credentials.secretsmanager.factory.Tags;
+import io.jenkins.plugins.credentials.secretsmanager.factory.Type;
 import io.jenkins.plugins.credentials.secretsmanager.util.Maps;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl;
@@ -106,9 +108,7 @@ public class CredentialsProviderIT extends AbstractPluginIT {
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldIgnoreUntaggedSecrets() {
         // Given
-        final CreateSecretOperation.Result foo = createSecret("supersecret", opts -> {
-            opts.tags = Collections.singletonMap("jenkins:credentials:type", "string");
-        });
+        final CreateSecretOperation.Result foo = createStringSecret("supersecret");
         // And
         final CreateSecretOperation.Result bar = createOtherSecret("supersecret", opts -> {
             opts.tags = Collections.emptyMap();
@@ -129,7 +129,7 @@ public class CredentialsProviderIT extends AbstractPluginIT {
         // Given
         final CreateSecretOperation.Result foo = createSecret("supersecret", opts -> {
             opts.tags = Maps.of(
-                    "jenkins:credentials:type", "string",
+                    Tags.type, Type.string,
                     "foo", "bar",
                     null, "baz",
                     "qux", null);

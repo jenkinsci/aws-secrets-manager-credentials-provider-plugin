@@ -8,22 +8,15 @@ import org.junit.rules.ExternalResource;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 
 public class GitHttpServer extends ExternalResource {
     private SimpleHttpServer server;
-    private final List<String> repos;
-
-    public GitHttpServer(List<String> repos) {
-        this.repos = repos;
-    }
 
     @Override
     protected void before() throws Throwable {
         final Path dataDir = Files.createTempDirectory("data");
 
-        final String repoName = repos.stream().findFirst().orElseThrow(() -> new IllegalStateException("Git server must have a repo"));
-        final Path repoDir = Files.createDirectories(dataDir.resolve("repos").resolve(repoName));
+        final Path repoDir = Files.createDirectories(dataDir.resolve("repos").resolve("foo"));
         final Repository repo = FileRepositoryBuilder.create(repoDir.resolve(".git").toFile());
         repo.create();
 
@@ -48,8 +41,7 @@ public class GitHttpServer extends ExternalResource {
         }
     }
 
-    public String getCloneUrl(String repo, String username) {
+    public String getCloneUrl() {
         return server.getUri().toASCIIString();
-        //return String.format("ssh://%s@localhost:%d/%s.git", username, port, repo);
     }
 }

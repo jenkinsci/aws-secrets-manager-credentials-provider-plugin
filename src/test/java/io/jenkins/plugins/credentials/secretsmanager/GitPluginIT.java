@@ -62,26 +62,22 @@ public class GitPluginIT  {
 
     public static class StandardUsernamePasswordCredentialsIT extends AbstractPluginIT {
 
-        private final String repo = "foo";
-        private final String username = "agitter";
-
         @Rule
-        public final GitHttpServer git = new GitHttpServer(Collections.singletonList(repo));
+        public final GitHttpServer git = new GitHttpServer();
 
         @Test
         @ConfiguredWithCode(value = "/integration.yml")
         public void shouldSupportGitPlugin() throws Exception {
-            // FIXME this works on the master, but not on an agent - something calls Jenkins.getInstance on the agent & it's null
             final String slaveName = "agent";
             r.createSlave(Label.get(slaveName));
 
             // Given
-            final CreateSecretOperation.Result foo = createUsernamePasswordSecret(username, "letmein");
+            final CreateSecretOperation.Result foo = createUsernamePasswordSecret("agitter", "letmein");
 
             // When
             String pipeline = Strings.m("",
                     "node('" + slaveName + "') {",
-                    "  git url: '" + git.getCloneUrl(repo, username) + "', credentialsId: '" + foo.getName() + "', branch: 'master'",
+                    "  git url: '" + git.getCloneUrl() + "', credentialsId: '" + foo.getName() + "', branch: 'master'",
                     "}");
             final WorkflowRunResult result = runPipeline(pipeline);
 

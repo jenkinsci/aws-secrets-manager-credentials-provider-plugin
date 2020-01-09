@@ -34,19 +34,17 @@ public abstract class CredentialsFactory {
      * @param tags the secret's AWS tags
      */
     public static Optional<StandardCredentials> create(String name, String description, Map<String, String> tags, AWSSecretsManager client) {
-        final String type = tags.getOrDefault("jenkins:credentials:type", "");
-        final String username = tags.getOrDefault("jenkins:credentials:username", "");
+        final String type = tags.getOrDefault(Tags.type, "");
+        final String username = tags.getOrDefault(Tags.username, "");
 
-        final CredentialType t = CredentialType.fromString(type);
-
-        switch (t) {
-            case string:
+        switch (type) {
+            case Type.string:
                 return Optional.of(new AwsStringCredentials(name, description, new SecretSupplier(client, name)));
-            case usernamePassword:
+            case Type.usernamePassword:
                 return Optional.of(new AwsUsernamePasswordCredentials(name, description, new SecretSupplier(client, name), username));
-            case sshUserPrivateKey:
+            case Type.sshUserPrivateKey:
                 return Optional.of(new AwsSshUserPrivateKey(name, description, new StringSupplier(client, name), username));
-            case certificate:
+            case Type.certificate:
                 return Optional.of(new AwsCertificateCredentials(name, description, new SecretBytesSupplier(client, name)));
             default:
                 return Optional.empty();

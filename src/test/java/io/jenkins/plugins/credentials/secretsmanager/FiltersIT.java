@@ -2,6 +2,8 @@ package io.jenkins.plugins.credentials.secretsmanager;
 
 import hudson.util.Secret;
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
+import io.jenkins.plugins.credentials.secretsmanager.factory.Tags;
+import io.jenkins.plugins.credentials.secretsmanager.factory.Type;
 import io.jenkins.plugins.credentials.secretsmanager.util.CreateSecretOperation;
 import io.jenkins.plugins.credentials.secretsmanager.util.Maps;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
@@ -19,13 +21,13 @@ public class FiltersIT extends AbstractPluginIT {
         // Given
         final CreateSecretOperation.Result foo = createSecret("supersecret", opts -> {
             opts.tags = Maps.of(
-                    "jenkins:credentials:type", "string",
+                    Tags.type, Type.string,
                     "product", "roadrunner");
         });
         // And
         final CreateSecretOperation.Result bar = createOtherSecret("supersecret", opts -> {
             opts.tags = Maps.of(
-                    "jenkins:credentials:type", "string",
+                    Tags.type, Type.string,
                     "product", "coyote");
         });
 
