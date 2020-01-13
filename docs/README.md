@@ -110,7 +110,7 @@ Tags:
 AWS CLI:
 
 ```bash
-aws secretsmanager create-secret --name 'artifactory' --secret-string 'supersecret' --tags 'Key=jenkins:credentials:type,Value=usernamePassword,Key=jenkins:credentials:username,Value=joe' --description 'Acme Corp Artifactory login'
+aws secretsmanager create-secret --name 'artifactory' --secret-string 'supersecret' --tags 'Key=jenkins:credentials:type,Value=usernamePassword' 'Key=jenkins:credentials:username,Value=joe' --description 'Acme Corp Artifactory login'
 ```
 
 Declarative Pipeline:
@@ -156,7 +156,7 @@ AWS CLI:
 
 ```bash
 ssh-keygen -t rsa -b 4096 -C 'acme@example.com' -f id_rsa
-aws secretsmanager create-secret --name 'ssh-key' --secret-string 'file://id_rsa' --tags 'Key=jenkins:credentials:type,Value=sshUserPrivateKey,Key=jenkins:credentials:username,Value=joe' --description 'Acme Corp SSH key'
+aws secretsmanager create-secret --name 'ssh-key' --secret-string 'file://id_rsa' --tags 'Key=jenkins:credentials:type,Value=sshUserPrivateKey' 'Key=jenkins:credentials:username,Value=joe' --description 'Acme Corp SSH key'
 ```
 
 Declarative Pipeline:
