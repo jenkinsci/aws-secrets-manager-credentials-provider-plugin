@@ -29,7 +29,7 @@ public abstract class CredentialsFactory {
     /**
      * Construct a Jenkins credential from a Secrets Manager secret.
      *
-     * @param name the secret's name (must be unique)
+     * @param name the secret's name (must be unique within the AWS account)
      * @param description the secret's description
      * @param tags the secret's AWS tags
      */
