@@ -1,14 +1,11 @@
 package io.jenkins.plugins.credentials.secretsmanager.config;
 
-import org.junit.Ignore;
+import io.jenkins.plugins.credentials.secretsmanager.util.JenkinsConfiguredWithWebRule;
 import org.junit.Rule;
 import org.junit.Test;
 
-import io.jenkins.plugins.credentials.secretsmanager.util.JenkinsConfiguredWithWebRule;
-
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
 
-@Ignore("pipeline-model-definition breaks the Web config UI with a load order bug between credentials consumers and (remote) providers")
 public class PluginWebConfigurationTest extends AbstractPluginConfigurationTest {
 
     @Rule
