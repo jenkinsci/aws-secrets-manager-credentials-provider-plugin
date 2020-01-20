@@ -1,7 +1,6 @@
 package io.jenkins.plugins.credentials.secretsmanager;
 
-import com.google.common.base.Suppliers;
-
+import com.amazonaws.SdkBaseException;
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.amazonaws.services.secretsmanager.AWSSecretsManagerClient;
@@ -12,25 +11,7 @@ import com.cloudbees.plugins.credentials.Credentials;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.CredentialsStore;
 import com.cloudbees.plugins.credentials.common.IdCredentials;
-
-import org.acegisecurity.Authentication;
-
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
-
-import javax.annotation.Nonnull;
-
+import com.google.common.base.Suppliers;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.model.ItemGroup;
@@ -40,6 +21,17 @@ import io.jenkins.plugins.credentials.secretsmanager.config.EndpointConfiguratio
 import io.jenkins.plugins.credentials.secretsmanager.config.Filters;
 import io.jenkins.plugins.credentials.secretsmanager.config.PluginConfiguration;
 import jenkins.model.Jenkins;
+import org.acegisecurity.Authentication;
+
+import javax.annotation.Nonnull;
+import java.time.Duration;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 @Extension
 public class AwsCredentialsProvider extends CredentialsProvider {
@@ -57,15 +49,18 @@ public class AwsCredentialsProvider extends CredentialsProvider {
                                                           ItemGroup itemGroup,
                                                           Authentication authentication) {
         if (ACL.SYSTEM.equals(authentication)) {
-            final ArrayList<C> list = new ArrayList<>();
-            for (IdCredentials credential : credentialsSupplier.get()) {
-                if (type.isAssignableFrom(credential.getClass())) {
-                    // cast to keep generics happy even though we are assignable..
-                    list.add(type.cast(credential));
-                }
-                LOG.log(Level.FINEST, "getCredentials {0} does not match", credential.getId());
+            Collection<IdCredentials> allCredentials = Collections.emptyList();
+            try {
+                allCredentials = credentialsSupplier.get();
+            } catch (SdkBaseException e) {
+                LOG.log(Level.WARNING, "Could not list credentials in Secrets Manager: message=[{0}]", e.getMessage());
             }
-            return list;
+
+            return allCredentials.stream()
+                    .filter(c -> type.isAssignableFrom(c.getClass()))
+                    // cast to keep generics happy even though we are assignable
+                    .map(type::cast)
+                    .collect(Collectors.toList());
         }
 
         return Collections.emptyList();
