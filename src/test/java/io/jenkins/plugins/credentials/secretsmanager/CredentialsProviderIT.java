@@ -36,6 +36,16 @@ public class CredentialsProviderIT extends AbstractPluginIT {
     }
 
     @Test
+    @ConfiguredWithCode(value = "/default.yml")
+    public void shouldFailGracefullyWhenSecretsManagerUnavailable() {
+        // When
+        final List<StringCredentials> credentials = lookupCredentials(StringCredentials.class);
+
+        // Then
+        assertThat(credentials).isEmpty();
+    }
+
+    @Test
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldUseSecretNameAsCredentialName() {
         // Given

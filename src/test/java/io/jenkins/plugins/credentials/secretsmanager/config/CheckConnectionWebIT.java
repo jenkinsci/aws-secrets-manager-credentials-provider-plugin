@@ -1,19 +1,16 @@
 package io.jenkins.plugins.credentials.secretsmanager.config;
 
+import com.gargoylesoftware.htmlunit.ElementNotFoundException;
 import com.gargoylesoftware.htmlunit.html.DomNode;
 import com.gargoylesoftware.htmlunit.html.HtmlButton;
 import com.gargoylesoftware.htmlunit.html.HtmlElement;
-
-import org.junit.Ignore;
+import io.jenkins.plugins.credentials.secretsmanager.util.JenkinsConfiguredWithWebRule;
 import org.junit.Rule;
 
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
-import io.jenkins.plugins.credentials.secretsmanager.util.JenkinsConfiguredWithWebRule;
-
-@Ignore("pipeline-model-definition breaks the Web config UI with a load order bug between credentials consumers and (remote) providers")
 public class CheckConnectionWebIT extends AbstractCheckConnectionIT {
 
     @Rule
@@ -35,10 +32,12 @@ public class CheckConnectionWebIT extends AbstractCheckConnectionIT {
                 throw new RuntimeException(e);
             }
 
-            final HtmlElement successElement = form.getOneHtmlElementByAttribute("div", "class", "ok");
-            if (successElement != null) {
+            try {
+                final HtmlElement successElement = form.getOneHtmlElementByAttribute("div", "class", "ok");
                 result.set(Result.success(successElement.getTextContent()));
                 return;
+            } catch (ElementNotFoundException ignored) {
+                // Carry on
             }
 
             final HtmlElement failureElement = form.getOneHtmlElementByAttribute("div", "class", "error");
