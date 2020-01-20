@@ -3,6 +3,7 @@ package io.jenkins.plugins.credentials.secretsmanager.util.git;
 import com.jcraft.jsch.JSch;
 
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.junit.ssh.SshTestGitServer;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.jenkinsci.main.modules.cli.auth.ssh.PublicKeySignatureWriter;
