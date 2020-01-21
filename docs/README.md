@@ -29,6 +29,9 @@ Settings:
 
 Install and configure the plugin.
 
+**:warning: We recommend that Jenkins has dedicated network access to Secrets Manager. Run Jenkins in an [AWS VPC](https://aws.amazon.com/vpc/), or connect an on-premises Jenkins through [AWS PrivateLink](https://aws.amazon.com/privatelink/). The plugin's performance may vary if it accesses Secrets Manager over the public Internet.**
+
+
 ### IAM
 
 Give Jenkins read access to Secrets Manager with an [IAM policy](iam/index.md).
@@ -42,8 +45,6 @@ Optional permissions:
 
 - `kms:Decrypt` (if you use a customer-managed KMS key to encrypt the secret)
 
-**:warning: We strongly recommend that you use an AWS machine authentication method (such as [EC2 Instance Profiles](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_switch-role-ec2_instance-profiles.html) or [EKS Service Roles](https://docs.aws.amazon.com/eks/latest/userguide/service_IAM_role.html)) to authenticate Jenkins with Secrets Manager.**
-
 ## Usage
 
 1. **Upload the secret** to Secrets Manager as shown below (see also the [AWS documentation](https://docs.aws.amazon.com/cli/latest/reference/secretsmanager/create-secret.html)).
@@ -55,15 +56,11 @@ A Secrets Manager secret acts as one of the following Jenkins credential types, 
 
 A simple text *secret*.
 
-Value: *secret*
-
-Tags:
-
-- `jenkins:credentials:type` = `string`
+- Value: *secret*
+- Tags:
+  - `jenkins:credentials:type` = `string`
 
 #### Example
-
-AWS CLI:
 
 ```bash
 aws secretsmanager create-secret --name 'newrelic-api-key' --secret-string 'abc123' --tags 'Key=jenkins:credentials:type,Value=string' --description 'Acme Corp Newrelic API key'
@@ -98,16 +95,12 @@ node {
 
 A *username* and *password* pair.
 
-Value: *password*
-
-Tags:
-
-- `jenkins:credentials:type` = `usernamePassword`
-- `jenkins:credentials:username` = *username*
+- Value: *password*
+- Tags:
+  - `jenkins:credentials:type` = `usernamePassword`
+  - `jenkins:credentials:username` = *username*
 
 #### Example
-
-AWS CLI:
 
 ```bash
 aws secretsmanager create-secret --name 'artifactory' --secret-string 'supersecret' --tags 'Key=jenkins:credentials:type,Value=usernamePassword' 'Key=jenkins:credentials:username,Value=joe' --description 'Acme Corp Artifactory login'
@@ -141,18 +134,16 @@ node {
 
 ### SSH User Private Key
 
-An SSH *private key*, with a *username*. Common private key string formats include PKCS#1 (starts with `-----BEGIN [ALGORITHM] PRIVATE KEY-----`) and PKCS#8 (starts with `-----BEGIN PRIVATE KEY-----`).
+An SSH *private key*, with a *username*.
 
-Value: *private key*
+- Value: *private key*
+- Tags:
+  - `jenkins:credentials:type` = `sshUserPrivateKey`
+  - `jenkins:credentials:username` = *username*
 
-Tags:
-
-- `jenkins:credentials:type` = `sshUserPrivateKey`
-- `jenkins:credentials:username` = *username*
+Common private key formats include PKCS#1 (starts with `-----BEGIN [ALGORITHM] PRIVATE KEY-----`) and PKCS#8 (starts with `-----BEGIN PRIVATE KEY-----`).
 
 #### Example
-
-AWS CLI:
 
 ```bash
 ssh-keygen -t rsa -b 4096 -C 'acme@example.com' -f id_rsa
@@ -189,15 +180,11 @@ node {
 
 A client certificate *keystore* in PKCS#12 format, encrypted with a zero-length password.
 
-Value: *keystore*
-
-Tags:
-
-- `jenkins:credentials:type` = `certificate`
+- Value: *keystore*
+- Tags:
+  - `jenkins:credentials:type` = `certificate`
 
 #### Example
-
-AWS CLI:
 
 ```bash
 openssl pkcs12 -export -in /path/to/cert.pem -inkey /path/to/key.pem -out certificate.p12 -passout pass:
