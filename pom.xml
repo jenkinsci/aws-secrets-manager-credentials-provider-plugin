@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
-        <version>3.50</version>
+        <version>3.56</version>
         <relativePath />
     </parent>
 
@@ -88,11 +88,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
             <version>3.11.1</version>
@@ -139,7 +134,7 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>3.7</version>
+            <version>3.9</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -162,8 +157,8 @@
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-security</artifactId>
-            <version>9.4.22.v20191022</version>
+            <artifactId>jetty-servlet</artifactId>
+            <version>9.4.25.v20191220</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
