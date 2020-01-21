@@ -50,7 +50,7 @@
         <changelist>-SNAPSHOT</changelist>
         <jenkins.version>2.176.4</jenkins.version>
         <java.level>8</java.level>
-        <jcasc.version>1.30</jcasc.version>
+        <jcasc.version>1.35</jcasc.version>
         <jgit.version>5.6.0.201912101111-r</jgit.version>
     </properties>
 
@@ -106,11 +106,16 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>io.jenkins</groupId>
-            <artifactId>configuration-as-code</artifactId>
+            <groupId>io.jenkins.configuration-as-code</groupId>
+            <artifactId>test-harness</artifactId>
             <version>${jcasc.version}</version>
-            <classifier>tests</classifier>
             <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>jackson-databind</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jgit</groupId>
