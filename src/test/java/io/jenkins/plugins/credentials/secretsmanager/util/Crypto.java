@@ -98,14 +98,17 @@ public abstract class Crypto {
         }
     }
 
-    public static X509Certificate newSelfSignedCertificate(KeyPair keyPair) {
+    public static X509Certificate newSelfSignedCertificate(String name, KeyPair keyPair) {
         try {
-            final X500Name cn = new X500Name("CN=localhost");
+            final X500Name cn = new X500Name(name);
+            final Date notBefore = new Date(System.currentTimeMillis() - (1000L * 60 * 60 * 24 * 30));
+            final Date notAfter = new Date(System.currentTimeMillis() + (1000L * 60 * 60 * 24 * 99));
+            final BigInteger serial = BigInteger.valueOf(Math.abs(new SecureRandom().nextInt()));
             final X509v3CertificateBuilder b = new JcaX509v3CertificateBuilder(
                     cn,
-                    BigInteger.valueOf(Math.abs(new SecureRandom().nextInt())),
-                    new Date(System.currentTimeMillis() - (1000L * 60 * 60 * 24 * 30)), // Not after 99 days from now
-                    new Date(System.currentTimeMillis() + (1000L * 60 * 60 * 24 * 99)), // Subject
+                    serial,
+                    notBefore,
+                    notAfter,
                     cn,
                     keyPair.getPublic()
             );

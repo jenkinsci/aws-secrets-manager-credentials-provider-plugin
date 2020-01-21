@@ -1,18 +1,18 @@
-package io.jenkins.plugins.credentials.secretsmanager;
+package io.jenkins.plugins.credentials.secretsmanager.factory;
 
 import java.io.Serializable;
 
-abstract class SecretValue implements Serializable {
+public abstract class SecretValue implements Serializable {
 
     private SecretValue() {
 
     }
 
-    static SecretValue string(String string) {
+    public static SecretValue string(String string) {
         return new SecretString(string);
     }
 
-    static SecretValue binary(byte[] bytes) {
+    public static SecretValue binary(byte[] bytes) {
         return new SecretBinary(bytes);
     }
 

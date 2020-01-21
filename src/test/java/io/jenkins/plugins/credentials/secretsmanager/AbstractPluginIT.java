@@ -14,6 +14,9 @@ import com.cloudbees.plugins.credentials.CredentialsStore;
 import com.cloudbees.plugins.credentials.common.IdCredentials;
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
 
+import io.jenkins.plugins.credentials.secretsmanager.factory.Tags;
+import io.jenkins.plugins.credentials.secretsmanager.factory.Type;
+import io.jenkins.plugins.credentials.secretsmanager.util.Maps;
 import org.apache.commons.lang3.SerializationUtils;
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
@@ -114,26 +117,59 @@ public abstract class AbstractPluginIT {
             .collect(Collectors.toList());
     }
 
-    Result createSecret(String secretString) {
+    Result createStringSecret(String secretString) {
         final CreateSecretOperation create = new CreateSecretOperation(client);
-        return create.run(FOO, secretString);
+
+        return create.run(FOO, secretString, opts -> {
+            opts.tags = Collections.singletonMap(Tags.type, Type.string);
+        });
     }
 
-    Result createOtherSecret(String secretString) {
+    Result createOtherStringSecret(String secretString) {
         final CreateSecretOperation create = new CreateSecretOperation(client);
-        return create.run(BAR, secretString);
+        return create.run(BAR, secretString, opts -> {
+            opts.tags = Collections.singletonMap(Tags.type, Type.string);
+        });
     }
 
-    Result createSecret(byte[] secretBinary) {
+    Result createUsernamePasswordSecret(String username, String password) {
         final CreateSecretOperation create = new CreateSecretOperation(client);
-        return create.run(FOO, secretBinary);
+
+        return create.run(FOO, password, opts -> {
+            opts.tags = Maps.of(
+                    Tags.type, Type.usernamePassword,
+                    Tags.username, username);
+        });
     }
 
+    Result createSshUserPrivateKeySecret(String username, String privateKey) {
+        final CreateSecretOperation create = new CreateSecretOperation(client);
+
+        return create.run(FOO, privateKey, opts -> {
+            opts.tags = Maps.of(
+                    Tags.type, Type.sshUserPrivateKey,
+                    Tags.username, username);
+        });
+    }
+
+    Result createCertificateSecret(byte[] secretBinary) {
+        final CreateSecretOperation create = new CreateSecretOperation(client);
+        return create.run(FOO, secretBinary, opts -> {
+            opts.tags = Collections.singletonMap(Tags.type, Type.certificate);
+        });
+    }
+
+    /**
+     * Low-level API to create any kind of string secret. Warning: YOU MUST SUPPLY YOUR OWN TYPE TAG!
+     */
     Result createSecret(String secretString, Consumer<CreateSecretOperation.Opts> opts) {
         final CreateSecretOperation create = new CreateSecretOperation(client);
         return create.run(FOO, secretString, opts);
     }
 
+    /**
+     * Low-level API to create any kind of string secret. Warning: YOU MUST SUPPLY YOUR OWN TYPE TAG!
+     */
     Result createOtherSecret(String secretString, Consumer<CreateSecretOperation.Opts> opts) {
         final CreateSecretOperation create = new CreateSecretOperation(client);
         return create.run(BAR, secretString, opts);

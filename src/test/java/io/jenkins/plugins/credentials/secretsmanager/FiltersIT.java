@@ -1,14 +1,15 @@
 package io.jenkins.plugins.credentials.secretsmanager;
 
+import hudson.util.Secret;
+import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
+import io.jenkins.plugins.credentials.secretsmanager.factory.Tags;
+import io.jenkins.plugins.credentials.secretsmanager.factory.Type;
+import io.jenkins.plugins.credentials.secretsmanager.util.CreateSecretOperation;
+import io.jenkins.plugins.credentials.secretsmanager.util.Maps;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.junit.Test;
 
-import java.util.Collections;
 import java.util.List;
-
-import hudson.util.Secret;
-import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
-import io.jenkins.plugins.credentials.secretsmanager.util.CreateSecretOperation;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
@@ -19,11 +20,15 @@ public class FiltersIT extends AbstractPluginIT {
     public void shouldFilterByTag() {
         // Given
         final CreateSecretOperation.Result foo = createSecret("supersecret", opts -> {
-            opts.tags = Collections.singletonMap("product", "roadrunner");
+            opts.tags = Maps.of(
+                    Tags.type, Type.string,
+                    "product", "roadrunner");
         });
         // And
         final CreateSecretOperation.Result bar = createOtherSecret("supersecret", opts -> {
-            opts.tags = Collections.singletonMap("product", "coyote");
+            opts.tags = Maps.of(
+                    Tags.type, Type.string,
+                    "product", "coyote");
         });
 
         // When

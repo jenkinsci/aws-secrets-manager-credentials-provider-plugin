@@ -1,16 +1,14 @@
 package io.jenkins.plugins.credentials.secretsmanager;
 
-import org.jenkinsci.plugins.plaincredentials.StringCredentials;
-import org.junit.Test;
-
-import java.util.Collections;
-import java.util.List;
-
 import hudson.util.ListBoxModel;
 import hudson.util.Secret;
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
 import io.jenkins.plugins.credentials.secretsmanager.util.CreateSecretOperation;
 import io.jenkins.plugins.credentials.secretsmanager.util.Strings;
+import org.jenkinsci.plugins.plaincredentials.StringCredentials;
+import org.junit.Test;
+
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
@@ -24,7 +22,7 @@ public class StringCredentialsIT extends AbstractPluginIT implements Credentials
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldHaveName() {
         // Given
-        final CreateSecretOperation.Result foo = createSecret("supersecret");
+        final CreateSecretOperation.Result foo = createStringSecret("supersecret");
 
         // When
         final ListBoxModel list = listCredentials(StringCredentials.class);
@@ -39,7 +37,7 @@ public class StringCredentialsIT extends AbstractPluginIT implements Credentials
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldAppearInCredentialsProvider() {
         // Given
-        final CreateSecretOperation.Result foo = createSecret("supersecret");
+        final CreateSecretOperation.Result foo = createStringSecret("supersecret");
 
         // When
         final List<StringCredentials> credentials = lookupCredentials(StringCredentials.class);
@@ -54,7 +52,7 @@ public class StringCredentialsIT extends AbstractPluginIT implements Credentials
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportWithCredentialsBinding() {
         // Given
-        final CreateSecretOperation.Result foo = createSecret("supersecret");
+        final CreateSecretOperation.Result foo = createStringSecret("supersecret");
 
         // When
         final WorkflowRunResult result = runPipeline(Strings.m("",
@@ -73,7 +71,7 @@ public class StringCredentialsIT extends AbstractPluginIT implements Credentials
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportEnvironmentBinding() {
         // Given
-        final CreateSecretOperation.Result foo = createSecret("supersecret");
+        final CreateSecretOperation.Result foo = createStringSecret("supersecret");
 
         // When
         final WorkflowRunResult result = runPipeline(Strings.m("",
@@ -102,9 +100,9 @@ public class StringCredentialsIT extends AbstractPluginIT implements Credentials
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportSnapshots() {
         // Given
-        final CreateSecretOperation.Result foo = createSecret("supersecret");
+        final CreateSecretOperation.Result foo = createStringSecret("supersecret");
         // And
-        final StringCredentials before = lookupCredential(AwsCredentials.class, foo.getName());
+        final StringCredentials before = lookupCredential(StringCredentials.class, foo.getName());
 
         // When
         final StringCredentials after = snapshot(before);
@@ -113,56 +111,5 @@ public class StringCredentialsIT extends AbstractPluginIT implements Credentials
         assertThat(after)
                 .extracting("id", "secret")
                 .containsOnly(foo.getName(), Secret.fromString("supersecret"));
-    }
-
-    @Test
-    @ConfiguredWithCode(value = "/integration.yml")
-    public void shouldTolerateNullTags() {
-        // Given
-        final CreateSecretOperation.Result foo = createSecret("supersecret", opts -> {
-            opts.tags = null;
-        });
-
-        // When
-        final List<StringCredentials> credentials = lookupCredentials(StringCredentials.class);
-
-        // Then
-        assertThat(credentials)
-                .extracting("id", "secret")
-                .containsOnly(tuple(foo.getName(), Secret.fromString("supersecret")));
-    }
-
-    @Test
-    @ConfiguredWithCode(value = "/integration.yml")
-    public void shouldTolerateNullTagKeys() {
-        // Given
-        final CreateSecretOperation.Result foo = createSecret("supersecret", opts -> {
-            opts.tags = Collections.singletonMap(null, "foo");
-        });
-
-        // When
-        final List<StringCredentials> credentials = lookupCredentials(StringCredentials.class);
-
-        // Then
-        assertThat(credentials)
-                .extracting("id", "secret")
-                .containsOnly(tuple(foo.getName(), Secret.fromString("supersecret")));
-    }
-
-    @Test
-    @ConfiguredWithCode(value = "/integration.yml")
-    public void shouldTolerateNullTagValues() {
-        // Given
-        final CreateSecretOperation.Result foo = createSecret("supersecret", opts -> {
-            opts.tags = Collections.singletonMap("jenkins:credentials:username", null);
-        });
-
-        // When
-        final List<StringCredentials> credentials = lookupCredentials(StringCredentials.class);
-
-        // Then
-        assertThat(credentials)
-                .extracting("id", "secret")
-                .containsOnly(tuple(foo.getName(), Secret.fromString("supersecret")));
     }
 }
