@@ -6,4 +6,3 @@ Examples of AWS Secrets Manager [IAM policies](https://docs.aws.amazon.com/secre
 
 - [all.json](all.json) (Allow access to all AWS secrets)
 - [secret-id.json](secret-id.json) (Filter by AWS secret ID)
-- [secret-namespace-id.json](secret-namespace-id.json) (Filter by AWS secret namespace ID)
