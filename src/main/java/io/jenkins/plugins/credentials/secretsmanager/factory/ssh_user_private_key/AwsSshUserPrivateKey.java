@@ -56,5 +56,10 @@ public class AwsSshUserPrivateKey extends BaseStandardCredentials implements SSH
         public String getDisplayName() {
             return Messages.sshUserPrivateKey();
         }
+
+        @Override
+        public String getIconClassName() {
+            return "icon-ssh-credentials-ssh-key";
+        }
     }
 }

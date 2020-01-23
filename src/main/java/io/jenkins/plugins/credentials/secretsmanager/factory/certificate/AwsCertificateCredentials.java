@@ -63,5 +63,10 @@ public class AwsCertificateCredentials extends BaseStandardCredentials implement
         public String getDisplayName() {
             return Messages.certificate();
         }
+
+        @Override
+        public String getIconClassName() {
+            return "icon-credentials-certificate";
+        }
     }
 }

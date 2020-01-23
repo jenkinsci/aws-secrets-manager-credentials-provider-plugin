@@ -41,5 +41,10 @@ public class AwsUsernamePasswordCredentials extends BaseStandardCredentials impl
         public String getDisplayName() {
             return Messages.usernamePassword();
         }
+
+        @Override
+        public String getIconClassName() {
+            return "icon-credentials-userpass";
+        }
     }
 }
