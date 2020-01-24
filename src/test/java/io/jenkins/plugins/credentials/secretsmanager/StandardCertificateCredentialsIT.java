@@ -1,8 +1,10 @@
 package io.jenkins.plugins.credentials.secretsmanager;
 
 import com.cloudbees.plugins.credentials.CredentialsUnavailableException;
+import com.cloudbees.plugins.credentials.SecretBytes;
 import com.cloudbees.plugins.credentials.common.StandardCertificateCredentials;
 
+import com.cloudbees.plugins.credentials.impl.CertificateCredentialsImpl;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -54,6 +56,19 @@ public class StandardCertificateCredentialsIT extends AbstractPluginIT implement
         assertThat(list)
                 .extracting("name", "value")
                 .containsOnly(tuple(CN, foo.getName()));
+    }
+
+    @Test
+    @ConfiguredWithCode(value = "/integration.yml")
+    public void shouldHaveIcon() {
+        final byte[] keystore = Crypto.save(Crypto.singletonKeyStore(ALIAS, KEY_PAIR.getPrivate(), PASSWORD, new Certificate[]{CERT}), PASSWORD);
+        final CreateSecretOperation.Result foo = createCertificateSecret(keystore);
+        final StandardCertificateCredentials ours = lookupCredential(StandardCertificateCredentials.class, foo.getName());
+
+        final StandardCertificateCredentials theirs = new CertificateCredentialsImpl(null, "id", "description", "password", new CertificateCredentialsImpl.UploadedKeyStoreSource(SecretBytes.fromBytes(keystore)));
+
+        assertThat(ours.getDescriptor().getIconClassName())
+                .isEqualTo(theirs.getDescriptor().getIconClassName());
     }
 
     @Test

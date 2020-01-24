@@ -6,6 +6,7 @@ import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
 import io.jenkins.plugins.credentials.secretsmanager.util.CreateSecretOperation;
 import io.jenkins.plugins.credentials.secretsmanager.util.Strings;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
+import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl;
 import org.junit.Test;
 
 import java.util.List;
@@ -111,5 +112,17 @@ public class StringCredentialsIT extends AbstractPluginIT implements Credentials
         assertThat(after)
                 .extracting("id", "secret")
                 .containsOnly(foo.getName(), Secret.fromString("supersecret"));
+    }
+
+    @Test
+    @ConfiguredWithCode(value = "/integration.yml")
+    public void shouldHaveIcon() {
+        final CreateSecretOperation.Result foo = createStringSecret("supersecret");
+        final StringCredentials ours = lookupCredential(StringCredentials.class, foo.getName());
+
+        final StringCredentials theirs = new StringCredentialsImpl(null, "id", "description", Secret.fromString("secret"));
+
+        assertThat(ours.getDescriptor().getIconClassName())
+                .isEqualTo(theirs.getDescriptor().getIconClassName());
     }
 }

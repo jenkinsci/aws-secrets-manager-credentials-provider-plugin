@@ -1,6 +1,7 @@
 package io.jenkins.plugins.credentials.secretsmanager;
 
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
+import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl;
 import hudson.util.ListBoxModel;
 import hudson.util.Secret;
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
@@ -116,5 +117,17 @@ public class StandardUsernamePasswordCredentialsIT extends AbstractPluginIT impl
         assertThat(after)
                 .extracting("id", "username", "password")
                 .containsOnly(foo.getName(), USERNAME, Secret.fromString(PASSWORD));
+    }
+
+    @Test
+    @ConfiguredWithCode(value = "/integration.yml")
+    public void shouldHaveIcon() {
+        final CreateSecretOperation.Result foo = createUsernamePasswordSecret(USERNAME, PASSWORD);
+        final StandardUsernamePasswordCredentials ours = lookupCredential(StandardUsernamePasswordCredentials.class, foo.getName());
+
+        final StandardUsernamePasswordCredentials theirs = new UsernamePasswordCredentialsImpl(null, "id", "description", "username", "password");
+
+        assertThat(ours.getDescriptor().getIconClassName())
+                .isEqualTo(theirs.getDescriptor().getIconClassName());
     }
 }

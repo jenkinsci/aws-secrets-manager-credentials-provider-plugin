@@ -7,6 +7,9 @@ public interface CredentialsTests {
     void shouldHaveName();
 
     @Test
+    void shouldHaveIcon();
+
+    @Test
     void shouldAppearInCredentialsProvider();
 
     @Test
