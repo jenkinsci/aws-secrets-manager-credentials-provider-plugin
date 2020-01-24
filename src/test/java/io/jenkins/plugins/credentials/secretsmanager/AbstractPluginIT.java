@@ -75,7 +75,7 @@ public abstract class AbstractPluginIT {
         }
     }
 
-    WorkflowRunResult runPipeline(String definition) {
+    WorkflowRun runPipeline(String definition) {
         try {
             final WorkflowJob project = r.jenkins.createProject(WorkflowJob.class, "example");
             project.setDefinition(new CpsFlowDefinition(definition, true));
@@ -83,21 +83,9 @@ public abstract class AbstractPluginIT {
             final WorkflowRun workflowRun = workflowRunFuture.waitForStart();
             r.waitForCompletion(workflowRun);
 
-            final String log = workflowRun.getLog();
-            final hudson.model.Result result = workflowRun.getResult();
-            return new WorkflowRunResult(log, result);
+            return workflowRun;
         } catch (IOException | InterruptedException | ExecutionException e) {
             throw new RuntimeException(e);
-        }
-    }
-
-    static class WorkflowRunResult {
-        final String log;
-        final hudson.model.Result result;
-
-        private WorkflowRunResult(String log, hudson.model.Result result) {
-            this.log = log;
-            this.result = result;
         }
     }
 

@@ -1,13 +1,14 @@
 package io.jenkins.plugins.credentials.secretsmanager;
 
 import hudson.model.Label;
-import hudson.slaves.DumbSlave;
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
 import io.jenkins.plugins.credentials.secretsmanager.util.CreateSecretOperation;
 import io.jenkins.plugins.credentials.secretsmanager.util.Crypto;
 import io.jenkins.plugins.credentials.secretsmanager.util.Strings;
+import io.jenkins.plugins.credentials.secretsmanager.util.assertions.WorkflowRunAssert;
 import io.jenkins.plugins.credentials.secretsmanager.util.git.GitHttpServer;
 import io.jenkins.plugins.credentials.secretsmanager.util.git.GitSshServer;
+import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
@@ -16,10 +17,8 @@ import org.junit.runner.RunWith;
 import java.security.KeyPair;
 import java.util.Collections;
 
-import static org.assertj.core.api.SoftAssertions.assertSoftly;
-
 /**
- * The credentials provider should interoperate with the Git plugin, a key credentials consumer
+ * The credentials provider should work with the Git plugin, a key credentials consumer
  */
 @RunWith(Enclosed.class)
 public class GitPluginIT  {
@@ -39,24 +38,21 @@ public class GitPluginIT  {
         @ConfiguredWithCode(value = "/integration.yml")
         public void shouldSupportGitPlugin() throws Exception {
             final String slaveName = "agent";
-            final DumbSlave slave = r.createSlave(Label.get(slaveName));
+            r.createSlave(Label.get(slaveName));
 
             // Given
             final CreateSecretOperation.Result foo = createSshUserPrivateKeySecret(username, Crypto.save(sshKey.getPrivate()));
 
             // When
-            String pipeline = Strings.m("",
+            final WorkflowRun run = runPipeline(Strings.m("",
                     "node('" + slaveName + "') {",
                     "  git url: '" + git.getCloneUrl(repo, username) + "', credentialsId: '" + foo.getName() + "', branch: 'master'",
-                    "}");
-            final WorkflowRunResult result = runPipeline(pipeline);
+                    "}"));
 
             // Then
-            assertSoftly(s -> {
-                s.assertThat(result.log).as("Log").contains("Commit message: \"Initial commit\"");
-                s.assertThat(result.log).as("Log using credential").contains("using credential " + foo.getName());
-                s.assertThat(result.result).as("Result").isEqualTo(hudson.model.Result.SUCCESS);
-            });
+            WorkflowRunAssert.assertThat(run)
+                    .hasResult(hudson.model.Result.SUCCESS)
+                    .hasLogContaining("Commit message: \"Initial commit\"");
         }
     }
 
@@ -75,18 +71,15 @@ public class GitPluginIT  {
             final CreateSecretOperation.Result foo = createUsernamePasswordSecret("agitter", "letmein");
 
             // When
-            String pipeline = Strings.m("",
+            final WorkflowRun run = runPipeline(Strings.m("",
                     "node('" + slaveName + "') {",
                     "  git url: '" + git.getCloneUrl() + "', credentialsId: '" + foo.getName() + "', branch: 'master'",
-                    "}");
-            final WorkflowRunResult result = runPipeline(pipeline);
+                    "}"));
 
             // Then
-            assertSoftly(s -> {
-                s.assertThat(result.log).as("Log").contains("Commit message: \"Initial commit\"");
-                s.assertThat(result.log).as("Log using credential").contains("using credential " + foo.getName());
-                s.assertThat(result.result).as("Result").isEqualTo(hudson.model.Result.SUCCESS);
-            });
+            WorkflowRunAssert.assertThat(run)
+                    .hasResult(hudson.model.Result.SUCCESS)
+                    .hasLogContaining("Commit message: \"Initial commit\"");
         }
 
     }
