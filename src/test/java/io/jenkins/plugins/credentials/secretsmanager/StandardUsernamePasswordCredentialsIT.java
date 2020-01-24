@@ -11,10 +11,9 @@ import io.jenkins.plugins.credentials.secretsmanager.util.assertions.WorkflowRun
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.junit.Test;
 
-import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
+import static org.assertj.core.api.SoftAssertions.assertSoftly;
 
 /**
  * The plugin should support Username With Password credentials.
@@ -26,7 +25,7 @@ public class StandardUsernamePasswordCredentialsIT extends AbstractPluginIT impl
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
-    public void shouldHaveName() {
+    public void shouldSupportListView() {
         // Given
         final CreateSecretOperation.Result foo = createUsernamePasswordSecret(USERNAME, PASSWORD);
 
@@ -41,18 +40,44 @@ public class StandardUsernamePasswordCredentialsIT extends AbstractPluginIT impl
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
-    public void shouldAppearInCredentialsProvider() {
+    public void shouldHavePassword() {
         // Given
         final CreateSecretOperation.Result foo = createUsernamePasswordSecret(USERNAME, PASSWORD);
 
         // When
-        final List<StandardUsernamePasswordCredentials> credentials =
-                lookupCredentials(StandardUsernamePasswordCredentials.class);
+        final StandardUsernamePasswordCredentials credential =
+                lookupCredential(StandardUsernamePasswordCredentials.class, foo.getName());
 
         // Then
-        assertThat(credentials)
-                .extracting("id", "username", "password")
-                .containsOnly(tuple(foo.getName(), USERNAME, Secret.fromString(PASSWORD)));
+        assertThat(credential.getPassword()).isEqualTo(Secret.fromString(PASSWORD));
+    }
+
+    @Test
+    @ConfiguredWithCode(value = "/integration.yml")
+    public void shouldHaveUsername() {
+        // Given
+        final CreateSecretOperation.Result foo = createUsernamePasswordSecret(USERNAME, PASSWORD);
+
+        // When
+        final StandardUsernamePasswordCredentials credential =
+                lookupCredential(StandardUsernamePasswordCredentials.class, foo.getName());
+
+        // Then
+        assertThat(credential.getUsername()).isEqualTo(USERNAME);
+    }
+
+    @Test
+    @ConfiguredWithCode(value = "/integration.yml")
+    public void shouldHaveId() {
+        // Given
+        final CreateSecretOperation.Result foo = createUsernamePasswordSecret(USERNAME, PASSWORD);
+
+        // When
+        final StandardUsernamePasswordCredentials credential =
+                lookupCredential(StandardUsernamePasswordCredentials.class, foo.getName());
+
+        // Then
+        assertThat(credential.getId()).isEqualTo(foo.getName());
     }
 
     @Test
@@ -106,21 +131,22 @@ public class StandardUsernamePasswordCredentialsIT extends AbstractPluginIT impl
     public void shouldSupportSnapshots() {
         // Given
         final CreateSecretOperation.Result foo = createUsernamePasswordSecret(USERNAME, PASSWORD);
-        // And
         final StandardUsernamePasswordCredentials before = lookupCredential(StandardUsernamePasswordCredentials.class, foo.getName());
 
         // When
         final StandardUsernamePasswordCredentials after = snapshot(before);
 
         // Then
-        assertThat(after)
-                .extracting("id", "username", "password")
-                .containsOnly(foo.getName(), USERNAME, Secret.fromString(PASSWORD));
+        assertSoftly(s -> {
+            s.assertThat(after.getId()).as("ID").isEqualTo(before.getId());
+            s.assertThat(after.getUsername()).as("Username").isEqualTo(before.getUsername());
+            s.assertThat(after.getPassword()).as("Password").isEqualTo(before.getPassword());
+        });
     }
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
-    public void shouldHaveIcon() {
+    public void shouldHaveDescriptorIcon() {
         final CreateSecretOperation.Result foo = createUsernamePasswordSecret(USERNAME, PASSWORD);
         final StandardUsernamePasswordCredentials ours = lookupCredential(StandardUsernamePasswordCredentials.class, foo.getName());
 

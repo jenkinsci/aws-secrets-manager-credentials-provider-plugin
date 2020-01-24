@@ -12,10 +12,9 @@ import io.jenkins.plugins.credentials.secretsmanager.util.assertions.WorkflowRun
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.junit.Test;
 
-import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
+import static org.assertj.core.api.SoftAssertions.assertSoftly;
 
 /**
  * The plugin should support SSH private key credentials.
@@ -28,7 +27,7 @@ public class SSHUserPrivateKeyIT extends AbstractPluginIT implements Credentials
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
-    public void shouldHaveName() {
+    public void shouldSupportListView() {
         // Given
         final CreateSecretOperation.Result foo = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
 
@@ -43,17 +42,66 @@ public class SSHUserPrivateKeyIT extends AbstractPluginIT implements Credentials
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
-    public void shouldAppearInCredentialsProvider() {
+    public void shouldHaveId() {
         // Given
         final CreateSecretOperation.Result foo = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
 
         // When
-        final List<SSHUserPrivateKey> credentials = lookupCredentials(SSHUserPrivateKey.class);
+        final SSHUserPrivateKey credential = lookupCredential(SSHUserPrivateKey.class, foo.getName());
 
         // Then
-        assertThat(credentials)
-                .extracting("id", "username", "privateKey", "passphrase")
-                .containsOnly(tuple(foo.getName(), USERNAME, PRIVATE_KEY, EMPTY_PASSPHRASE));
+        assertThat(credential.getId()).isEqualTo(foo.getName());
+    }
+
+    @Test
+    @ConfiguredWithCode(value = "/integration.yml")
+    public void shouldHaveUsername() {
+        // Given
+        final CreateSecretOperation.Result foo = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
+
+        // When
+        final SSHUserPrivateKey credential = lookupCredential(SSHUserPrivateKey.class, foo.getName());
+
+        // Then
+        assertThat(credential.getUsername()).isEqualTo(USERNAME);
+    }
+
+    @Test
+    @ConfiguredWithCode(value = "/integration.yml")
+    public void shouldHavePrivateKey() {
+        // Given
+        final CreateSecretOperation.Result foo = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
+
+        // When
+        final SSHUserPrivateKey credential = lookupCredential(SSHUserPrivateKey.class, foo.getName());
+
+        // Then
+        assertThat(credential.getPrivateKeys()).containsOnly(PRIVATE_KEY);
+    }
+
+    @Test
+    @ConfiguredWithCode(value = "/integration.yml")
+    public void shouldHaveEmptyPassphrase() {
+        // Given
+        final CreateSecretOperation.Result foo = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
+
+        // When
+        final SSHUserPrivateKey credential = lookupCredential(SSHUserPrivateKey.class, foo.getName());
+
+        // Then
+        assertThat(credential.getPassphrase()).isEqualTo(EMPTY_PASSPHRASE);
+    }
+
+    @Test
+    @ConfiguredWithCode(value = "/integration.yml")
+    public void shouldHaveDescriptorIcon() {
+        final CreateSecretOperation.Result foo = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
+        final SSHUserPrivateKey ours = lookupCredential(SSHUserPrivateKey.class, foo.getName());
+
+        final BasicSSHUserPrivateKey theirs = new BasicSSHUserPrivateKey(null, "id", "username", null, "passphrase", "description");
+
+        assertThat(ours.getDescriptor().getIconClassName())
+                .isEqualTo(theirs.getDescriptor().getIconClassName());
     }
 
     @Test
@@ -109,27 +157,17 @@ public class SSHUserPrivateKeyIT extends AbstractPluginIT implements Credentials
     public void shouldSupportSnapshots() {
         // Given
         final CreateSecretOperation.Result foo = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
-        // And
         final SSHUserPrivateKey before = lookupCredential(SSHUserPrivateKey.class, foo.getName());
 
         // When
         final SSHUserPrivateKey after = snapshot(before);
 
         // Then
-        assertThat(after)
-                .extracting("id", "username", "privateKey", "passphrase")
-                .containsOnly(foo.getName(), USERNAME, PRIVATE_KEY, EMPTY_PASSPHRASE);
-    }
-
-    @Test
-    @ConfiguredWithCode(value = "/integration.yml")
-    public void shouldHaveIcon() {
-        final CreateSecretOperation.Result foo = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
-        final SSHUserPrivateKey ours = lookupCredential(SSHUserPrivateKey.class, foo.getName());
-
-        final BasicSSHUserPrivateKey theirs = new BasicSSHUserPrivateKey(null, "id", "username", null, "passphrase", "description");
-
-        assertThat(ours.getDescriptor().getIconClassName())
-                .isEqualTo(theirs.getDescriptor().getIconClassName());
+        assertSoftly(s -> {
+            s.assertThat(after.getId()).as("ID").isEqualTo(before.getId());
+            s.assertThat(after.getUsername()).as("Username").isEqualTo(before.getUsername());
+            s.assertThat(after.getPassphrase()).as("Passphrase").isEqualTo(before.getPassphrase());
+            s.assertThat(after.getPrivateKeys()).as("Private Key").isEqualTo(before.getPrivateKeys());
+        });
     }
 }

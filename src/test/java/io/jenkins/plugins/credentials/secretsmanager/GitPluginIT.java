@@ -18,7 +18,7 @@ import java.security.KeyPair;
 import java.util.Collections;
 
 /**
- * The credentials provider should interoperate with the Git plugin, a key credentials consumer
+ * The credentials provider should work with the Git plugin, a key credentials consumer
  */
 @RunWith(Enclosed.class)
 public class GitPluginIT  {

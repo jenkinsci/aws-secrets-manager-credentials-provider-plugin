@@ -24,7 +24,6 @@ public class FiltersIT extends AbstractPluginIT {
                     Tags.type, Type.string,
                     "product", "roadrunner");
         });
-        // And
         final CreateSecretOperation.Result bar = createOtherSecret("supersecret", opts -> {
             opts.tags = Maps.of(
                     Tags.type, Type.string,

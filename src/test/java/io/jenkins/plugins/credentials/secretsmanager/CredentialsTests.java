@@ -4,13 +4,10 @@ import org.junit.Test;
 
 public interface CredentialsTests {
     @Test
-    void shouldHaveName();
+    void shouldSupportListView();
 
     @Test
-    void shouldHaveIcon();
-
-    @Test
-    void shouldAppearInCredentialsProvider();
+    void shouldHaveDescriptorIcon();
 
     @Test
     void shouldSupportWithCredentialsBinding();
@@ -20,4 +17,7 @@ public interface CredentialsTests {
 
     @Test
     void shouldSupportSnapshots();
+
+    @Test
+    void shouldHaveId();
 }
