@@ -128,6 +128,6 @@ public class StandardUsernamePasswordCredentialsIT extends AbstractPluginIT impl
         final StandardUsernamePasswordCredentials theirs = new UsernamePasswordCredentialsImpl(null, "id", "description", "username", "password");
 
         assertThat(ours.getDescriptor().getIconClassName())
-                .isEqualTo(theirs.getDescriptor().getIconClassName() + "a");
+                .isEqualTo(theirs.getDescriptor().getIconClassName());
     }
 }
