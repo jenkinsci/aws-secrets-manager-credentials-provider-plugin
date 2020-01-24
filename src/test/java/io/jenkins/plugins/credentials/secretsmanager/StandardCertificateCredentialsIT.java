@@ -5,6 +5,8 @@ import com.cloudbees.plugins.credentials.SecretBytes;
 import com.cloudbees.plugins.credentials.common.StandardCertificateCredentials;
 
 import com.cloudbees.plugins.credentials.impl.CertificateCredentialsImpl;
+import io.jenkins.plugins.credentials.secretsmanager.util.assertions.WorkflowRunAssert;
+import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -100,7 +102,7 @@ public class StandardCertificateCredentialsIT extends AbstractPluginIT implement
         final CreateSecretOperation.Result foo = createCertificateSecret(Crypto.save(keyStore, PASSWORD));
 
         // When
-        final WorkflowRunResult result = runPipeline(Strings.m("",
+        final WorkflowRun run = runPipeline(Strings.m("",
                 "node {",
                 "  withCredentials([certificate(credentialsId: '" + foo.getName() + "', keystoreVariable: 'KEYSTORE')]) {",
                 "    echo \"Credential: {keystore: $KEYSTORE}\"",
@@ -108,10 +110,9 @@ public class StandardCertificateCredentialsIT extends AbstractPluginIT implement
                 "}"));
 
         // Then
-        assertSoftly(s -> {
-            s.assertThat(result.log).as("Log").contains("Credential: {keystore: ****}");
-            s.assertThat(result.result).as("Result").isEqualTo(hudson.model.Result.SUCCESS);
-        });
+        WorkflowRunAssert.assertThat(run)
+                .hasResult(hudson.model.Result.SUCCESS)
+                .hasLogContaining("Credential: {keystore: ****}");
     }
 
     @Ignore("Declarative Pipeline does not support certificate bindings")

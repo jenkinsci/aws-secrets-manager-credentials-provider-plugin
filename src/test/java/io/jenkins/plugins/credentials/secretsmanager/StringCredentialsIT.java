@@ -5,15 +5,16 @@ import hudson.util.Secret;
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
 import io.jenkins.plugins.credentials.secretsmanager.util.CreateSecretOperation;
 import io.jenkins.plugins.credentials.secretsmanager.util.Strings;
+import io.jenkins.plugins.credentials.secretsmanager.util.assertions.WorkflowRunAssert;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl;
+import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.junit.Test;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
-import static org.assertj.core.api.SoftAssertions.assertSoftly;
 
 /**
  * The plugin should support Secret Text credentials.
@@ -56,16 +57,15 @@ public class StringCredentialsIT extends AbstractPluginIT implements Credentials
         final CreateSecretOperation.Result foo = createStringSecret("supersecret");
 
         // When
-        final WorkflowRunResult result = runPipeline(Strings.m("",
+        final WorkflowRun run = runPipeline(Strings.m("",
                 "withCredentials([string(credentialsId: '" + foo.getName() + "', variable: 'VAR')]) {",
                 "  echo \"Credential: $VAR\"",
                 "}"));
 
         // Then
-        assertSoftly(s -> {
-            s.assertThat(result.log).as("Log").contains("Credential: ****");
-            s.assertThat(result.result).as("Result").isEqualTo(hudson.model.Result.SUCCESS);
-        });
+        WorkflowRunAssert.assertThat(run)
+                .hasResult(hudson.model.Result.SUCCESS)
+                .hasLogContaining("Credential: ****");
     }
 
     @Test
@@ -75,7 +75,7 @@ public class StringCredentialsIT extends AbstractPluginIT implements Credentials
         final CreateSecretOperation.Result foo = createStringSecret("supersecret");
 
         // When
-        final WorkflowRunResult result = runPipeline(Strings.m("",
+        final WorkflowRun run = runPipeline(Strings.m("",
                 "pipeline {",
                 "  agent none",
                 "  stages {",
@@ -91,10 +91,9 @@ public class StringCredentialsIT extends AbstractPluginIT implements Credentials
                 "}"));
 
         // Then
-        assertSoftly(s -> {
-            s.assertThat(result.log).as("Log").contains("{variable: ****}");
-            s.assertThat(result.result).as("Result").isEqualTo(hudson.model.Result.SUCCESS);
-        });
+        WorkflowRunAssert.assertThat(run)
+                .hasResult(hudson.model.Result.SUCCESS)
+                .hasLogContaining("{variable: ****}");
     }
 
     @Test

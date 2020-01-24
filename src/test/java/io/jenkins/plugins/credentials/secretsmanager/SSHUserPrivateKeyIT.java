@@ -8,13 +8,14 @@ import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
 import io.jenkins.plugins.credentials.secretsmanager.util.CreateSecretOperation;
 import io.jenkins.plugins.credentials.secretsmanager.util.Crypto;
 import io.jenkins.plugins.credentials.secretsmanager.util.Strings;
+import io.jenkins.plugins.credentials.secretsmanager.util.assertions.WorkflowRunAssert;
+import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.junit.Test;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
-import static org.assertj.core.api.SoftAssertions.assertSoftly;
 
 /**
  * The plugin should support SSH private key credentials.
@@ -62,7 +63,7 @@ public class SSHUserPrivateKeyIT extends AbstractPluginIT implements Credentials
         final CreateSecretOperation.Result foo = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
 
         // When
-        final WorkflowRunResult result = runPipeline(Strings.m("",
+        final WorkflowRun run = runPipeline(Strings.m("",
                 "node {",
                 "  withCredentials([sshUserPrivateKey(credentialsId: '" + foo.getName() + "', keyFileVariable: 'KEYFILE', usernameVariable: 'USERNAME')]) {",
                 "    echo \"Credential: {username: $USERNAME, keyFile: $KEYFILE}\"",
@@ -70,10 +71,9 @@ public class SSHUserPrivateKeyIT extends AbstractPluginIT implements Credentials
                 "}"));
 
         // Then
-        assertSoftly(s -> {
-            s.assertThat(result.log).as("Log").contains("Credential: {username: ****, keyFile: ****}");
-            s.assertThat(result.result).as("Result").isEqualTo(hudson.model.Result.SUCCESS);
-        });
+        WorkflowRunAssert.assertThat(run)
+                .hasResult(hudson.model.Result.SUCCESS)
+                .hasLogContaining("Credential: {username: ****, keyFile: ****}");
     }
 
     @Test
@@ -83,7 +83,7 @@ public class SSHUserPrivateKeyIT extends AbstractPluginIT implements Credentials
         final CreateSecretOperation.Result foo = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
 
         // When
-        final WorkflowRunResult result = runPipeline(Strings.m("",
+        final WorkflowRun run = runPipeline(Strings.m("",
                 "pipeline {",
                 "  agent any",
                 "  stages {",
@@ -99,10 +99,9 @@ public class SSHUserPrivateKeyIT extends AbstractPluginIT implements Credentials
                 "}"));
 
         // Then
-        assertSoftly(s -> {
-            s.assertThat(result.log).as("Log").contains("{variable: ****, username: ****}");
-            s.assertThat(result.result).as("Result").isEqualTo(hudson.model.Result.SUCCESS);
-        });
+        WorkflowRunAssert.assertThat(run)
+                .hasResult(hudson.model.Result.SUCCESS)
+                .hasLogContaining("{variable: ****, username: ****}");
     }
 
     @Test
