@@ -1,6 +1,7 @@
 package io.jenkins.plugins.credentials.secretsmanager;
 
 import com.cloudbees.jenkins.plugins.sshcredentials.SSHUserPrivateKey;
+import com.cloudbees.jenkins.plugins.sshcredentials.impl.BasicSSHUserPrivateKey;
 import hudson.util.ListBoxModel;
 import hudson.util.Secret;
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
@@ -119,5 +120,17 @@ public class SSHUserPrivateKeyIT extends AbstractPluginIT implements Credentials
         assertThat(after)
                 .extracting("id", "username", "privateKey", "passphrase")
                 .containsOnly(foo.getName(), USERNAME, PRIVATE_KEY, EMPTY_PASSPHRASE);
+    }
+
+    @Test
+    @ConfiguredWithCode(value = "/integration.yml")
+    public void shouldHaveIcon() {
+        final CreateSecretOperation.Result foo = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
+        final SSHUserPrivateKey ours = lookupCredential(SSHUserPrivateKey.class, foo.getName());
+
+        final BasicSSHUserPrivateKey theirs = new BasicSSHUserPrivateKey(null, "id", "username", null, "passphrase", "description");
+
+        assertThat(ours.getDescriptor().getIconClassName())
+                .isEqualTo(theirs.getDescriptor().getIconClassName());
     }
 }
