@@ -147,6 +147,16 @@ public abstract class AbstractPluginIT {
         });
     }
 
+    Result createFileSecret(String fileName, byte[] content) {
+        final CreateSecretOperation create = new CreateSecretOperation(client);
+
+        return create.run(FOO, content, opts -> {
+            opts.tags = Maps.of(
+                    Tags.type, Type.file,
+                    Tags.filename, fileName);
+        });
+    }
+
     /**
      * Low-level API to create any kind of string secret. Warning: YOU MUST SUPPLY YOUR OWN TYPE TAG!
      */

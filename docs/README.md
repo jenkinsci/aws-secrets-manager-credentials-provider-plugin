@@ -60,6 +60,9 @@ A simple text *secret*.
 - Tags:
   - `jenkins:credentials:type` = `string`
 
+:white_check_mark: Use this credential type whenever it is practical. It is the simplest and most widely compatible type.
+
+
 #### Example
 
 ```bash
@@ -196,6 +199,46 @@ Scripted Pipeline:
 ```groovy
 node {
     withCredentials([certificate(credentialsId: 'code-signing-cert', keystoreVariable: 'STORE_FILE')]) {
+        echo 'Hello world'
+    }
+}
+```
+
+### Secret File
+
+A file with secret binary *content* and a *filename*.
+
+- Value: *content*
+- Tags:
+  - `jenkins:credentials:type` = `file`
+  - `jenkins:credentials:filename` = *filename*
+
+#### Example
+
+```bash
+aws secretsmanager create-secret --name 'acme-credentials' --secret-binary 'fileb://credentials.txt' --tags 'Key=jenkins:credentials:type,Value=file' 'Key=jenkins:credentials:filename,Value=credentials.txt' --description 'Acme Corp credentials file'
+```
+
+Declarative Pipeline:
+
+```groovy
+pipeline {
+    environment {
+        FILE = credentials('acme-credentials')
+    }
+    stages {
+        stage('Example') {
+            echo 'Hello world'
+        }
+    }
+}
+```
+
+Scripted Pipeline:
+
+```groovy
+node {
+    withCredentials([file(credentialsId: 'acme-credentials', variable: 'FILE')]) {
         echo 'Hello world'
     }
 }
