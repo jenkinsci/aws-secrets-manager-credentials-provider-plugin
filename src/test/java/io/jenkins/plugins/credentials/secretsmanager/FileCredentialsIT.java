@@ -122,7 +122,7 @@ public class FileCredentialsIT extends AbstractPluginIT implements CredentialsTe
         // When
         final WorkflowRun run = runPipeline(Strings.m("",
                 "pipeline {",
-                "  agent none",
+                "  agent any",
                 "  stages {",
                 "    stage('Example') {",
                 "      environment {",
