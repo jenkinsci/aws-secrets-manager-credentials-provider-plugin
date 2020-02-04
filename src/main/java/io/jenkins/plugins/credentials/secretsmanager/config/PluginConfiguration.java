@@ -17,7 +17,16 @@ import java.util.List;
 @Symbol("awsCredentialsProvider")
 public class PluginConfiguration extends GlobalConfiguration {
 
+    private static final int DEFAULT_CACHE_DURATION = 300;
+
     private Beta beta;
+
+    /**
+     * The credential cache duration, in seconds.
+     *
+     * TODO A value of 0 or less disables the cache.
+     */
+    private Integer cacheDuration;
 
     /**
      * The AWS Secrets Manager endpoint configuration. If this is null, the default will be used. If
@@ -32,6 +41,10 @@ public class PluginConfiguration extends GlobalConfiguration {
 
     public PluginConfiguration() {
         load();
+
+        if (cacheDuration == null) {
+            cacheDuration = DEFAULT_CACHE_DURATION;
+        }
     }
 
     public static PluginConfiguration getInstance() {
@@ -59,6 +72,16 @@ public class PluginConfiguration extends GlobalConfiguration {
     public void setBeta(Beta beta) {
         this.beta = beta;
         save();
+    }
+
+    public int getCacheDuration() {
+        return cacheDuration;
+    }
+
+    @DataBoundSetter
+    @SuppressWarnings("unused")
+    public void setCacheDuration(int cacheDuration) {
+        this.cacheDuration = cacheDuration;
     }
 
     public EndpointConfiguration getEndpointConfiguration() {
