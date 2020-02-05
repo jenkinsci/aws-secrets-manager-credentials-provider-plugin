@@ -206,7 +206,7 @@ node {
 
 ### Secret File
 
-A file with secret binary *content* and a *filename*.
+A secret file with binary *content* and a *filename*.
 
 - Value: *content*
 - Tags:
@@ -216,7 +216,13 @@ A file with secret binary *content* and a *filename*.
 #### Example
 
 ```bash
-aws secretsmanager create-secret --name 'acme-credentials' --secret-binary 'fileb://credentials.txt' --tags 'Key=jenkins:credentials:type,Value=file' 'Key=jenkins:credentials:filename,Value=credentials.txt' --description 'Acme Corp credentials file'
+cat << EOF > .credentials
+realm=Artifactory Realm
+host=artifactory.example.com
+user=joe
+password=supersecret
+EOF
+aws secretsmanager create-secret --name 'ivy-credentials' --secret-binary 'fileb://.credentials' --tags 'Key=jenkins:credentials:type,Value=file' 'Key=jenkins:credentials:filename,Value=.credentials' --description 'Ivy credentials file'
 ```
 
 Declarative Pipeline:
@@ -224,7 +230,7 @@ Declarative Pipeline:
 ```groovy
 pipeline {
     environment {
-        FILE = credentials('acme-credentials')
+        FILE = credentials('ivy-credentials')
     }
     stages {
         stage('Example') {
@@ -238,7 +244,7 @@ Scripted Pipeline:
 
 ```groovy
 node {
-    withCredentials([file(credentialsId: 'acme-credentials', variable: 'FILE')]) {
+    withCredentials([file(credentialsId: 'ivy-credentials', variable: 'FILE')]) {
         echo 'Hello world'
     }
 }
