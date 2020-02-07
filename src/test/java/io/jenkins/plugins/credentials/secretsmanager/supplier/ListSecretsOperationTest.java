@@ -1,4 +1,4 @@
-package io.jenkins.plugins.credentials.secretsmanager;
+package io.jenkins.plugins.credentials.secretsmanager.supplier;
 
 import com.amazonaws.AmazonWebServiceRequest;
 import com.amazonaws.ResponseMetadata;

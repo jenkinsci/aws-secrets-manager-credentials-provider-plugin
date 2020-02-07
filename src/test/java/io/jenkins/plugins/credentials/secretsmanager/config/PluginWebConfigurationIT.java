@@ -35,6 +35,15 @@ public class PluginWebConfigurationIT extends AbstractPluginConfigurationIT {
         });
     }
 
+    @Override
+    protected void setRoles(String role) {
+        r.configure(f -> {
+            final PluginConfigurationForm form = new PluginConfigurationForm(f);
+
+            form.setRole(role);
+        });
+    }
+
     @Test
     public void shouldCustomiseAndResetConfiguration() {
         r.configure(f -> {
@@ -42,6 +51,7 @@ public class PluginWebConfigurationIT extends AbstractPluginConfigurationIT {
 
             form.setEndpointConfiguration("http://localhost:4584", "us-east-1");
             form.setFilter("product", "foobar");
+            form.setRole("arn:aws:iam::123456789012:role/marketingadminrole");
         });
 
         final PluginConfiguration configBefore = getPluginConfiguration();
@@ -49,6 +59,7 @@ public class PluginWebConfigurationIT extends AbstractPluginConfigurationIT {
         assertSoftly(s -> {
             s.assertThat(configBefore.getEndpointConfiguration()).as("Endpoint Configuration").isNotNull();
             s.assertThat(configBefore.getFilters().getTag()).as("Filters").isNotNull();
+            s.assertThat(configBefore.getBeta().getRoles()).as("Roles").isNotNull();
         });
 
         r.configure(f -> {
@@ -62,6 +73,7 @@ public class PluginWebConfigurationIT extends AbstractPluginConfigurationIT {
         assertSoftly(s -> {
             s.assertThat(configAfter.getEndpointConfiguration()).as("Endpoint Configuration").isNull();
             s.assertThat(configAfter.getFilters()).as("Filters").isNull();
+            s.assertThat(configAfter.getBeta().getRoles()).as("Roles").isNull();
         });
     }
 }

@@ -13,6 +13,11 @@ public abstract class AbstractPluginConfigurationIT {
 
     protected abstract void setTagFilters(String key, String value);
 
+    /*
+     * Only 1 role is supported for now (because locating the Add button in HtmlUnit is difficult)
+     */
+    protected abstract void setRoles(String role);
+
     @Test
     public void shouldHaveDefaultConfiguration() {
         final PluginConfiguration config = getPluginConfiguration();
@@ -20,6 +25,7 @@ public abstract class AbstractPluginConfigurationIT {
         assertSoftly(s -> {
             s.assertThat(config.getEndpointConfiguration()).as("Endpoint Configuration").isNull();
             s.assertThat(config.getFilters()).as("Filters").isNull();
+            s.assertThat(config.getBeta()).as("Beta Features").isNull();
         });
     }
 
@@ -50,5 +56,20 @@ public abstract class AbstractPluginConfigurationIT {
         assertThat(config.getFilters().getTag())
                 .extracting("key", "value")
                 .containsOnly("product", "foobar");
+    }
+
+    @Test
+    public void shouldCustomiseRoles() {
+        // Given
+        final String foo = "arn:aws:iam::111111111111:role/foo-role";
+        setRoles(foo);
+
+        // When
+        final PluginConfiguration config = getPluginConfiguration();
+
+        // Then
+        assertThat(config.getBeta().getRoles().getArns())
+                .extracting("value")
+                .containsOnly(foo);
     }
 }
