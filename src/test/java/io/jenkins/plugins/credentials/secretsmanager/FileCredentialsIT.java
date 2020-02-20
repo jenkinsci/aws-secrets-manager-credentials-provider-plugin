@@ -24,14 +24,14 @@ import static org.assertj.core.api.SoftAssertions.assertSoftly;
  */
 public class FileCredentialsIT extends AbstractPluginIT implements CredentialsTests {
 
-    private static final String FILENAME = "credentials.txt";
+    private static final String FILENAME = "hello.txt";
     private static final byte[] CONTENT = {0x01, 0x02, 0x03};
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldHaveId() {
         // Given
-        final CreateSecretOperation.Result foo = createFileSecret(FILENAME, CONTENT);
+        final CreateSecretOperation.Result foo = createFileSecret(CONTENT);
 
         // When
         final FileCredentials credential = lookupCredential(FileCredentials.class, foo.getName());
@@ -43,6 +43,19 @@ public class FileCredentialsIT extends AbstractPluginIT implements CredentialsTe
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldHaveFileName() {
+        // Given
+        final CreateSecretOperation.Result foo = createFileSecret(CONTENT);
+
+        // When
+        final FileCredentials credential = lookupCredential(FileCredentials.class, foo.getName());
+
+        // Then
+        assertThat(credential.getFileName()).isEqualTo(foo.getName());
+    }
+
+    @Test
+    @ConfiguredWithCode(value = "/integration.yml")
+    public void shouldHaveCustomisableFileName() {
         // Given
         final CreateSecretOperation.Result foo = createFileSecret(FILENAME, CONTENT);
 
@@ -57,7 +70,7 @@ public class FileCredentialsIT extends AbstractPluginIT implements CredentialsTe
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldHaveContent() throws IOException {
         // Given
-        final CreateSecretOperation.Result foo = createFileSecret(FILENAME, CONTENT);
+        final CreateSecretOperation.Result foo = createFileSecret(CONTENT);
 
         // When
         final FileCredentials credential = lookupCredential(FileCredentials.class, foo.getName());
@@ -69,7 +82,7 @@ public class FileCredentialsIT extends AbstractPluginIT implements CredentialsTe
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldHaveDescriptorIcon() {
-        final CreateSecretOperation.Result foo = createFileSecret(FILENAME, CONTENT);
+        final CreateSecretOperation.Result foo = createFileSecret(CONTENT);
         final FileCredentials ours = lookupCredential(FileCredentials.class, foo.getName());
 
         final FileCredentials theirs = new FileCredentialsImpl(null, "id", "description", "filename", SecretBytes.fromBytes(CONTENT));
@@ -82,7 +95,7 @@ public class FileCredentialsIT extends AbstractPluginIT implements CredentialsTe
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportListView() {
         // Given
-        final CreateSecretOperation.Result foo = createFileSecret(FILENAME, CONTENT);
+        final CreateSecretOperation.Result foo = createFileSecret(CONTENT);
 
         // When
         final ListBoxModel list = listCredentials(FileCredentials.class);
@@ -90,14 +103,14 @@ public class FileCredentialsIT extends AbstractPluginIT implements CredentialsTe
         // Then
         assertThat(list)
                 .extracting("name", "value")
-                .containsOnly(tuple(FILENAME, foo.getName()));
+                .containsOnly(tuple(foo.getName(), foo.getName()));
     }
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportWithCredentialsBinding() {
         // Given
-        final CreateSecretOperation.Result foo = createFileSecret(FILENAME, CONTENT);
+        final CreateSecretOperation.Result foo = createFileSecret(CONTENT);
 
         // When
         final WorkflowRun run = runPipeline(Strings.m("",
@@ -117,7 +130,7 @@ public class FileCredentialsIT extends AbstractPluginIT implements CredentialsTe
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportEnvironmentBinding() {
         // Given
-        final CreateSecretOperation.Result foo = createFileSecret(FILENAME, CONTENT);
+        final CreateSecretOperation.Result foo = createFileSecret(CONTENT);
 
         // When
         final WorkflowRun run = runPipeline(Strings.m("",
@@ -145,7 +158,7 @@ public class FileCredentialsIT extends AbstractPluginIT implements CredentialsTe
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportSnapshots() {
         // Given
-        final CreateSecretOperation.Result foo = createFileSecret(FILENAME, CONTENT);
+        final CreateSecretOperation.Result foo = createFileSecret(CONTENT);
         final FileCredentials before = lookupCredential(FileCredentials.class, foo.getName());
 
         // When

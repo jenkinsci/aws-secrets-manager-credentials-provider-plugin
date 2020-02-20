@@ -37,7 +37,7 @@ public abstract class CredentialsFactory {
     public static Optional<StandardCredentials> create(String name, String description, Map<String, String> tags, AWSSecretsManager client) {
         final String type = tags.getOrDefault(Tags.type, "");
         final String username = tags.getOrDefault(Tags.username, "");
-        final String filename = tags.getOrDefault(Tags.filename, "");
+        final String filename = tags.getOrDefault(Tags.filename, name);
 
         switch (type) {
             case Type.string:

@@ -206,18 +206,20 @@ node {
 
 ### Secret File
 
-A secret file with binary *content* and a *filename*.
+A secret file with binary *content* and an optional *filename*.
 
 - Value: *content*
 - Tags:
   - `jenkins:credentials:type` = `file`
-  - `jenkins:credentials:filename` = *filename*
+  - `jenkins:credentials:filename` = *filename* (optional)
+
+The credential ID is used as the filename by default. In the rare cases when you need to override this (for example, if the credential ID would be an invalid filename on your filesystem), you can set the `jenkins:credentials:filename` tag.
 
 #### Example
 
 ```bash
 echo -n $'\x01\x02\x03' > license.bin
-aws secretsmanager create-secret --name 'license-key' --secret-binary 'fileb://license.bin' --tags 'Key=jenkins:credentials:type,Value=file' 'Key=jenkins:credentials:filename,Value=license.bin' --description 'License key'
+aws secretsmanager create-secret --name 'license-key' --secret-binary 'fileb://license.bin' --tags 'Key=jenkins:credentials:type,Value=file' --description 'License key'
 ```
 
 Declarative Pipeline:
@@ -225,7 +227,7 @@ Declarative Pipeline:
 ```groovy
 pipeline {
     environment {
-        LICENSE_FILE = credentials('license-key')
+        LICENSE_KEY_FILE = credentials('license-key')
     }
     stages {
         stage('Example') {
@@ -239,7 +241,7 @@ Scripted Pipeline:
 
 ```groovy
 node {
-    withCredentials([file(credentialsId: 'license-key', variable: 'LICENSE_FILE')]) {
+    withCredentials([file(credentialsId: 'license-key', variable: 'LICENSE_KEY_FILE')]) {
         echo 'Hello world'
     }
 }

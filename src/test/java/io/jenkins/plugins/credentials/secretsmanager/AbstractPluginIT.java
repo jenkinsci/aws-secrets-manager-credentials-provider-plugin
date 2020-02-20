@@ -147,13 +147,21 @@ public abstract class AbstractPluginIT {
         });
     }
 
-    Result createFileSecret(String fileName, byte[] content) {
+    Result createFileSecret(byte[] content) {
+        final CreateSecretOperation create = new CreateSecretOperation(client);
+
+        return create.run(FOO, content, opts -> {
+            opts.tags = Collections.singletonMap(Tags.type, Type.file);
+        });
+    }
+
+    Result createFileSecret(String filename, byte[] content) {
         final CreateSecretOperation create = new CreateSecretOperation(client);
 
         return create.run(FOO, content, opts -> {
             opts.tags = Maps.of(
                     Tags.type, Type.file,
-                    Tags.filename, fileName);
+                    Tags.filename, filename);
         });
     }
 
