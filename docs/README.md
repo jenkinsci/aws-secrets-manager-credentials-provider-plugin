@@ -216,13 +216,8 @@ A secret file with binary *content* and a *filename*.
 #### Example
 
 ```bash
-cat << EOF > .credentials
-realm=Artifactory Realm
-host=artifactory.example.com
-user=joe
-password=supersecret
-EOF
-aws secretsmanager create-secret --name 'ivy-credentials' --secret-binary 'fileb://.credentials' --tags 'Key=jenkins:credentials:type,Value=file' 'Key=jenkins:credentials:filename,Value=.credentials' --description 'Ivy credentials file'
+echo -n $'\x01\x02\x03' > license.bin
+aws secretsmanager create-secret --name 'license-key' --secret-binary 'fileb://license.bin' --tags 'Key=jenkins:credentials:type,Value=file' 'Key=jenkins:credentials:filename,Value=license.bin' --description 'License key'
 ```
 
 Declarative Pipeline:
@@ -230,7 +225,7 @@ Declarative Pipeline:
 ```groovy
 pipeline {
     environment {
-        FILE = credentials('ivy-credentials')
+        LICENSE_FILE = credentials('license-key')
     }
     stages {
         stage('Example') {
@@ -244,7 +239,7 @@ Scripted Pipeline:
 
 ```groovy
 node {
-    withCredentials([file(credentialsId: 'ivy-credentials', variable: 'FILE')]) {
+    withCredentials([file(credentialsId: 'license-key', variable: 'LICENSE_FILE')]) {
         echo 'Hello world'
     }
 }
