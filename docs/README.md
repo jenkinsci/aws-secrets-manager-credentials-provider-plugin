@@ -5,8 +5,15 @@
 
 Access credentials from AWS Secrets Manager in your Jenkins jobs.
 
-- [CI Build](https://ci.jenkins.io/blue/organizations/jenkins/Plugins%2Faws-secrets-manager-credentials-provider-plugin/)
-- [Issues](https://issues.jenkins-ci.org/issues/?jql=component+%3D+aws-secrets-manager-credentials-provider-plugin)
+## Contents
+
+- [Caching](caching/index.md)
+- [Networking](networking/index.md)
+- [Screenshots](screenshots/index.md)
+- Project
+  - [Changelog](https://github.com/jenkinsci/aws-secrets-manager-credentials-provider-plugin/releases)
+  - [CI Build](https://ci.jenkins.io/blue/organizations/jenkins/Plugins%2Faws-secrets-manager-credentials-provider-plugin/)
+  - [Issues](https://issues.jenkins-ci.org/issues/?jql=component+%3D+aws-secrets-manager-credentials-provider-plugin)
 
 ## Features
 
@@ -14,27 +21,16 @@ Access credentials from AWS Secrets Manager in your Jenkins jobs.
 - Credential metadata caching (duration: 5 minutes).
 - Jenkins [Configuration As Code](https://github.com/jenkinsci/configuration-as-code-plugin) support.
 - [Cross-account](http://docs.aws.amazon.com/IAM/latest/UserGuide/tutorial_cross-account-with-roles.html) Secrets Manager support with IAM roles.
-
-Settings:
-
-- Filters
-  - Filter secrets by tag
-- Endpoint Configuration
-  - Service Endpoint
-  - Signing Region
-
+ 
 ## Setup 
 
 ### Jenkins
 
 Install and configure the plugin.
 
-**:warning: We recommend that Jenkins has dedicated network access to Secrets Manager. Run Jenkins in an [AWS VPC](https://aws.amazon.com/vpc/), or connect an on-premises Jenkins through [AWS PrivateLink](https://aws.amazon.com/privatelink/). The plugin's performance may vary if it accesses Secrets Manager over the public Internet.**
-
-
 ### IAM
 
-Give Jenkins read access to Secrets Manager with an [IAM policy](iam/index.md).
+Give Jenkins read access to Secrets Manager with an IAM policy.
 
 Required permissions:
 
@@ -203,6 +199,13 @@ node {
 
 ## Configuration
 
+Available settings:
+
+- Filter secrets by tag (key, value)
+- Endpoint Configuration
+  - Service Endpoint
+  - Signing Region
+
 The plugin's default behavior requires **no configuration**.
 
 ### Web UI
@@ -254,7 +257,3 @@ In your IDE:
 3. Start Moto: `mvn docker:build docker:start`.
 4. Run tests.
 5. Stop Moto: `mvn docker:stop`.
-
-## Screenshots
-
-![Credentials screen](/docs/img/plugin.png)
