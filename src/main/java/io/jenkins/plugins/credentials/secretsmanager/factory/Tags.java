@@ -4,8 +4,11 @@ package io.jenkins.plugins.credentials.secretsmanager.factory;
  * The tags on the Secrets Manager entry that we use.
  */
 public abstract class Tags {
-    public static final String type = "jenkins:credentials:type";
-    public static final String username = "jenkins:credentials:username";
+    private static final String namespace = "jenkins:credentials:";
+
+    public static final String filename = namespace + "filename";
+    public static final String type = namespace + "type";
+    public static final String username = namespace + "username";
 
     private Tags() {
 

@@ -11,6 +11,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.util.Secret;
 import io.jenkins.plugins.credentials.secretsmanager.Messages;
 import io.jenkins.plugins.credentials.secretsmanager.factory.certificate.AwsCertificateCredentials;
+import io.jenkins.plugins.credentials.secretsmanager.factory.file.AwsFileCredentials;
 import io.jenkins.plugins.credentials.secretsmanager.factory.ssh_user_private_key.AwsSshUserPrivateKey;
 import io.jenkins.plugins.credentials.secretsmanager.factory.string.AwsStringCredentials;
 import io.jenkins.plugins.credentials.secretsmanager.factory.username_password.AwsUsernamePasswordCredentials;
@@ -36,6 +37,7 @@ public abstract class CredentialsFactory {
     public static Optional<StandardCredentials> create(String name, String description, Map<String, String> tags, AWSSecretsManager client) {
         final String type = tags.getOrDefault(Tags.type, "");
         final String username = tags.getOrDefault(Tags.username, "");
+        final String filename = tags.getOrDefault(Tags.filename, name);
 
         switch (type) {
             case Type.string:
@@ -46,6 +48,8 @@ public abstract class CredentialsFactory {
                 return Optional.of(new AwsSshUserPrivateKey(name, description, new StringSupplier(client, name), username));
             case Type.certificate:
                 return Optional.of(new AwsCertificateCredentials(name, description, new SecretBytesSupplier(client, name)));
+            case Type.file:
+                return Optional.of(new AwsFileCredentials(name, description, filename, new SecretBytesSupplier(client, name)));
             default:
                 return Optional.empty();
         }
