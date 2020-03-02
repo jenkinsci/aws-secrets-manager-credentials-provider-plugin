@@ -174,6 +174,14 @@ public abstract class AbstractPluginIT {
     }
 
     /**
+     * Low-level API to create any kind of binary secret. Warning: YOU MUST SUPPLY YOUR OWN TYPE TAG!
+     */
+    Result createSecret(byte[] secretBinary, Consumer<CreateSecretOperation.Opts> opts) {
+        final CreateSecretOperation create = new CreateSecretOperation(client);
+        return create.run(FOO, secretBinary, opts);
+    }
+
+    /**
      * Low-level API to create any kind of string secret. Warning: YOU MUST SUPPLY YOUR OWN TYPE TAG!
      */
     Result createOtherSecret(String secretString, Consumer<CreateSecretOperation.Opts> opts) {

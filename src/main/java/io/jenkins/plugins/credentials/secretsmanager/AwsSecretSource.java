@@ -1,5 +1,6 @@
 package io.jenkins.plugins.credentials.secretsmanager;
 
+import com.amazonaws.SdkClientException;
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.amazonaws.services.secretsmanager.AWSSecretsManagerClient;
@@ -35,7 +36,7 @@ public class AwsSecretSource extends SecretSource {
                 LOG.info("Secret " + id + " has been soft-deleted");
                 return Optional.empty();
             }
-        } catch (AWSSecretsManagerException e) {
+        } catch (SdkClientException e) {
             throw new IOException(e);
         }
     }
