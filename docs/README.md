@@ -35,6 +35,7 @@ Give Jenkins read access to Secrets Manager with an IAM policy.
 
 Required permissions:
 
+- `secretsmanager:DescribeSecret` (resource: `*`)
 - `secretsmanager:GetSecretValue` (resource: `*`)
 - `secretsmanager:ListSecrets`
 

@@ -24,7 +24,12 @@ public class AwsSecretSource extends SecretSource {
 
     @Override
     public Optional<String> reveal(String id) throws IOException {
-        final AWSSecretsManager client = createClient();
+        final AWSSecretsManager client;
+        try {
+            client = createClient();
+        } catch (SdkClientException e) {
+            throw new IOException(e);
+        }
 
         try {
             final DescribeSecretResult describeSecretResult = client.describeSecret(new DescribeSecretRequest().withSecretId(id));
@@ -36,12 +41,12 @@ public class AwsSecretSource extends SecretSource {
                 LOG.info("Secret " + id + " has been soft-deleted");
                 return Optional.empty();
             }
-        } catch (SdkClientException e) {
+        } catch (AWSSecretsManagerException e) {
             throw new IOException(e);
         }
     }
 
-    private AWSSecretsManager createClient() {
+    private AWSSecretsManager createClient() throws SdkClientException {
         final PluginConfiguration config = PluginConfiguration.getInstance();
         final EndpointConfiguration ec = config.getEndpointConfiguration();
 
