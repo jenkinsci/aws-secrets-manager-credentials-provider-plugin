@@ -44,44 +44,18 @@ Optional permissions:
 
 ## Usage
 
-The plugin supports the following credentials resolution APIs:
+The plugin supports the following secrets resolution APIs:
 
-- [CredentialsProvider](https://jenkins.io/doc/book/using/using-credentials/) (the high-level API)
-- [SecretSource](https://github.com/jenkinsci/configuration-as-code-plugin/blob/master/docs/features/secrets.adoc#passing-secrets-through-variables) (the low-level API)
+- [CredentialsProvider](#CredentialsProvider) (high-level API)
+- [SecretSource](#SecretSource) (low-level API)
 
-Any string secret is accessible through SecretSource, but only secrets with the `jenkins:credentials:type` tag are accessible through CredentialsProvider. This distinction allows you to share tagged secrets between both APIs, while untagged secrets are only accessible through SecretSource. 
-
-### SecretSource
-
-The plugin allows a JCasC definition to interpolate string secrets from Secrets Manager.
-
-At interpolation time, the plugin tries to find the secret with a name matching the interpolation key, and then reveals the secret's string value.
-
-#### Example
-
-AWS CLI:
-
-```bash
-aws secretsmanager create-secret --name 'my-password' --secret-string 'abc123' --description 'Jenkins user password'
-```
-
-JCasC:
-
-```yaml
-jenkins:
-  securityRealm:
-    local:
-      allowsSignup: false
-      users:
-      - id: "foo"
-        password: "${my-password}"
-```
+Note: Any string secret is accessible through SecretSource, but only a secret with the `jenkins:credentials:type` tag is accessible through CredentialsProvider. This distinction allows you to share tagged secrets between both APIs, while untagged secrets are only accessible through SecretSource.
 
 ### CredentialsProvider
 
 The plugin allows secrets from Secrets Manager to be used as Jenkins credentials.
  
-A secret will act as one of the following Jenkins credential types, based on the `jenkins:credentials:type` tag that you add to it. The tag's value must be the relevant Jenkinsfile credentials binding [type name](https://jenkins.io/doc/pipeline/steps/credentials-binding/), e.g. `string` for Secret Text.
+A secret will act as one of the following Jenkins [credential types](https://jenkins.io/doc/pipeline/steps/credentials-binding/), based on the `jenkins:credentials:type` tag that you add to it.
 
 #### Secret Text
 
@@ -90,9 +64,6 @@ A simple text *secret*.
 - Value: *secret*
 - Tags:
   - `jenkins:credentials:type` = `string`
-
-:white_check_mark: Use this credential type whenever it is practical. It is the simplest and most widely compatible type.
-
 
 ##### Example
 
@@ -286,6 +257,30 @@ node {
         echo 'Hello world'
     }
 }
+```
+
+### SecretSource
+
+The plugin allows JCasC to interpolate string secrets from Secrets Manager.
+
+#### Example
+
+AWS CLI:
+
+```bash
+aws secretsmanager create-secret --name 'my-password' --secret-string 'abc123' --description 'Jenkins user password'
+```
+
+JCasC:
+
+```yaml
+jenkins:
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+      - id: "foo"
+        password: "${my-password}"
 ```
 
 ## Configuration
