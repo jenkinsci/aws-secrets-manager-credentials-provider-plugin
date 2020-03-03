@@ -60,16 +60,13 @@ public class SecretSourceIT extends AbstractPluginIT {
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
-    public void shouldNotRevealSoftDeletedSecret() {
+    public void shouldThrowExceptionWhenSecretWasSoftDeleted() {
         // Given
         final CreateSecretOperation.Result foo = createSecret(SECRET_STRING, opts -> {});
-
-        // When
         deleteSecret(foo.getName());
-        final String secret = revealSecret(foo.getName());
 
-        // Then
-        assertThat(secret).isEmpty();
+        assertThatIOException()
+                .isThrownBy(() -> revealSecret(foo.getName()));
     }
 
     @Test

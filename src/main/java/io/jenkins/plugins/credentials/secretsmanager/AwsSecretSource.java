@@ -5,7 +5,9 @@ import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.amazonaws.services.secretsmanager.AWSSecretsManagerClient;
 import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder;
-import com.amazonaws.services.secretsmanager.model.*;
+import com.amazonaws.services.secretsmanager.model.AWSSecretsManagerException;
+import com.amazonaws.services.secretsmanager.model.GetSecretValueRequest;
+import com.amazonaws.services.secretsmanager.model.GetSecretValueResult;
 import hudson.Extension;
 import io.jenkins.plugins.casc.SecretSource;
 import io.jenkins.plugins.credentials.secretsmanager.config.EndpointConfiguration;
@@ -13,7 +15,6 @@ import io.jenkins.plugins.credentials.secretsmanager.config.PluginConfiguration;
 
 import java.io.IOException;
 import java.util.Optional;
-import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -32,15 +33,8 @@ public class AwsSecretSource extends SecretSource {
         }
 
         try {
-            final DescribeSecretResult describeSecretResult = client.describeSecret(new DescribeSecretRequest().withSecretId(id));
-
-            if (softDeletionFilter.test(describeSecretResult)) {
-                final GetSecretValueResult result = client.getSecretValue(new GetSecretValueRequest().withSecretId(id));
-                return Optional.ofNullable(result.getSecretString());
-            } else {
-                LOG.info("Secret " + id + " has been soft-deleted");
-                return Optional.empty();
-            }
+            final GetSecretValueResult result = client.getSecretValue(new GetSecretValueRequest().withSecretId(id));
+            return Optional.ofNullable(result.getSecretString());
         } catch (AWSSecretsManagerException e) {
             throw new IOException(e);
         }
@@ -60,6 +54,4 @@ public class AwsSecretSource extends SecretSource {
         }
         return builder.build();
     }
-
-    private static Predicate<DescribeSecretResult> softDeletionFilter = (s) -> s.getDeletedDate() == null;
 }
