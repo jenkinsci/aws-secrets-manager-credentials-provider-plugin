@@ -8,6 +8,7 @@ import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder;
 import com.amazonaws.services.secretsmanager.model.AWSSecretsManagerException;
 import com.amazonaws.services.secretsmanager.model.GetSecretValueRequest;
 import com.amazonaws.services.secretsmanager.model.GetSecretValueResult;
+import com.amazonaws.services.secretsmanager.model.ResourceNotFoundException;
 import hudson.Extension;
 import io.jenkins.plugins.casc.SecretSource;
 import io.jenkins.plugins.credentials.secretsmanager.config.EndpointConfiguration;
@@ -35,7 +36,12 @@ public class AwsSecretSource extends SecretSource {
         try {
             final GetSecretValueResult result = client.getSecretValue(new GetSecretValueRequest().withSecretId(id));
             return Optional.ofNullable(result.getSecretString());
+        } catch (ResourceNotFoundException e) {
+            // Recoverable errors
+            LOG.info(e.getMessage());
+            return Optional.empty();
         } catch (AWSSecretsManagerException e) {
+            // Unrecoverable errors
             throw new IOException(e);
         }
     }

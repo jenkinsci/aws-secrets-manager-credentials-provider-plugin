@@ -33,9 +33,12 @@ public class SecretSourceIT extends AbstractPluginIT {
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
-    public void shouldThrowExceptionWhenSecretNotFound() {
-        assertThatIOException()
-                .isThrownBy(() -> revealSecret("foo"));
+    public void shouldNotRevealMissingSecret() {
+        // When
+        final String secret = revealSecret("foo");
+
+        // Then
+        assertThat(secret).isEmpty();
     }
 
     @Test
@@ -61,7 +64,6 @@ public class SecretSourceIT extends AbstractPluginIT {
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldThrowExceptionWhenSecretWasSoftDeleted() {
-        // Given
         final CreateSecretOperation.Result foo = createSecret(SECRET_STRING, opts -> {});
         deleteSecret(foo.getName());
 
@@ -99,7 +101,7 @@ public class SecretSourceIT extends AbstractPluginIT {
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
-    public void shouldSupportSecretsOutsideCredentialsProvider() {
+    public void shouldRevealSecretsOutsideCredentialsProvider() {
         final CreateSecretOperation.Result foo = createSecret(SECRET_STRING, opts -> {});
 
         assertSoftly(s -> {
@@ -110,7 +112,7 @@ public class SecretSourceIT extends AbstractPluginIT {
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
-    public void shouldSupportSecretsInsideCredentialsProvider() {
+    public void shouldRevealSecretsInsideCredentialsProvider() {
         final CreateSecretOperation.Result foo = createStringSecret(SECRET_STRING);
 
         assertSoftly(s -> {
