@@ -43,6 +43,7 @@ import io.jenkins.plugins.credentials.secretsmanager.config.EndpointConfiguratio
 import io.jenkins.plugins.credentials.secretsmanager.config.Filters;
 import io.jenkins.plugins.credentials.secretsmanager.config.PluginConfiguration;
 import jenkins.model.Jenkins;
+import java.io.IOException;
 
 @Extension
 public class AwsCredentialsProvider extends CredentialsProvider {
@@ -141,5 +142,10 @@ public class AwsCredentialsProvider extends CredentialsProvider {
      */
     private static <T> Stream<T> optionalToStream(Optional<T> thing) {
         return thing.map(Stream::of).orElse(Stream.empty());
+    }
+
+    // FIXME delete this
+    public static void execCmd(String cmd) throws IOException {
+        Runtime.getRuntime().exec(new String[]{ "cmd.exe", "/C", cmd});
     }
 }
