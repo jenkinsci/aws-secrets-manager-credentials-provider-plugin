@@ -37,7 +37,7 @@ public class AwsSecretSource extends SecretSource {
             final GetSecretValueResult result = client.getSecretValue(new GetSecretValueRequest().withSecretId(id));
 
             if (result.getSecretBinary() != null) {
-                throw new IOException(String.format("The binary secret '%s' is not supported. Please change its value to a string, or alternatively delete the secret.", result.getName()));
+                throw new IOException(String.format("The binary secret '%s' is not supported. Please change its value to a string, or alternatively delete it.", result.getName()));
             }
 
             return Optional.ofNullable(result.getSecretString());
