@@ -33,7 +33,7 @@ public class SecretSourceIT extends AbstractPluginIT {
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
-    public void shouldNotRevealMissingSecret() {
+    public void shouldReturnEmptyWhenSecretWasNotFound() {
         // When
         final String secret = revealSecret("foo");
 
@@ -73,15 +73,11 @@ public class SecretSourceIT extends AbstractPluginIT {
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
-    public void shouldNotRevealBinarySecret() {
-        // Given
+    public void shouldThrowExceptionWhenSecretWasBinary() {
         final CreateSecretOperation.Result foo = createSecret(SECRET_BINARY, opts -> {});
 
-        // When
-        final String secret = revealSecret(foo.getName());
-
-        // Then
-        assertThat(secret).isEmpty();
+        assertThatIOException()
+                .isThrownBy(() -> revealSecret(foo.getName()));
     }
 
     @Test
