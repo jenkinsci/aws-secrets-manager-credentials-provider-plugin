@@ -19,7 +19,7 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-@Extension
+@Extension(optional = true)
 public class AwsSecretSource extends SecretSource {
 
     private static final Logger LOG = Logger.getLogger(AwsSecretSource.class.getName());
