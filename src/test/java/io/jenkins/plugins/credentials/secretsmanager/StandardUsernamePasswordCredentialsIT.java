@@ -5,10 +5,12 @@ import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl;
 import hudson.util.ListBoxModel;
 import hudson.util.Secret;
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
+import io.jenkins.plugins.credentials.secretsmanager.util.AWSSecretsManagerRule;
 import io.jenkins.plugins.credentials.secretsmanager.util.CreateSecretOperation;
 import io.jenkins.plugins.credentials.secretsmanager.util.Strings;
 import io.jenkins.plugins.credentials.secretsmanager.util.assertions.WorkflowRunAssert;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
+import org.junit.Rule;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -23,11 +25,14 @@ public class StandardUsernamePasswordCredentialsIT extends AbstractPluginIT impl
     private static final String USERNAME = "joe";
     private static final String PASSWORD = "supersecret";
 
+    @Rule
+    public AWSSecretsManagerRule secretsManager = new AWSSecretsManagerRule();
+
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportListView() {
         // Given
-        final CreateSecretOperation.Result foo = createUsernamePasswordSecret(USERNAME, PASSWORD);
+        final CreateSecretOperation.Result foo = secretsManager.createUsernamePasswordSecret(USERNAME, PASSWORD);
 
         // When
         final ListBoxModel list = listCredentials(StandardUsernamePasswordCredentials.class);
@@ -42,7 +47,7 @@ public class StandardUsernamePasswordCredentialsIT extends AbstractPluginIT impl
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldHavePassword() {
         // Given
-        final CreateSecretOperation.Result foo = createUsernamePasswordSecret(USERNAME, PASSWORD);
+        final CreateSecretOperation.Result foo = secretsManager.createUsernamePasswordSecret(USERNAME, PASSWORD);
 
         // When
         final StandardUsernamePasswordCredentials credential =
@@ -56,7 +61,7 @@ public class StandardUsernamePasswordCredentialsIT extends AbstractPluginIT impl
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldHaveUsername() {
         // Given
-        final CreateSecretOperation.Result foo = createUsernamePasswordSecret(USERNAME, PASSWORD);
+        final CreateSecretOperation.Result foo = secretsManager.createUsernamePasswordSecret(USERNAME, PASSWORD);
 
         // When
         final StandardUsernamePasswordCredentials credential =
@@ -70,7 +75,7 @@ public class StandardUsernamePasswordCredentialsIT extends AbstractPluginIT impl
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldHaveId() {
         // Given
-        final CreateSecretOperation.Result foo = createUsernamePasswordSecret(USERNAME, PASSWORD);
+        final CreateSecretOperation.Result foo = secretsManager.createUsernamePasswordSecret(USERNAME, PASSWORD);
 
         // When
         final StandardUsernamePasswordCredentials credential =
@@ -84,7 +89,7 @@ public class StandardUsernamePasswordCredentialsIT extends AbstractPluginIT impl
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportWithCredentialsBinding() {
         // Given
-        final CreateSecretOperation.Result foo = createUsernamePasswordSecret(USERNAME, PASSWORD);
+        final CreateSecretOperation.Result foo = secretsManager.createUsernamePasswordSecret(USERNAME, PASSWORD);
 
         // When
         final WorkflowRun run = runPipeline(Strings.m("",
@@ -102,7 +107,7 @@ public class StandardUsernamePasswordCredentialsIT extends AbstractPluginIT impl
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportEnvironmentBinding() {
         // Given
-        final CreateSecretOperation.Result foo = createUsernamePasswordSecret(USERNAME, PASSWORD);
+        final CreateSecretOperation.Result foo = secretsManager.createUsernamePasswordSecret(USERNAME, PASSWORD);
 
         // When
         final WorkflowRun run = runPipeline(Strings.m("",
@@ -130,7 +135,7 @@ public class StandardUsernamePasswordCredentialsIT extends AbstractPluginIT impl
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportSnapshots() {
         // Given
-        final CreateSecretOperation.Result foo = createUsernamePasswordSecret(USERNAME, PASSWORD);
+        final CreateSecretOperation.Result foo = secretsManager.createUsernamePasswordSecret(USERNAME, PASSWORD);
         final StandardUsernamePasswordCredentials before = lookupCredential(StandardUsernamePasswordCredentials.class, foo.getName());
 
         // When
@@ -147,7 +152,7 @@ public class StandardUsernamePasswordCredentialsIT extends AbstractPluginIT impl
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldHaveDescriptorIcon() {
-        final CreateSecretOperation.Result foo = createUsernamePasswordSecret(USERNAME, PASSWORD);
+        final CreateSecretOperation.Result foo = secretsManager.createUsernamePasswordSecret(USERNAME, PASSWORD);
         final StandardUsernamePasswordCredentials ours = lookupCredential(StandardUsernamePasswordCredentials.class, foo.getName());
 
         final StandardUsernamePasswordCredentials theirs = new UsernamePasswordCredentialsImpl(null, "id", "description", "username", "password");

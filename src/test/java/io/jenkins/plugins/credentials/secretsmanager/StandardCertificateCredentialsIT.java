@@ -7,12 +7,14 @@ import com.cloudbees.plugins.credentials.impl.CertificateCredentialsImpl;
 import hudson.util.ListBoxModel;
 import hudson.util.Secret;
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
+import io.jenkins.plugins.credentials.secretsmanager.util.AWSSecretsManagerRule;
 import io.jenkins.plugins.credentials.secretsmanager.util.CreateSecretOperation;
 import io.jenkins.plugins.credentials.secretsmanager.util.Crypto;
 import io.jenkins.plugins.credentials.secretsmanager.util.Strings;
 import io.jenkins.plugins.credentials.secretsmanager.util.assertions.WorkflowRunAssert;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
 
 import java.security.KeyPair;
@@ -36,12 +38,15 @@ public class StandardCertificateCredentialsIT extends AbstractPluginIT implement
     private static final String CN = "CN=localhost";
     private static final Certificate CERT = Crypto.newSelfSignedCertificate(CN, KEY_PAIR);
 
+    @Rule
+    public AWSSecretsManagerRule secretsManager = new AWSSecretsManagerRule();
+
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportListView() {
         // Given
         final KeyStore keyStore = Crypto.singletonKeyStore(ALIAS, KEY_PAIR.getPrivate(), PASSWORD, new Certificate[]{CERT});
-        final CreateSecretOperation.Result foo = createCertificateSecret(Crypto.save(keyStore, PASSWORD));
+        final CreateSecretOperation.Result foo = secretsManager.createCertificateSecret(Crypto.save(keyStore, PASSWORD));
 
         // When
         final ListBoxModel list = listCredentials(StandardCertificateCredentials.class);
@@ -56,7 +61,7 @@ public class StandardCertificateCredentialsIT extends AbstractPluginIT implement
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldHaveDescriptorIcon() {
         final byte[] keystore = Crypto.save(Crypto.singletonKeyStore(ALIAS, KEY_PAIR.getPrivate(), PASSWORD, new Certificate[]{CERT}), PASSWORD);
-        final CreateSecretOperation.Result foo = createCertificateSecret(keystore);
+        final CreateSecretOperation.Result foo = secretsManager.createCertificateSecret(keystore);
         final StandardCertificateCredentials ours = lookupCredential(StandardCertificateCredentials.class, foo.getName());
 
         final StandardCertificateCredentials theirs = new CertificateCredentialsImpl(null, "id", "description", "password", new CertificateCredentialsImpl.UploadedKeyStoreSource(SecretBytes.fromBytes(keystore)));
@@ -69,7 +74,7 @@ public class StandardCertificateCredentialsIT extends AbstractPluginIT implement
     public void shouldHaveId() {
         // Given
         final KeyStore keyStore = Crypto.singletonKeyStore(ALIAS, KEY_PAIR.getPrivate(), PASSWORD, new Certificate[]{CERT});
-        final CreateSecretOperation.Result foo = createCertificateSecret(Crypto.save(keyStore, PASSWORD));
+        final CreateSecretOperation.Result foo = secretsManager.createCertificateSecret(Crypto.save(keyStore, PASSWORD));
 
         // When
         final StandardCertificateCredentials credential = lookupCredential(StandardCertificateCredentials.class, foo.getName());
@@ -83,7 +88,7 @@ public class StandardCertificateCredentialsIT extends AbstractPluginIT implement
     public void shouldHaveEmptyPassword() {
         // Given
         final KeyStore keyStore = Crypto.singletonKeyStore(ALIAS, KEY_PAIR.getPrivate(), PASSWORD, new Certificate[]{CERT});
-        final CreateSecretOperation.Result foo = createCertificateSecret(Crypto.save(keyStore, PASSWORD));
+        final CreateSecretOperation.Result foo = secretsManager.createCertificateSecret(Crypto.save(keyStore, PASSWORD));
 
         // When
         final StandardCertificateCredentials credential = lookupCredential(StandardCertificateCredentials.class, foo.getName());
@@ -97,7 +102,7 @@ public class StandardCertificateCredentialsIT extends AbstractPluginIT implement
     public void shouldHaveKeystore() {
         // Given
         final KeyStore keyStore = Crypto.singletonKeyStore(ALIAS, KEY_PAIR.getPrivate(), PASSWORD, new Certificate[]{CERT});
-        final CreateSecretOperation.Result foo = createCertificateSecret(Crypto.save(keyStore, PASSWORD));
+        final CreateSecretOperation.Result foo = secretsManager.createCertificateSecret(Crypto.save(keyStore, PASSWORD));
 
         // When
         final StandardCertificateCredentials credential = lookupCredential(StandardCertificateCredentials.class, foo.getName());
@@ -111,7 +116,7 @@ public class StandardCertificateCredentialsIT extends AbstractPluginIT implement
     public void shouldSupportWithCredentialsBinding() {
         // Given
         final KeyStore keyStore = Crypto.singletonKeyStore(ALIAS, KEY_PAIR.getPrivate(), PASSWORD, new Certificate[]{CERT});
-        final CreateSecretOperation.Result foo = createCertificateSecret(Crypto.save(keyStore, PASSWORD));
+        final CreateSecretOperation.Result foo = secretsManager.createCertificateSecret(Crypto.save(keyStore, PASSWORD));
 
         // When
         final WorkflowRun run = runPipeline(Strings.m("",
@@ -137,7 +142,7 @@ public class StandardCertificateCredentialsIT extends AbstractPluginIT implement
     public void shouldSupportSnapshots() {
         // Given
         final KeyStore keyStore = Crypto.singletonKeyStore(ALIAS, KEY_PAIR.getPrivate(), PASSWORD, new Certificate[]{CERT});
-        final CreateSecretOperation.Result foo = createCertificateSecret(Crypto.save(keyStore, PASSWORD));
+        final CreateSecretOperation.Result foo = secretsManager.createCertificateSecret(Crypto.save(keyStore, PASSWORD));
         final StandardCertificateCredentials before = lookupCredential(StandardCertificateCredentials.class, foo.getName());
 
         // When
@@ -155,7 +160,7 @@ public class StandardCertificateCredentialsIT extends AbstractPluginIT implement
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldNotTolerateMalformattedKeyStore() {
         // Given
-        final CreateSecretOperation.Result foo = createCertificateSecret(new byte[] {0x00, 0x01});
+        final CreateSecretOperation.Result foo = secretsManager.createCertificateSecret(new byte[] {0x00, 0x01});
 
         // When
         final StandardCertificateCredentials credential = lookupCredential(StandardCertificateCredentials.class, foo.getName());

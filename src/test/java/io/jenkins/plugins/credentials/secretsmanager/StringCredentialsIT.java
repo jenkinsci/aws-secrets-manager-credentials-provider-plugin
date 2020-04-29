@@ -3,12 +3,14 @@ package io.jenkins.plugins.credentials.secretsmanager;
 import hudson.util.ListBoxModel;
 import hudson.util.Secret;
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
+import io.jenkins.plugins.credentials.secretsmanager.util.AWSSecretsManagerRule;
 import io.jenkins.plugins.credentials.secretsmanager.util.CreateSecretOperation;
 import io.jenkins.plugins.credentials.secretsmanager.util.Strings;
 import io.jenkins.plugins.credentials.secretsmanager.util.assertions.WorkflowRunAssert;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
+import org.junit.Rule;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -22,11 +24,14 @@ public class StringCredentialsIT extends AbstractPluginIT implements Credentials
 
     private static final String SECRET = "supersecret";
 
+    @Rule
+    public AWSSecretsManagerRule secretsManager = new AWSSecretsManagerRule();
+
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportListView() {
         // Given
-        final CreateSecretOperation.Result foo = createStringSecret(SECRET);
+        final CreateSecretOperation.Result foo = secretsManager.createStringSecret(SECRET);
 
         // When
         final ListBoxModel list = listCredentials(StringCredentials.class);
@@ -41,7 +46,7 @@ public class StringCredentialsIT extends AbstractPluginIT implements Credentials
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldHaveId() {
         // Given
-        final CreateSecretOperation.Result foo = createStringSecret(SECRET);
+        final CreateSecretOperation.Result foo = secretsManager.createStringSecret(SECRET);
 
         // When
         final StringCredentials credential = lookupCredential(StringCredentials.class, foo.getName());
@@ -54,7 +59,7 @@ public class StringCredentialsIT extends AbstractPluginIT implements Credentials
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldHaveSecret() {
         // Given
-        final CreateSecretOperation.Result foo = createStringSecret(SECRET);
+        final CreateSecretOperation.Result foo = secretsManager.createStringSecret(SECRET);
 
         // When
         final StringCredentials credential = lookupCredential(StringCredentials.class, foo.getName());
@@ -66,7 +71,7 @@ public class StringCredentialsIT extends AbstractPluginIT implements Credentials
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldHaveDescriptorIcon() {
-        final CreateSecretOperation.Result foo = createStringSecret(SECRET);
+        final CreateSecretOperation.Result foo = secretsManager.createStringSecret(SECRET);
         final StringCredentials ours = lookupCredential(StringCredentials.class, foo.getName());
 
         final StringCredentials theirs = new StringCredentialsImpl(null, "id", "description", Secret.fromString("secret"));
@@ -79,7 +84,7 @@ public class StringCredentialsIT extends AbstractPluginIT implements Credentials
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportWithCredentialsBinding() {
         // Given
-        final CreateSecretOperation.Result foo = createStringSecret(SECRET);
+        final CreateSecretOperation.Result foo = secretsManager.createStringSecret(SECRET);
 
         // When
         final WorkflowRun run = runPipeline(Strings.m("",
@@ -97,7 +102,7 @@ public class StringCredentialsIT extends AbstractPluginIT implements Credentials
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportEnvironmentBinding() {
         // Given
-        final CreateSecretOperation.Result foo = createStringSecret(SECRET);
+        final CreateSecretOperation.Result foo = secretsManager.createStringSecret(SECRET);
 
         // When
         final WorkflowRun run = runPipeline(Strings.m("",
@@ -125,7 +130,7 @@ public class StringCredentialsIT extends AbstractPluginIT implements Credentials
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportSnapshots() {
         // Given
-        final CreateSecretOperation.Result foo = createStringSecret(SECRET);
+        final CreateSecretOperation.Result foo = secretsManager.createStringSecret(SECRET);
         final StringCredentials before = lookupCredential(StringCredentials.class, foo.getName());
 
         // When

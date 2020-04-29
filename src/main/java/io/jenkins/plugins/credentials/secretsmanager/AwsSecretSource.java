@@ -24,15 +24,13 @@ public class AwsSecretSource extends SecretSource {
 
     private static final Logger LOG = Logger.getLogger(AwsSecretSource.class.getName());
 
+    private static final String AWS_SERVICE_ENDPOINT = "AWS_SERVICE_ENDPOINT";
+    private static final String AWS_SIGNING_REGION = "AWS_SIGNING_REGION";
+
+    private transient AWSSecretsManager client = null;
+
     @Override
     public Optional<String> reveal(String id) throws IOException {
-        final AWSSecretsManager client;
-        try {
-            client = createClient();
-        } catch (SdkClientException e) {
-            throw new IOException(e);
-        }
-
         try {
             final GetSecretValueResult result = client.getSecretValue(new GetSecretValueRequest().withSecretId(id));
 
@@ -51,18 +49,52 @@ public class AwsSecretSource extends SecretSource {
         }
     }
 
-    private AWSSecretsManager createClient() throws SdkClientException {
+    @Override
+    public void init() {
+        super.init();
+
+        try {
+            client = createClient();
+        } catch (SdkClientException e) {
+            LOG.log(Level.WARNING, "Could not set up AWS Secrets Manager client. Reason: {0}", e.getMessage());
+        }
+    }
+
+    private static AWSSecretsManager createClient() throws SdkClientException {
         final PluginConfiguration config = PluginConfiguration.getInstance();
         final EndpointConfiguration ec = config.getEndpointConfiguration();
 
         final AWSSecretsManagerClientBuilder builder = AWSSecretsManagerClient.builder();
-        if (ec == null || (ec.getServiceEndpoint() == null || ec.getSigningRegion() == null)) {
-            LOG.log(Level.CONFIG, "Default Endpoint Configuration");
-        } else {
+
+        final Optional<String> maybeServiceEndpoint = getServiceEndpoint(ec);
+        final Optional<String> maybeSigningRegion = getSigningRegion(ec);
+
+        if (maybeServiceEndpoint.isPresent() && maybeSigningRegion.isPresent()) {
             LOG.log(Level.CONFIG, "Custom Endpoint Configuration: {0}", ec);
-            final AwsClientBuilder.EndpointConfiguration endpointConfiguration = new AwsClientBuilder.EndpointConfiguration(ec.getServiceEndpoint(), ec.getSigningRegion());
+
+            final AwsClientBuilder.EndpointConfiguration endpointConfiguration =
+                    new AwsClientBuilder.EndpointConfiguration(maybeServiceEndpoint.get(), maybeSigningRegion.get());
             builder.setEndpointConfiguration(endpointConfiguration);
+        } else {
+            LOG.log(Level.CONFIG, "Default Endpoint Configuration");
         }
+
         return builder.build();
+    }
+
+    private static Optional<String> getServiceEndpoint(EndpointConfiguration ec) {
+        if ((ec != null) && (ec.getServiceEndpoint() != null)) {
+            return Optional.of(ec.getServiceEndpoint());
+        } else {
+            return Optional.ofNullable(System.getenv(AWS_SERVICE_ENDPOINT));
+        }
+    }
+
+    private static Optional<String> getSigningRegion(EndpointConfiguration ec) {
+        if ((ec != null) && (ec.getSigningRegion() != null)) {
+            return Optional.of(ec.getSigningRegion());
+        } else {
+            return Optional.ofNullable(System.getenv(AWS_SIGNING_REGION));
+        }
     }
 }

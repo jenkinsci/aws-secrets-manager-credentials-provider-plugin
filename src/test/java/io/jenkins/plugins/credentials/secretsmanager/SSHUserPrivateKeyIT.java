@@ -5,11 +5,13 @@ import com.cloudbees.jenkins.plugins.sshcredentials.impl.BasicSSHUserPrivateKey;
 import hudson.util.ListBoxModel;
 import hudson.util.Secret;
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
+import io.jenkins.plugins.credentials.secretsmanager.util.AWSSecretsManagerRule;
 import io.jenkins.plugins.credentials.secretsmanager.util.CreateSecretOperation;
 import io.jenkins.plugins.credentials.secretsmanager.util.Crypto;
 import io.jenkins.plugins.credentials.secretsmanager.util.Strings;
 import io.jenkins.plugins.credentials.secretsmanager.util.assertions.WorkflowRunAssert;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
+import org.junit.Rule;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,11 +27,14 @@ public class SSHUserPrivateKeyIT extends AbstractPluginIT implements Credentials
     private static final String PRIVATE_KEY = Crypto.newPrivateKey();
     private static final String USERNAME = "joe";
 
+    @Rule
+    public AWSSecretsManagerRule secretsManager = new AWSSecretsManagerRule();
+
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportListView() {
         // Given
-        final CreateSecretOperation.Result foo = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
+        final CreateSecretOperation.Result foo = secretsManager.createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
 
         // When
         final ListBoxModel list = listCredentials(SSHUserPrivateKey.class);
@@ -44,7 +49,7 @@ public class SSHUserPrivateKeyIT extends AbstractPluginIT implements Credentials
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldHaveId() {
         // Given
-        final CreateSecretOperation.Result foo = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
+        final CreateSecretOperation.Result foo = secretsManager.createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
 
         // When
         final SSHUserPrivateKey credential = lookupCredential(SSHUserPrivateKey.class, foo.getName());
@@ -57,7 +62,7 @@ public class SSHUserPrivateKeyIT extends AbstractPluginIT implements Credentials
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldHaveUsername() {
         // Given
-        final CreateSecretOperation.Result foo = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
+        final CreateSecretOperation.Result foo = secretsManager.createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
 
         // When
         final SSHUserPrivateKey credential = lookupCredential(SSHUserPrivateKey.class, foo.getName());
@@ -70,7 +75,7 @@ public class SSHUserPrivateKeyIT extends AbstractPluginIT implements Credentials
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldHavePrivateKey() {
         // Given
-        final CreateSecretOperation.Result foo = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
+        final CreateSecretOperation.Result foo = secretsManager.createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
 
         // When
         final SSHUserPrivateKey credential = lookupCredential(SSHUserPrivateKey.class, foo.getName());
@@ -83,7 +88,7 @@ public class SSHUserPrivateKeyIT extends AbstractPluginIT implements Credentials
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldHaveEmptyPassphrase() {
         // Given
-        final CreateSecretOperation.Result foo = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
+        final CreateSecretOperation.Result foo = secretsManager.createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
 
         // When
         final SSHUserPrivateKey credential = lookupCredential(SSHUserPrivateKey.class, foo.getName());
@@ -95,7 +100,7 @@ public class SSHUserPrivateKeyIT extends AbstractPluginIT implements Credentials
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldHaveDescriptorIcon() {
-        final CreateSecretOperation.Result foo = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
+        final CreateSecretOperation.Result foo = secretsManager.createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
         final SSHUserPrivateKey ours = lookupCredential(SSHUserPrivateKey.class, foo.getName());
 
         final BasicSSHUserPrivateKey theirs = new BasicSSHUserPrivateKey(null, "id", "username", null, "passphrase", "description");
@@ -108,7 +113,7 @@ public class SSHUserPrivateKeyIT extends AbstractPluginIT implements Credentials
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportWithCredentialsBinding() {
         // Given
-        final CreateSecretOperation.Result foo = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
+        final CreateSecretOperation.Result foo = secretsManager.createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
 
         // When
         final WorkflowRun run = runPipeline(Strings.m("",
@@ -128,7 +133,7 @@ public class SSHUserPrivateKeyIT extends AbstractPluginIT implements Credentials
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportEnvironmentBinding() {
         // Given
-        final CreateSecretOperation.Result foo = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
+        final CreateSecretOperation.Result foo = secretsManager.createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
 
         // When
         final WorkflowRun run = runPipeline(Strings.m("",
@@ -156,7 +161,7 @@ public class SSHUserPrivateKeyIT extends AbstractPluginIT implements Credentials
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportSnapshots() {
         // Given
-        final CreateSecretOperation.Result foo = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
+        final CreateSecretOperation.Result foo = secretsManager.createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
         final SSHUserPrivateKey before = lookupCredential(SSHUserPrivateKey.class, foo.getName());
 
         // When

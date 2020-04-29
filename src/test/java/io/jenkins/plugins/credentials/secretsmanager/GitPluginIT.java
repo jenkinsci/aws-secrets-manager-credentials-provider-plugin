@@ -2,6 +2,7 @@ package io.jenkins.plugins.credentials.secretsmanager;
 
 import hudson.model.Label;
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
+import io.jenkins.plugins.credentials.secretsmanager.util.AWSSecretsManagerRule;
 import io.jenkins.plugins.credentials.secretsmanager.util.CreateSecretOperation;
 import io.jenkins.plugins.credentials.secretsmanager.util.Crypto;
 import io.jenkins.plugins.credentials.secretsmanager.util.Strings;
@@ -29,6 +30,9 @@ public class GitPluginIT  {
         private final String username = "joe";
 
         @Rule
+        public AWSSecretsManagerRule secretsManager = new AWSSecretsManagerRule();
+
+        @Rule
         public final GitSshServer git = new GitSshServer.Builder()
                 .withRepos(repo)
                 .withUsers(Collections.singletonMap(username, sshKey.getPublic()))
@@ -41,7 +45,7 @@ public class GitPluginIT  {
             r.createSlave(Label.get(slaveName));
 
             // Given
-            final CreateSecretOperation.Result foo = createSshUserPrivateKeySecret(username, Crypto.save(sshKey.getPrivate()));
+            final CreateSecretOperation.Result foo = secretsManager.createSshUserPrivateKeySecret(username, Crypto.save(sshKey.getPrivate()));
 
             // When
             final WorkflowRun run = runPipeline(Strings.m("",
@@ -68,7 +72,7 @@ public class GitPluginIT  {
             r.createSlave(Label.get(slaveName));
 
             // Given
-            final CreateSecretOperation.Result foo = createUsernamePasswordSecret("agitter", "letmein");
+            final CreateSecretOperation.Result foo = secretsManager.createUsernamePasswordSecret("agitter", "letmein");
 
             // When
             final WorkflowRun run = runPipeline(Strings.m("",
