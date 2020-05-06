@@ -25,16 +25,25 @@ public class AWSSecretsManagerRule extends ExternalResource {
     // TODO use a unique name
     public static final String FOO = "foo";
 
-    private final AWSSecretsManager client = AWSSecretsManagerClientBuilder.standard()
-            .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration("http://localhost:4584", "us-east-1"))
-            .build();
+    private transient AWSSecretsManager client;
 
     @Override
     public void before() {
+        client = AWSSecretsManagerClientBuilder.standard()
+                .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration("http://localhost:4584", "us-east-1"))
+                .build();
+
         for (String secretId: Arrays.asList(FOO, BAR)) {
             restoreSecret(secretId);
             forceDeleteSecret(secretId);
         }
+    }
+
+    @Override
+    protected void after() {
+        client = null;
+
+        super.after();
     }
 
     public CreateSecretOperation.Result createStringSecret(String secretString) {
