@@ -7,6 +7,7 @@ import io.jenkins.plugins.credentials.secretsmanager.factory.Type;
 import io.jenkins.plugins.credentials.secretsmanager.util.AWSSecretsManagerRule;
 import io.jenkins.plugins.credentials.secretsmanager.util.CreateSecretOperation;
 import io.jenkins.plugins.credentials.secretsmanager.util.Maps;
+import io.jenkins.plugins.credentials.secretsmanager.util.MyJenkinsConfiguredWithCodeRule;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.junit.Rule;
 import org.junit.Test;
@@ -16,10 +17,13 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
-public class FiltersIT extends AbstractPluginIT {
+public class FiltersIT {
 
     @Rule
-    public AWSSecretsManagerRule secretsManager = new AWSSecretsManagerRule();
+    public final MyJenkinsConfiguredWithCodeRule jenkins = new MyJenkinsConfiguredWithCodeRule();
+
+    @Rule
+    public final AWSSecretsManagerRule secretsManager = new AWSSecretsManagerRule();
 
     @Test
     @ConfiguredWithCode(value = "/tags.yml")
@@ -37,7 +41,7 @@ public class FiltersIT extends AbstractPluginIT {
         });
 
         // When
-        final List<StringCredentials> credentials = lookupCredentials(StringCredentials.class);
+        final List<StringCredentials> credentials = jenkins.getCredentials().lookup(StringCredentials.class);
 
         // Then
         assertThat(credentials)

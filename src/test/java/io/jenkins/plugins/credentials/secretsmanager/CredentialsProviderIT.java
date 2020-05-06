@@ -10,6 +10,7 @@ import io.jenkins.plugins.credentials.secretsmanager.factory.Tags;
 import io.jenkins.plugins.credentials.secretsmanager.factory.Type;
 import io.jenkins.plugins.credentials.secretsmanager.util.AWSSecretsManagerRule;
 import io.jenkins.plugins.credentials.secretsmanager.util.Maps;
+import io.jenkins.plugins.credentials.secretsmanager.util.MyJenkinsConfiguredWithCodeRule;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl;
 import org.junit.Before;
@@ -32,25 +33,28 @@ import static org.assertj.core.api.SoftAssertions.assertSoftly;
 /**
  * The plugin should support CredentialsProvider usage to list available credentials.
  */
-public class CredentialsProviderIT extends AbstractPluginIT {
+public class CredentialsProviderIT {
 
     private static final String SECRET = "supersecret";
 
     @Rule
-    public AWSSecretsManagerRule secretsManager = new AWSSecretsManagerRule();
+    public final MyJenkinsConfiguredWithCodeRule jenkins = new MyJenkinsConfiguredWithCodeRule();
+
+    @Rule
+    public final AWSSecretsManagerRule secretsManager = new AWSSecretsManagerRule();
 
     private CredentialsStore store;
 
     @Before
     public void setupStore() {
-        store = CredentialsProvider.lookupStores(r.jenkins).iterator().next();
+        store = CredentialsProvider.lookupStores(jenkins.jenkins).iterator().next();
     }
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldStartEmpty() {
         // When
-        final List<StringCredentials> credentials = lookupCredentials(StringCredentials.class);
+        final List<StringCredentials> credentials = jenkins.getCredentials().lookup(StringCredentials.class);
 
         // Then
         assertThat(credentials).isEmpty();
@@ -60,7 +64,7 @@ public class CredentialsProviderIT extends AbstractPluginIT {
     @ConfiguredWithCode(value = "/default.yml")
     public void shouldFailGracefullyWhenSecretsManagerUnavailable() {
         // When
-        final List<StringCredentials> credentials = lookupCredentials(StringCredentials.class);
+        final List<StringCredentials> credentials = jenkins.getCredentials().lookup(StringCredentials.class);
 
         // Then
         assertThat(credentials).isEmpty();
@@ -73,7 +77,7 @@ public class CredentialsProviderIT extends AbstractPluginIT {
         final Result foo = secretsManager.createStringSecret(SECRET);
 
         // When
-        final List<String> credentialNames = lookupCredentialNames(StringCredentials.class);
+        final List<String> credentialNames = jenkins.getCredentials().lookupCredentialNames(StringCredentials.class);
 
         // Then
         assertThat(credentialNames).containsOnly(foo.getName());
@@ -88,7 +92,7 @@ public class CredentialsProviderIT extends AbstractPluginIT {
 
         // When
         secretsManager.deleteSecret(bar.getName());
-        final List<StringCredentials> credentials = lookupCredentials(StringCredentials.class);
+        final List<StringCredentials> credentials = jenkins.getCredentials().lookup(StringCredentials.class);
 
         // Then
         assertThat(credentials)
@@ -104,7 +108,7 @@ public class CredentialsProviderIT extends AbstractPluginIT {
         final CreateSecretOperation.Result bar = secretsManager.createOtherStringSecret(SECRET);
 
         // When
-        final List<StringCredentials> credentials = lookupCredentials(StringCredentials.class);
+        final List<StringCredentials> credentials = jenkins.getCredentials().lookup(StringCredentials.class);
         secretsManager.deleteSecret(bar.getName());
 
         // Then
@@ -127,7 +131,7 @@ public class CredentialsProviderIT extends AbstractPluginIT {
         });
 
         // When
-        final List<StringCredentials> credentials = lookupCredentials(StringCredentials.class);
+        final List<StringCredentials> credentials = jenkins.getCredentials().lookup(StringCredentials.class);
 
         // Then
         assertThat(credentials)
@@ -148,7 +152,7 @@ public class CredentialsProviderIT extends AbstractPluginIT {
         });
 
         // When
-        final List<StringCredentials> credentials = lookupCredentials(StringCredentials.class);
+        final List<StringCredentials> credentials = jenkins.getCredentials().lookup(StringCredentials.class);
 
         // Then
         assertThat(credentials)

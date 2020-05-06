@@ -3,9 +3,7 @@ package io.jenkins.plugins.credentials.secretsmanager;
 import hudson.util.ListBoxModel;
 import hudson.util.Secret;
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
-import io.jenkins.plugins.credentials.secretsmanager.util.AWSSecretsManagerRule;
-import io.jenkins.plugins.credentials.secretsmanager.util.CreateSecretOperation;
-import io.jenkins.plugins.credentials.secretsmanager.util.Strings;
+import io.jenkins.plugins.credentials.secretsmanager.util.*;
 import io.jenkins.plugins.credentials.secretsmanager.util.assertions.WorkflowRunAssert;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl;
@@ -20,12 +18,15 @@ import static org.assertj.core.api.SoftAssertions.assertSoftly;
 /**
  * The plugin should support Secret Text credentials.
  */
-public class StringCredentialsIT extends AbstractPluginIT implements CredentialsTests {
+public class StringCredentialsIT implements CredentialsTests {
 
     private static final String SECRET = "supersecret";
 
     @Rule
-    public AWSSecretsManagerRule secretsManager = new AWSSecretsManagerRule();
+    public final MyJenkinsConfiguredWithCodeRule jenkins = new MyJenkinsConfiguredWithCodeRule();
+
+    @Rule
+    public final AWSSecretsManagerRule secretsManager = new AWSSecretsManagerRule();
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
@@ -34,7 +35,7 @@ public class StringCredentialsIT extends AbstractPluginIT implements Credentials
         final CreateSecretOperation.Result foo = secretsManager.createStringSecret(SECRET);
 
         // When
-        final ListBoxModel list = listCredentials(StringCredentials.class);
+        final ListBoxModel list = jenkins.getCredentials().list(StringCredentials.class);
 
         // Then
         assertThat(list)
@@ -49,7 +50,7 @@ public class StringCredentialsIT extends AbstractPluginIT implements Credentials
         final CreateSecretOperation.Result foo = secretsManager.createStringSecret(SECRET);
 
         // When
-        final StringCredentials credential = lookupCredential(StringCredentials.class, foo.getName());
+        final StringCredentials credential = jenkins.getCredentials().lookup(StringCredentials.class, foo.getName());
 
         // Then
         assertThat(credential.getId()).isEqualTo(foo.getName());
@@ -62,7 +63,7 @@ public class StringCredentialsIT extends AbstractPluginIT implements Credentials
         final CreateSecretOperation.Result foo = secretsManager.createStringSecret(SECRET);
 
         // When
-        final StringCredentials credential = lookupCredential(StringCredentials.class, foo.getName());
+        final StringCredentials credential = jenkins.getCredentials().lookup(StringCredentials.class, foo.getName());
 
         // Then
         assertThat(credential.getSecret()).isEqualTo(Secret.fromString(SECRET));
@@ -72,7 +73,7 @@ public class StringCredentialsIT extends AbstractPluginIT implements Credentials
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldHaveDescriptorIcon() {
         final CreateSecretOperation.Result foo = secretsManager.createStringSecret(SECRET);
-        final StringCredentials ours = lookupCredential(StringCredentials.class, foo.getName());
+        final StringCredentials ours = jenkins.getCredentials().lookup(StringCredentials.class, foo.getName());
 
         final StringCredentials theirs = new StringCredentialsImpl(null, "id", "description", Secret.fromString("secret"));
 
@@ -87,7 +88,7 @@ public class StringCredentialsIT extends AbstractPluginIT implements Credentials
         final CreateSecretOperation.Result foo = secretsManager.createStringSecret(SECRET);
 
         // When
-        final WorkflowRun run = runPipeline(Strings.m("",
+        final WorkflowRun run = jenkins.getPipelines().run(Strings.m("",
                 "withCredentials([string(credentialsId: '" + foo.getName() + "', variable: 'VAR')]) {",
                 "  echo \"Credential: $VAR\"",
                 "}"));
@@ -105,7 +106,7 @@ public class StringCredentialsIT extends AbstractPluginIT implements Credentials
         final CreateSecretOperation.Result foo = secretsManager.createStringSecret(SECRET);
 
         // When
-        final WorkflowRun run = runPipeline(Strings.m("",
+        final WorkflowRun run = jenkins.getPipelines().run(Strings.m("",
                 "pipeline {",
                 "  agent none",
                 "  stages {",
@@ -131,10 +132,10 @@ public class StringCredentialsIT extends AbstractPluginIT implements Credentials
     public void shouldSupportSnapshots() {
         // Given
         final CreateSecretOperation.Result foo = secretsManager.createStringSecret(SECRET);
-        final StringCredentials before = lookupCredential(StringCredentials.class, foo.getName());
+        final StringCredentials before = jenkins.getCredentials().lookup(StringCredentials.class, foo.getName());
 
         // When
-        final StringCredentials after = snapshot(before);
+        final StringCredentials after = CredentialSnapshots.snapshot(before);
 
         // Then
         assertSoftly(s -> {

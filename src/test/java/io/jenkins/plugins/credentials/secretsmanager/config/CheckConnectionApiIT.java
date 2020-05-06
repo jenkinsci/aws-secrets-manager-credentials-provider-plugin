@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
 public class CheckConnectionApiIT extends AbstractCheckConnectionIT {
 
     @Rule
-    public JenkinsRule r = new JenkinsRule();
+    public final JenkinsRule r = new JenkinsRule();
 
     @Override
     protected Result validate(String serviceEndpoint, String signingRegion) {

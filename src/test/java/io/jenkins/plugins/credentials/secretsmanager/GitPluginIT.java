@@ -2,10 +2,7 @@ package io.jenkins.plugins.credentials.secretsmanager;
 
 import hudson.model.Label;
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
-import io.jenkins.plugins.credentials.secretsmanager.util.AWSSecretsManagerRule;
-import io.jenkins.plugins.credentials.secretsmanager.util.CreateSecretOperation;
-import io.jenkins.plugins.credentials.secretsmanager.util.Crypto;
-import io.jenkins.plugins.credentials.secretsmanager.util.Strings;
+import io.jenkins.plugins.credentials.secretsmanager.util.*;
 import io.jenkins.plugins.credentials.secretsmanager.util.assertions.WorkflowRunAssert;
 import io.jenkins.plugins.credentials.secretsmanager.util.git.GitHttpServer;
 import io.jenkins.plugins.credentials.secretsmanager.util.git.GitSshServer;
@@ -24,13 +21,16 @@ import java.util.Collections;
 @RunWith(Enclosed.class)
 public class GitPluginIT  {
 
-    public static class SSHUserPrivateKeyIT extends AbstractPluginIT {
+    public static class SSHUserPrivateKeyIT {
         private final String repo = "foo";
         private final KeyPair sshKey = Crypto.newKeyPair();
         private final String username = "joe";
 
         @Rule
-        public AWSSecretsManagerRule secretsManager = new AWSSecretsManagerRule();
+        public final MyJenkinsConfiguredWithCodeRule jenkins = new MyJenkinsConfiguredWithCodeRule();
+
+        @Rule
+        public final AWSSecretsManagerRule secretsManager = new AWSSecretsManagerRule();
 
         @Rule
         public final GitSshServer git = new GitSshServer.Builder()
@@ -42,13 +42,13 @@ public class GitPluginIT  {
         @ConfiguredWithCode(value = "/integration.yml")
         public void shouldSupportGitPlugin() throws Exception {
             final String slaveName = "agent";
-            r.createSlave(Label.get(slaveName));
+            jenkins.createSlave(Label.get(slaveName));
 
             // Given
             final CreateSecretOperation.Result foo = secretsManager.createSshUserPrivateKeySecret(username, Crypto.save(sshKey.getPrivate()));
 
             // When
-            final WorkflowRun run = runPipeline(Strings.m("",
+            final WorkflowRun run = jenkins.getPipelines().run(Strings.m("",
                     "node('" + slaveName + "') {",
                     "  git url: '" + git.getCloneUrl(repo, username) + "', credentialsId: '" + foo.getName() + "', branch: 'master'",
                     "}"));
@@ -60,22 +60,28 @@ public class GitPluginIT  {
         }
     }
 
-    public static class StandardUsernamePasswordCredentialsIT extends AbstractPluginIT {
+    public static class StandardUsernamePasswordCredentialsIT {
+
+        @Rule
+        public final MyJenkinsConfiguredWithCodeRule jenkins = new MyJenkinsConfiguredWithCodeRule();
 
         @Rule
         public final GitHttpServer git = new GitHttpServer();
+
+        @Rule
+        public final AWSSecretsManagerRule secretsManager = new AWSSecretsManagerRule();
 
         @Test
         @ConfiguredWithCode(value = "/integration.yml")
         public void shouldSupportGitPlugin() throws Exception {
             final String slaveName = "agent";
-            r.createSlave(Label.get(slaveName));
+            jenkins.createSlave(Label.get(slaveName));
 
             // Given
             final CreateSecretOperation.Result foo = secretsManager.createUsernamePasswordSecret("agitter", "letmein");
 
             // When
-            final WorkflowRun run = runPipeline(Strings.m("",
+            final WorkflowRun run = jenkins.getPipelines().run(Strings.m("",
                     "node('" + slaveName + "') {",
                     "  git url: '" + git.getCloneUrl() + "', credentialsId: '" + foo.getName() + "', branch: 'master'",
                     "}"));

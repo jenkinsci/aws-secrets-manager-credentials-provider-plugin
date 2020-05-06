@@ -4,9 +4,7 @@ import com.cloudbees.plugins.credentials.SecretBytes;
 import com.google.common.io.ByteStreams;
 import hudson.util.ListBoxModel;
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
-import io.jenkins.plugins.credentials.secretsmanager.util.AWSSecretsManagerRule;
-import io.jenkins.plugins.credentials.secretsmanager.util.CreateSecretOperation;
-import io.jenkins.plugins.credentials.secretsmanager.util.Strings;
+import io.jenkins.plugins.credentials.secretsmanager.util.*;
 import io.jenkins.plugins.credentials.secretsmanager.util.assertions.WorkflowRunAssert;
 import org.jenkinsci.plugins.plaincredentials.FileCredentials;
 import org.jenkinsci.plugins.plaincredentials.impl.FileCredentialsImpl;
@@ -24,10 +22,13 @@ import static org.assertj.core.api.SoftAssertions.assertSoftly;
 /**
  * The plugin should support secret file credentials.
  */
-public class FileCredentialsIT extends AbstractPluginIT implements CredentialsTests {
+public class FileCredentialsIT implements CredentialsTests {
 
     private static final String FILENAME = "hello.txt";
     private static final byte[] CONTENT = {0x01, 0x02, 0x03};
+
+    @Rule
+    public MyJenkinsConfiguredWithCodeRule r = new MyJenkinsConfiguredWithCodeRule();
 
     @Rule
     public AWSSecretsManagerRule secretsManager = new AWSSecretsManagerRule();
@@ -39,7 +40,7 @@ public class FileCredentialsIT extends AbstractPluginIT implements CredentialsTe
         final CreateSecretOperation.Result foo = secretsManager.createFileSecret(CONTENT);
 
         // When
-        final FileCredentials credential = lookupCredential(FileCredentials.class, foo.getName());
+        final FileCredentials credential = r.getCredentials().lookup(FileCredentials.class, foo.getName());
 
         // Then
         assertThat(credential.getId()).isEqualTo(foo.getName());
@@ -52,7 +53,7 @@ public class FileCredentialsIT extends AbstractPluginIT implements CredentialsTe
         final CreateSecretOperation.Result foo = secretsManager.createFileSecret(CONTENT);
 
         // When
-        final FileCredentials credential = lookupCredential(FileCredentials.class, foo.getName());
+        final FileCredentials credential = r.getCredentials().lookup(FileCredentials.class, foo.getName());
 
         // Then
         assertThat(credential.getFileName()).isEqualTo(foo.getName());
@@ -65,7 +66,7 @@ public class FileCredentialsIT extends AbstractPluginIT implements CredentialsTe
         final CreateSecretOperation.Result foo = secretsManager.createFileSecret(FILENAME, CONTENT);
 
         // When
-        final FileCredentials credential = lookupCredential(FileCredentials.class, foo.getName());
+        final FileCredentials credential = r.getCredentials().lookup(FileCredentials.class, foo.getName());
 
         // Then
         assertThat(credential.getFileName()).isEqualTo(FILENAME);
@@ -78,7 +79,7 @@ public class FileCredentialsIT extends AbstractPluginIT implements CredentialsTe
         final CreateSecretOperation.Result foo = secretsManager.createFileSecret(CONTENT);
 
         // When
-        final FileCredentials credential = lookupCredential(FileCredentials.class, foo.getName());
+        final FileCredentials credential = r.getCredentials().lookup(FileCredentials.class, foo.getName());
 
         // Then
         assertThat(ByteStreams.toByteArray(credential.getContent())).isEqualTo(CONTENT);
@@ -88,7 +89,7 @@ public class FileCredentialsIT extends AbstractPluginIT implements CredentialsTe
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldHaveDescriptorIcon() {
         final CreateSecretOperation.Result foo = secretsManager.createFileSecret(CONTENT);
-        final FileCredentials ours = lookupCredential(FileCredentials.class, foo.getName());
+        final FileCredentials ours = r.getCredentials().lookup(FileCredentials.class, foo.getName());
 
         final FileCredentials theirs = new FileCredentialsImpl(null, "id", "description", "filename", SecretBytes.fromBytes(CONTENT));
 
@@ -103,7 +104,7 @@ public class FileCredentialsIT extends AbstractPluginIT implements CredentialsTe
         final CreateSecretOperation.Result foo = secretsManager.createFileSecret(CONTENT);
 
         // When
-        final ListBoxModel list = listCredentials(FileCredentials.class);
+        final ListBoxModel list = r.getCredentials().list(FileCredentials.class);
 
         // Then
         assertThat(list)
@@ -118,7 +119,7 @@ public class FileCredentialsIT extends AbstractPluginIT implements CredentialsTe
         final CreateSecretOperation.Result foo = secretsManager.createFileSecret(CONTENT);
 
         // When
-        final WorkflowRun run = runPipeline(Strings.m("",
+        final WorkflowRun run = r.getPipelines().run(Strings.m("",
                 "node {",
                 "  withCredentials([file(credentialsId: '" + foo.getName() + "', variable: 'FILE')]) {",
                 "    echo \"Credential: {fileName: $FILE}\"",
@@ -138,7 +139,7 @@ public class FileCredentialsIT extends AbstractPluginIT implements CredentialsTe
         final CreateSecretOperation.Result foo = secretsManager.createFileSecret(CONTENT);
 
         // When
-        final WorkflowRun run = runPipeline(Strings.m("",
+        final WorkflowRun run = r.getPipelines().run(Strings.m("",
                 "pipeline {",
                 "  agent any",
                 "  stages {",
@@ -164,10 +165,10 @@ public class FileCredentialsIT extends AbstractPluginIT implements CredentialsTe
     public void shouldSupportSnapshots() {
         // Given
         final CreateSecretOperation.Result foo = secretsManager.createFileSecret(CONTENT);
-        final FileCredentials before = lookupCredential(FileCredentials.class, foo.getName());
+        final FileCredentials before = r.getCredentials().lookup(FileCredentials.class, foo.getName());
 
         // When
-        final FileCredentials after = snapshot(before);
+        final FileCredentials after = CredentialSnapshots.snapshot(before);
 
         // Then
         assertSoftly(s -> {

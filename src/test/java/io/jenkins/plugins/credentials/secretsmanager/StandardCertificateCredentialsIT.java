@@ -7,10 +7,7 @@ import com.cloudbees.plugins.credentials.impl.CertificateCredentialsImpl;
 import hudson.util.ListBoxModel;
 import hudson.util.Secret;
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
-import io.jenkins.plugins.credentials.secretsmanager.util.AWSSecretsManagerRule;
-import io.jenkins.plugins.credentials.secretsmanager.util.CreateSecretOperation;
-import io.jenkins.plugins.credentials.secretsmanager.util.Crypto;
-import io.jenkins.plugins.credentials.secretsmanager.util.Strings;
+import io.jenkins.plugins.credentials.secretsmanager.util.*;
 import io.jenkins.plugins.credentials.secretsmanager.util.assertions.WorkflowRunAssert;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.junit.Ignore;
@@ -29,7 +26,7 @@ import static org.assertj.core.api.SoftAssertions.assertSoftly;
 /**
  * The plugin should support Certificate credentials.
  */
-public class StandardCertificateCredentialsIT extends AbstractPluginIT implements CredentialsTests {
+public class StandardCertificateCredentialsIT implements CredentialsTests {
 
     private static final String ALIAS = "test";
     private static final Secret EMPTY_PASSPHRASE = Secret.fromString("");
@@ -39,7 +36,10 @@ public class StandardCertificateCredentialsIT extends AbstractPluginIT implement
     private static final Certificate CERT = Crypto.newSelfSignedCertificate(CN, KEY_PAIR);
 
     @Rule
-    public AWSSecretsManagerRule secretsManager = new AWSSecretsManagerRule();
+    public final MyJenkinsConfiguredWithCodeRule jenkins = new MyJenkinsConfiguredWithCodeRule();
+
+    @Rule
+    public final AWSSecretsManagerRule secretsManager = new AWSSecretsManagerRule();
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
@@ -49,7 +49,7 @@ public class StandardCertificateCredentialsIT extends AbstractPluginIT implement
         final CreateSecretOperation.Result foo = secretsManager.createCertificateSecret(Crypto.save(keyStore, PASSWORD));
 
         // When
-        final ListBoxModel list = listCredentials(StandardCertificateCredentials.class);
+        final ListBoxModel list = jenkins.getCredentials().list(StandardCertificateCredentials.class);
 
         // Then
         assertThat(list)
@@ -62,7 +62,7 @@ public class StandardCertificateCredentialsIT extends AbstractPluginIT implement
     public void shouldHaveDescriptorIcon() {
         final byte[] keystore = Crypto.save(Crypto.singletonKeyStore(ALIAS, KEY_PAIR.getPrivate(), PASSWORD, new Certificate[]{CERT}), PASSWORD);
         final CreateSecretOperation.Result foo = secretsManager.createCertificateSecret(keystore);
-        final StandardCertificateCredentials ours = lookupCredential(StandardCertificateCredentials.class, foo.getName());
+        final StandardCertificateCredentials ours = jenkins.getCredentials().lookup(StandardCertificateCredentials.class, foo.getName());
 
         final StandardCertificateCredentials theirs = new CertificateCredentialsImpl(null, "id", "description", "password", new CertificateCredentialsImpl.UploadedKeyStoreSource(SecretBytes.fromBytes(keystore)));
 
@@ -77,7 +77,7 @@ public class StandardCertificateCredentialsIT extends AbstractPluginIT implement
         final CreateSecretOperation.Result foo = secretsManager.createCertificateSecret(Crypto.save(keyStore, PASSWORD));
 
         // When
-        final StandardCertificateCredentials credential = lookupCredential(StandardCertificateCredentials.class, foo.getName());
+        final StandardCertificateCredentials credential = jenkins.getCredentials().lookup(StandardCertificateCredentials.class, foo.getName());
 
         // Then
         assertThat(credential.getId()).isEqualTo(foo.getName());
@@ -91,7 +91,7 @@ public class StandardCertificateCredentialsIT extends AbstractPluginIT implement
         final CreateSecretOperation.Result foo = secretsManager.createCertificateSecret(Crypto.save(keyStore, PASSWORD));
 
         // When
-        final StandardCertificateCredentials credential = lookupCredential(StandardCertificateCredentials.class, foo.getName());
+        final StandardCertificateCredentials credential = jenkins.getCredentials().lookup(StandardCertificateCredentials.class, foo.getName());
 
         // Then
         assertThat(credential.getPassword()).isEqualTo(EMPTY_PASSPHRASE);
@@ -105,7 +105,7 @@ public class StandardCertificateCredentialsIT extends AbstractPluginIT implement
         final CreateSecretOperation.Result foo = secretsManager.createCertificateSecret(Crypto.save(keyStore, PASSWORD));
 
         // When
-        final StandardCertificateCredentials credential = lookupCredential(StandardCertificateCredentials.class, foo.getName());
+        final StandardCertificateCredentials credential = jenkins.getCredentials().lookup(StandardCertificateCredentials.class, foo.getName());
 
         // Then
         assertThat(Crypto.keystoreToMap(credential.getKeyStore())).containsEntry(ALIAS, Collections.singletonList(CERT));
@@ -119,7 +119,7 @@ public class StandardCertificateCredentialsIT extends AbstractPluginIT implement
         final CreateSecretOperation.Result foo = secretsManager.createCertificateSecret(Crypto.save(keyStore, PASSWORD));
 
         // When
-        final WorkflowRun run = runPipeline(Strings.m("",
+        final WorkflowRun run = jenkins.getPipelines().run(Strings.m("",
                 "node {",
                 "  withCredentials([certificate(credentialsId: '" + foo.getName() + "', keystoreVariable: 'KEYSTORE')]) {",
                 "    echo \"Credential: {keystore: $KEYSTORE}\"",
@@ -143,10 +143,10 @@ public class StandardCertificateCredentialsIT extends AbstractPluginIT implement
         // Given
         final KeyStore keyStore = Crypto.singletonKeyStore(ALIAS, KEY_PAIR.getPrivate(), PASSWORD, new Certificate[]{CERT});
         final CreateSecretOperation.Result foo = secretsManager.createCertificateSecret(Crypto.save(keyStore, PASSWORD));
-        final StandardCertificateCredentials before = lookupCredential(StandardCertificateCredentials.class, foo.getName());
+        final StandardCertificateCredentials before = jenkins.getCredentials().lookup(StandardCertificateCredentials.class, foo.getName());
 
         // When
-        final StandardCertificateCredentials after = snapshot(before);
+        final StandardCertificateCredentials after = CredentialSnapshots.snapshot(before);
 
         // Then
         assertSoftly(s -> {
@@ -163,7 +163,7 @@ public class StandardCertificateCredentialsIT extends AbstractPluginIT implement
         final CreateSecretOperation.Result foo = secretsManager.createCertificateSecret(new byte[] {0x00, 0x01});
 
         // When
-        final StandardCertificateCredentials credential = lookupCredential(StandardCertificateCredentials.class, foo.getName());
+        final StandardCertificateCredentials credential = jenkins.getCredentials().lookup(StandardCertificateCredentials.class, foo.getName());
 
         // Then
         assertThatThrownBy(credential::getKeyStore).isInstanceOf(CredentialsUnavailableException.class);

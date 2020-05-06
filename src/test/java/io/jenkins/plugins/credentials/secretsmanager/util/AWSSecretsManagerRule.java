@@ -1,7 +1,5 @@
 package io.jenkins.plugins.credentials.secretsmanager.util;
 
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder;
@@ -17,7 +15,7 @@ import java.util.Collections;
 import java.util.function.Consumer;
 
 /**
- * Wraps client-side access to AWS Secrets Manager.
+ * Wraps client-side access to AWS Secrets Manager in tests.
  */
 public class AWSSecretsManagerRule extends ExternalResource {
 
@@ -29,7 +27,6 @@ public class AWSSecretsManagerRule extends ExternalResource {
 
     private final AWSSecretsManager client = AWSSecretsManagerClientBuilder.standard()
             .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration("http://localhost:4584", "us-east-1"))
-            .withCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials("test", "test")))
             .build();
 
     @Override

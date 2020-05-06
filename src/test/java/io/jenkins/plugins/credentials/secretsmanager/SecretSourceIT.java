@@ -35,10 +35,11 @@ public class SecretSourceIT {
     @Rule
     public final AWSSecretsManagerRule secretsManager = new AWSSecretsManagerRule();
 
+    // Do not annotate with @Rule, the chain handles this
     public final JenkinsRule r = new JenkinsConfiguredWithCodeRule();
 
     @Rule
-    public RuleChain chain = RuleChain
+    public final RuleChain chain = RuleChain
             // Invent 2 environment variables which don't technically exist in AWS SDK
             .outerRule(new EnvVarsRule()
                     .set("AWS_SERVICE_ENDPOINT", "http://localhost:4584")

@@ -5,9 +5,7 @@ import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl;
 import hudson.util.ListBoxModel;
 import hudson.util.Secret;
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
-import io.jenkins.plugins.credentials.secretsmanager.util.AWSSecretsManagerRule;
-import io.jenkins.plugins.credentials.secretsmanager.util.CreateSecretOperation;
-import io.jenkins.plugins.credentials.secretsmanager.util.Strings;
+import io.jenkins.plugins.credentials.secretsmanager.util.*;
 import io.jenkins.plugins.credentials.secretsmanager.util.assertions.WorkflowRunAssert;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.junit.Rule;
@@ -20,13 +18,16 @@ import static org.assertj.core.api.SoftAssertions.assertSoftly;
 /**
  * The plugin should support Username With Password credentials.
  */
-public class StandardUsernamePasswordCredentialsIT extends AbstractPluginIT implements CredentialsTests {
+public class StandardUsernamePasswordCredentialsIT implements CredentialsTests {
 
     private static final String USERNAME = "joe";
     private static final String PASSWORD = "supersecret";
 
     @Rule
-    public AWSSecretsManagerRule secretsManager = new AWSSecretsManagerRule();
+    public final MyJenkinsConfiguredWithCodeRule jenkins = new MyJenkinsConfiguredWithCodeRule();
+
+    @Rule
+    public final AWSSecretsManagerRule secretsManager = new AWSSecretsManagerRule();
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
@@ -35,7 +36,7 @@ public class StandardUsernamePasswordCredentialsIT extends AbstractPluginIT impl
         final CreateSecretOperation.Result foo = secretsManager.createUsernamePasswordSecret(USERNAME, PASSWORD);
 
         // When
-        final ListBoxModel list = listCredentials(StandardUsernamePasswordCredentials.class);
+        final ListBoxModel list = jenkins.getCredentials().list(StandardUsernamePasswordCredentials.class);
 
         // Then
         assertThat(list)
@@ -51,7 +52,7 @@ public class StandardUsernamePasswordCredentialsIT extends AbstractPluginIT impl
 
         // When
         final StandardUsernamePasswordCredentials credential =
-                lookupCredential(StandardUsernamePasswordCredentials.class, foo.getName());
+                jenkins.getCredentials().lookup(StandardUsernamePasswordCredentials.class, foo.getName());
 
         // Then
         assertThat(credential.getPassword()).isEqualTo(Secret.fromString(PASSWORD));
@@ -65,7 +66,7 @@ public class StandardUsernamePasswordCredentialsIT extends AbstractPluginIT impl
 
         // When
         final StandardUsernamePasswordCredentials credential =
-                lookupCredential(StandardUsernamePasswordCredentials.class, foo.getName());
+                jenkins.getCredentials().lookup(StandardUsernamePasswordCredentials.class, foo.getName());
 
         // Then
         assertThat(credential.getUsername()).isEqualTo(USERNAME);
@@ -79,7 +80,7 @@ public class StandardUsernamePasswordCredentialsIT extends AbstractPluginIT impl
 
         // When
         final StandardUsernamePasswordCredentials credential =
-                lookupCredential(StandardUsernamePasswordCredentials.class, foo.getName());
+                jenkins.getCredentials().lookup(StandardUsernamePasswordCredentials.class, foo.getName());
 
         // Then
         assertThat(credential.getId()).isEqualTo(foo.getName());
@@ -92,7 +93,7 @@ public class StandardUsernamePasswordCredentialsIT extends AbstractPluginIT impl
         final CreateSecretOperation.Result foo = secretsManager.createUsernamePasswordSecret(USERNAME, PASSWORD);
 
         // When
-        final WorkflowRun run = runPipeline(Strings.m("",
+        final WorkflowRun run = jenkins.getPipelines().run(Strings.m("",
                 "withCredentials([usernamePassword(credentialsId: '" + foo.getName() + "', usernameVariable: 'USR', passwordVariable: 'PSW')]) {",
                 "  echo \"Credential: {username: $USR, password: $PSW}\"",
                 "}"));
@@ -110,7 +111,7 @@ public class StandardUsernamePasswordCredentialsIT extends AbstractPluginIT impl
         final CreateSecretOperation.Result foo = secretsManager.createUsernamePasswordSecret(USERNAME, PASSWORD);
 
         // When
-        final WorkflowRun run = runPipeline(Strings.m("",
+        final WorkflowRun run = jenkins.getPipelines().run(Strings.m("",
                 "pipeline {",
                 "  agent none",
                 "  stages {",
@@ -136,10 +137,10 @@ public class StandardUsernamePasswordCredentialsIT extends AbstractPluginIT impl
     public void shouldSupportSnapshots() {
         // Given
         final CreateSecretOperation.Result foo = secretsManager.createUsernamePasswordSecret(USERNAME, PASSWORD);
-        final StandardUsernamePasswordCredentials before = lookupCredential(StandardUsernamePasswordCredentials.class, foo.getName());
+        final StandardUsernamePasswordCredentials before = jenkins.getCredentials().lookup(StandardUsernamePasswordCredentials.class, foo.getName());
 
         // When
-        final StandardUsernamePasswordCredentials after = snapshot(before);
+        final StandardUsernamePasswordCredentials after = CredentialSnapshots.snapshot(before);
 
         // Then
         assertSoftly(s -> {
@@ -153,7 +154,7 @@ public class StandardUsernamePasswordCredentialsIT extends AbstractPluginIT impl
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldHaveDescriptorIcon() {
         final CreateSecretOperation.Result foo = secretsManager.createUsernamePasswordSecret(USERNAME, PASSWORD);
-        final StandardUsernamePasswordCredentials ours = lookupCredential(StandardUsernamePasswordCredentials.class, foo.getName());
+        final StandardUsernamePasswordCredentials ours = jenkins.getCredentials().lookup(StandardUsernamePasswordCredentials.class, foo.getName());
 
         final StandardUsernamePasswordCredentials theirs = new UsernamePasswordCredentialsImpl(null, "id", "description", "username", "password");
 

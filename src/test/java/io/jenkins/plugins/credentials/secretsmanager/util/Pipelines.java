@@ -1,0 +1,39 @@
+package io.jenkins.plugins.credentials.secretsmanager.util;
+
+import hudson.model.Run;
+import jenkins.model.Jenkins;
+import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
+import org.jenkinsci.plugins.workflow.job.WorkflowJob;
+import org.jenkinsci.plugins.workflow.job.WorkflowRun;
+
+import hudson.model.queue.QueueTaskFuture;
+import java.io.IOException;
+import java.util.concurrent.ExecutionException;
+
+public class Pipelines {
+
+    private final Jenkins jenkins;
+
+    public Pipelines(Jenkins jenkins) {
+        this.jenkins = jenkins;
+    }
+
+    public WorkflowRun run(String definition) {
+        try {
+            final WorkflowJob project = jenkins.createProject(WorkflowJob.class, "example");
+            project.setDefinition(new CpsFlowDefinition(definition, true));
+            final QueueTaskFuture<WorkflowRun> workflowRunFuture = project.scheduleBuild2(0);
+            final WorkflowRun workflowRun = workflowRunFuture.waitForStart();
+            waitForCompletion(workflowRun);
+            return workflowRun;
+        } catch (IOException | InterruptedException | ExecutionException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private <R extends Run<?, ?>> void waitForCompletion(R r) throws InterruptedException {
+        while(r.isBuilding()) {
+            Thread.sleep(100L);
+        }
+    }
+}
