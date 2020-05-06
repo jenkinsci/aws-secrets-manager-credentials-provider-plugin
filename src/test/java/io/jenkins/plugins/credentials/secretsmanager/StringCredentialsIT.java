@@ -10,6 +10,7 @@ import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.RuleChain;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
@@ -22,11 +23,14 @@ public class StringCredentialsIT implements CredentialsTests {
 
     private static final String SECRET = "supersecret";
 
-    @Rule
     public final MyJenkinsConfiguredWithCodeRule jenkins = new MyJenkinsConfiguredWithCodeRule();
+    public final AWSSecretsManagerRule secretsManager = new AWSSecretsManagerRule();
 
     @Rule
-    public final AWSSecretsManagerRule secretsManager = new AWSSecretsManagerRule();
+    public final RuleChain chain = RuleChain
+            .outerRule(Rules.awsAccessKey("fake", "fake"))
+            .around(jenkins)
+            .around(secretsManager);
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")

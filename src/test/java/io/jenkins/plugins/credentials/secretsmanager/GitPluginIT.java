@@ -10,6 +10,7 @@ import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
+import org.junit.rules.RuleChain;
 import org.junit.runner.RunWith;
 
 import java.security.KeyPair;
@@ -26,11 +27,14 @@ public class GitPluginIT  {
         private final KeyPair sshKey = Crypto.newKeyPair();
         private final String username = "joe";
 
-        @Rule
         public final MyJenkinsConfiguredWithCodeRule jenkins = new MyJenkinsConfiguredWithCodeRule();
+        public final AWSSecretsManagerRule secretsManager = new AWSSecretsManagerRule();
 
         @Rule
-        public final AWSSecretsManagerRule secretsManager = new AWSSecretsManagerRule();
+        public final RuleChain chain = RuleChain
+                .outerRule(Rules.awsAccessKey("fake", "fake"))
+                .around(jenkins)
+                .around(secretsManager);
 
         @Rule
         public final GitSshServer git = new GitSshServer.Builder()
@@ -62,14 +66,17 @@ public class GitPluginIT  {
 
     public static class StandardUsernamePasswordCredentialsIT {
 
-        @Rule
         public final MyJenkinsConfiguredWithCodeRule jenkins = new MyJenkinsConfiguredWithCodeRule();
+        public final AWSSecretsManagerRule secretsManager = new AWSSecretsManagerRule();
+
+        @Rule
+        public final RuleChain chain = RuleChain
+                .outerRule(Rules.awsAccessKey("fake", "fake"))
+                .around(jenkins)
+                .around(secretsManager);
 
         @Rule
         public final GitHttpServer git = new GitHttpServer();
-
-        @Rule
-        public final AWSSecretsManagerRule secretsManager = new AWSSecretsManagerRule();
 
         @Test
         @ConfiguredWithCode(value = "/integration.yml")

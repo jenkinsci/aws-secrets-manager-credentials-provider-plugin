@@ -10,6 +10,7 @@ import io.jenkins.plugins.credentials.secretsmanager.util.assertions.WorkflowRun
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.RuleChain;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
@@ -24,11 +25,14 @@ public class SSHUserPrivateKeyIT implements CredentialsTests {
     private static final String PRIVATE_KEY = Crypto.newPrivateKey();
     private static final String USERNAME = "joe";
 
-    @Rule
     public final MyJenkinsConfiguredWithCodeRule jenkins = new MyJenkinsConfiguredWithCodeRule();
+    public final AWSSecretsManagerRule secretsManager = new AWSSecretsManagerRule();
 
     @Rule
-    public final AWSSecretsManagerRule secretsManager = new AWSSecretsManagerRule();
+    public final RuleChain chain = RuleChain
+            .outerRule(Rules.awsAccessKey("fake", "fake"))
+            .around(jenkins)
+            .around(secretsManager);
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")

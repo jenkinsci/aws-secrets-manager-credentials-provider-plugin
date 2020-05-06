@@ -1,5 +1,0 @@
-unclassified:
-  awsCredentialsProvider:
-    endpointConfiguration:
-      serviceEndpoint: http://localhost:1000
-      signingRegion: us-east-1

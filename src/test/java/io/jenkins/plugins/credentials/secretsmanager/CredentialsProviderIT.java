@@ -8,9 +8,7 @@ import com.cloudbees.plugins.credentials.domains.Domain;
 
 import io.jenkins.plugins.credentials.secretsmanager.factory.Tags;
 import io.jenkins.plugins.credentials.secretsmanager.factory.Type;
-import io.jenkins.plugins.credentials.secretsmanager.util.AWSSecretsManagerRule;
-import io.jenkins.plugins.credentials.secretsmanager.util.Maps;
-import io.jenkins.plugins.credentials.secretsmanager.util.MyJenkinsConfiguredWithCodeRule;
+import io.jenkins.plugins.credentials.secretsmanager.util.*;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl;
 import org.junit.Before;
@@ -22,8 +20,8 @@ import java.util.List;
 
 import hudson.util.Secret;
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
-import io.jenkins.plugins.credentials.secretsmanager.util.CreateSecretOperation;
 import io.jenkins.plugins.credentials.secretsmanager.util.CreateSecretOperation.Result;
+import org.junit.rules.RuleChain;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -37,11 +35,14 @@ public class CredentialsProviderIT {
 
     private static final String SECRET = "supersecret";
 
-    @Rule
     public final MyJenkinsConfiguredWithCodeRule jenkins = new MyJenkinsConfiguredWithCodeRule();
+    public final AWSSecretsManagerRule secretsManager = new AWSSecretsManagerRule();
 
     @Rule
-    public final AWSSecretsManagerRule secretsManager = new AWSSecretsManagerRule();
+    public final RuleChain chain = RuleChain
+            .outerRule(Rules.awsAccessKey("fake", "fake"))
+            .around(jenkins)
+            .around(secretsManager);
 
     private CredentialsStore store;
 

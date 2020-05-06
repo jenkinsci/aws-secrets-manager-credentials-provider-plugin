@@ -13,6 +13,7 @@ import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.RuleChain;
 
 import java.security.KeyPair;
 import java.security.KeyStore;
@@ -35,11 +36,14 @@ public class StandardCertificateCredentialsIT implements CredentialsTests {
     private static final String CN = "CN=localhost";
     private static final Certificate CERT = Crypto.newSelfSignedCertificate(CN, KEY_PAIR);
 
-    @Rule
     public final MyJenkinsConfiguredWithCodeRule jenkins = new MyJenkinsConfiguredWithCodeRule();
+    public final AWSSecretsManagerRule secretsManager = new AWSSecretsManagerRule();
 
     @Rule
-    public final AWSSecretsManagerRule secretsManager = new AWSSecretsManagerRule();
+    public final RuleChain chain = RuleChain
+            .outerRule(Rules.awsAccessKey("fake", "fake"))
+            .around(jenkins)
+            .around(secretsManager);
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")

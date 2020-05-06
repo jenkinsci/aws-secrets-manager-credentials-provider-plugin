@@ -32,19 +32,19 @@ public class SecretSourceIT {
     private static final String SECRET_STRING = "supersecret";
     private static final byte[] SECRET_BINARY = {0x01, 0x02, 0x03};
 
-    @Rule
     public final AWSSecretsManagerRule secretsManager = new AWSSecretsManagerRule();
-
-    // Do not annotate with @Rule, the chain handles this
-    public final JenkinsRule r = new JenkinsConfiguredWithCodeRule();
+    public final JenkinsRule jenkins = new JenkinsConfiguredWithCodeRule();
 
     @Rule
     public final RuleChain chain = RuleChain
-            // Invent 2 environment variables which don't technically exist in AWS SDK
             .outerRule(new EnvVarsRule()
+                    .set("AWS_ACCESS_KEY_ID", "fake")
+                    .set("AWS_SECRET_ACCESS_KEY", "fake")
+                    // Invent 2 environment variables which don't technically exist in AWS SDK
                     .set("AWS_SERVICE_ENDPOINT", "http://localhost:4584")
                     .set("AWS_SIGNING_REGION", "us-east-1"))
-            .around(r);
+            .around(jenkins)
+            .around(secretsManager);
 
     private ConfigurationContext context;
 
@@ -144,7 +144,7 @@ public class SecretSourceIT {
     }
 
     <C extends Credentials> List<C> lookupCredentials(Class<C> type) {
-        return CredentialsProvider.lookupCredentials(type, r.jenkins, ACL.SYSTEM, Collections.emptyList());
+        return CredentialsProvider.lookupCredentials(type, jenkins.jenkins, ACL.SYSTEM, Collections.emptyList());
     }
 
     private String revealSecret(String id) {
