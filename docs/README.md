@@ -328,8 +328,8 @@ unclassified:
 
 In Maven:
 
-```bash
-mvn verify
+```shell script
+mvn clean verify
 ```
 
 In your IDE:
