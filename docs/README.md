@@ -316,6 +316,10 @@ unclassified:
       signingRegion: us-east-1
 ```
 
+## Bugs
+
+All secrets must be uploaded via the AWS CLI or API. This is because the AWS Web console *currently* insists on wrapping your secret string in JSON.
+
 ## Development
 
 ### Dependencies
