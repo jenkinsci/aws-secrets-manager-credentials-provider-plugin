@@ -3,22 +3,20 @@ package io.jenkins.plugins.credentials.secretsmanager;
 import com.cloudbees.plugins.credentials.Credentials;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
-import hudson.security.ACL;
 import io.jenkins.plugins.casc.ConfigurationContext;
 import io.jenkins.plugins.casc.ConfiguratorRegistry;
 import io.jenkins.plugins.casc.SecretSource;
 import io.jenkins.plugins.casc.SecretSourceResolver;
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
 import io.jenkins.plugins.casc.misc.EnvVarsRule;
-import io.jenkins.plugins.casc.misc.JenkinsConfiguredWithCodeRule;
 import io.jenkins.plugins.credentials.secretsmanager.util.AWSSecretsManagerRule;
 import io.jenkins.plugins.credentials.secretsmanager.util.CreateSecretOperation;
+import io.jenkins.plugins.credentials.secretsmanager.util.MyJenkinsConfiguredWithCodeRule;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
-import org.jvnet.hudson.test.JenkinsRule;
 
 import java.util.Collections;
 import java.util.List;
@@ -33,7 +31,7 @@ public class SecretSourceIT {
     private static final byte[] SECRET_BINARY = {0x01, 0x02, 0x03};
 
     public final AWSSecretsManagerRule secretsManager = new AWSSecretsManagerRule();
-    public final JenkinsRule jenkins = new JenkinsConfiguredWithCodeRule();
+    public final MyJenkinsConfiguredWithCodeRule jenkins = new MyJenkinsConfiguredWithCodeRule();
 
     @Rule
     public final RuleChain chain = RuleChain
@@ -137,14 +135,11 @@ public class SecretSourceIT {
     }
 
     private <C extends StandardCredentials> C lookupCredential(Class<C> type, String id) {
-        return lookupCredentials(type).stream()
-                .filter(c -> c.getId().equals(id))
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("Expected a credential but none was present"));
+        return jenkins.getCredentials().lookup(type, id);
     }
 
-    <C extends Credentials> List<C> lookupCredentials(Class<C> type) {
-        return CredentialsProvider.lookupCredentials(type, jenkins.jenkins, ACL.SYSTEM, Collections.emptyList());
+    private <C extends Credentials> List<C> lookupCredentials(Class<C> type) {
+        return jenkins.getCredentials().lookup(type);
     }
 
     private String revealSecret(String id) {

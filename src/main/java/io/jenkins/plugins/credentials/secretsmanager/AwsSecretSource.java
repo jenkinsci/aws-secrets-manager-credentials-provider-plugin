@@ -51,8 +51,6 @@ public class AwsSecretSource extends SecretSource {
 
     @Override
     public void init() {
-        super.init();
-
         try {
             client = createClient();
         } catch (SdkClientException e) {

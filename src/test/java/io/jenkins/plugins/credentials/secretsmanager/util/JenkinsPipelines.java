@@ -10,11 +10,14 @@ import hudson.model.queue.QueueTaskFuture;
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 
-public class Pipelines {
+/**
+ * Convenience methods for using pipelines.
+ */
+public class JenkinsPipelines {
 
     private final Jenkins jenkins;
 
-    public Pipelines(Jenkins jenkins) {
+    public JenkinsPipelines(Jenkins jenkins) {
         this.jenkins = jenkins;
     }
 

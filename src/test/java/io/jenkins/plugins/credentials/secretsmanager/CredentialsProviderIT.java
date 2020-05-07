@@ -4,28 +4,27 @@ import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.CredentialsScope;
 import com.cloudbees.plugins.credentials.CredentialsStore;
 import com.cloudbees.plugins.credentials.CredentialsUnavailableException;
+import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import com.cloudbees.plugins.credentials.domains.Domain;
-
+import hudson.util.ListBoxModel;
+import hudson.util.Secret;
+import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
 import io.jenkins.plugins.credentials.secretsmanager.factory.Tags;
 import io.jenkins.plugins.credentials.secretsmanager.factory.Type;
 import io.jenkins.plugins.credentials.secretsmanager.util.*;
+import io.jenkins.plugins.credentials.secretsmanager.util.CreateSecretOperation.Result;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.RuleChain;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
-import hudson.util.Secret;
-import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
-import io.jenkins.plugins.credentials.secretsmanager.util.CreateSecretOperation.Result;
-import org.junit.rules.RuleChain;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.tuple;
+import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
 
 /**
@@ -55,7 +54,7 @@ public class CredentialsProviderIT {
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldStartEmpty() {
         // When
-        final List<StringCredentials> credentials = jenkins.getCredentials().lookup(StringCredentials.class);
+        final List<StringCredentials> credentials = lookup(StringCredentials.class);
 
         // Then
         assertThat(credentials).isEmpty();
@@ -65,7 +64,7 @@ public class CredentialsProviderIT {
     @ConfiguredWithCode(value = "/default.yml")
     public void shouldFailGracefullyWhenSecretsManagerUnavailable() {
         // When
-        final List<StringCredentials> credentials = jenkins.getCredentials().lookup(StringCredentials.class);
+        final List<StringCredentials> credentials = lookup(StringCredentials.class);
 
         // Then
         assertThat(credentials).isEmpty();
@@ -78,7 +77,7 @@ public class CredentialsProviderIT {
         final Result foo = secretsManager.createStringSecret(SECRET);
 
         // When
-        final List<String> credentialNames = jenkins.getCredentials().lookupCredentialNames(StringCredentials.class);
+        final List<String> credentialNames = listNames(StringCredentials.class);
 
         // Then
         assertThat(credentialNames).containsOnly(foo.getName());
@@ -93,7 +92,7 @@ public class CredentialsProviderIT {
 
         // When
         secretsManager.deleteSecret(bar.getName());
-        final List<StringCredentials> credentials = jenkins.getCredentials().lookup(StringCredentials.class);
+        final List<StringCredentials> credentials = lookup(StringCredentials.class);
 
         // Then
         assertThat(credentials)
@@ -109,7 +108,7 @@ public class CredentialsProviderIT {
         final CreateSecretOperation.Result bar = secretsManager.createOtherStringSecret(SECRET);
 
         // When
-        final List<StringCredentials> credentials = jenkins.getCredentials().lookup(StringCredentials.class);
+        final List<StringCredentials> credentials = lookup(StringCredentials.class);
         secretsManager.deleteSecret(bar.getName());
 
         // Then
@@ -132,7 +131,7 @@ public class CredentialsProviderIT {
         });
 
         // When
-        final List<StringCredentials> credentials = jenkins.getCredentials().lookup(StringCredentials.class);
+        final List<StringCredentials> credentials = lookup(StringCredentials.class);
 
         // Then
         assertThat(credentials)
@@ -153,7 +152,7 @@ public class CredentialsProviderIT {
         });
 
         // When
-        final List<StringCredentials> credentials = jenkins.getCredentials().lookup(StringCredentials.class);
+        final List<StringCredentials> credentials = lookup(StringCredentials.class);
 
         // Then
         assertThat(credentials)
@@ -185,5 +184,17 @@ public class CredentialsProviderIT {
         assertThatExceptionOfType(UnsupportedOperationException.class)
                 .isThrownBy(() -> store.removeCredentials(Domain.global(), new StringCredentialsImpl(CredentialsScope.GLOBAL, "foo", "desc", Secret.fromString(SECRET))))
                 .withMessage("Jenkins may not remove credentials from AWS Secrets Manager");
+    }
+
+    private <C extends StandardCredentials> List<C> lookup(Class<C> type) {
+        return jenkins.getCredentials().lookup(type);
+    }
+
+    private <C extends StandardCredentials> List<String> listNames(Class<C> type) {
+        final ListBoxModel result = jenkins.getCredentials().list(type);
+
+        return result.stream()
+                .map(o -> o.name)
+                .collect(Collectors.toList());
     }
 }
