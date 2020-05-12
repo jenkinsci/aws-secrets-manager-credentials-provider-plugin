@@ -1,24 +1,25 @@
 package io.jenkins.plugins.credentials.secretsmanager;
 
+import com.amazonaws.services.secretsmanager.model.CreateSecretRequest;
+import com.amazonaws.services.secretsmanager.model.CreateSecretResult;
+import com.amazonaws.services.secretsmanager.model.DeleteSecretRequest;
+import com.amazonaws.services.secretsmanager.model.Tag;
 import com.cloudbees.plugins.credentials.Credentials;
-import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import io.jenkins.plugins.casc.ConfigurationContext;
 import io.jenkins.plugins.casc.ConfiguratorRegistry;
-import io.jenkins.plugins.casc.SecretSource;
 import io.jenkins.plugins.casc.SecretSourceResolver;
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
 import io.jenkins.plugins.casc.misc.EnvVarsRule;
-import io.jenkins.plugins.credentials.secretsmanager.util.AWSSecretsManagerRule;
-import io.jenkins.plugins.credentials.secretsmanager.util.CreateSecretOperation;
-import io.jenkins.plugins.credentials.secretsmanager.util.MyJenkinsConfiguredWithCodeRule;
+import io.jenkins.plugins.credentials.secretsmanager.factory.Type;
+import io.jenkins.plugins.credentials.secretsmanager.util.*;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
 
-import java.util.Collections;
+import java.nio.ByteBuffer;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -30,7 +31,7 @@ public class SecretSourceIT {
     private static final String SECRET_STRING = "supersecret";
     private static final byte[] SECRET_BINARY = {0x01, 0x02, 0x03};
 
-    public final AWSSecretsManagerRule secretsManager = new AWSSecretsManagerRule();
+    public final AWSSecretsManagerRule secretsManager = new AutoErasingAWSSecretsManagerRule();
     public final MyJenkinsConfiguredWithCodeRule jenkins = new MyJenkinsConfiguredWithCodeRule();
 
     @Rule
@@ -59,7 +60,7 @@ public class SecretSourceIT {
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldReturnEmptyWhenSecretWasNotFound() {
         // When
-        final String secret = revealSecret(AWSSecretsManagerRule.FOO);
+        final String secret = revealSecret("foo");
 
         // Then
         assertThat(secret).isEmpty();
@@ -69,7 +70,7 @@ public class SecretSourceIT {
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldRevealSecret() {
         // Given
-        final CreateSecretOperation.Result foo = secretsManager.createSecret(SECRET_STRING, opts -> {});
+        final CreateSecretResult foo = createSecret(SECRET_STRING, Lists.of());
 
         // When
         final String secret = revealSecret(foo.getName());
@@ -81,8 +82,8 @@ public class SecretSourceIT {
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldThrowExceptionWhenSecretWasSoftDeleted() {
-        final CreateSecretOperation.Result foo = secretsManager.createSecret(SECRET_STRING, opts -> {});
-        secretsManager.deleteSecret(foo.getName());
+        final CreateSecretResult foo = createSecret(SECRET_STRING, Lists.of());
+        deleteSecret(foo.getName());
 
         assertThatIOException()
                 .isThrownBy(() -> revealSecret(foo.getName()));
@@ -91,7 +92,7 @@ public class SecretSourceIT {
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldThrowExceptionWhenSecretWasBinary() {
-        final CreateSecretOperation.Result foo = secretsManager.createSecret(SECRET_BINARY, opts -> {});
+        final CreateSecretResult foo = createSecret(SECRET_BINARY, Lists.of());
 
         assertThatIOException()
                 .isThrownBy(() -> revealSecret(foo.getName()));
@@ -101,9 +102,7 @@ public class SecretSourceIT {
     @ConfiguredWithCode(value = "/tags.yml")
     public void shouldIgnoreFilters() {
         // Given
-        final CreateSecretOperation.Result foo = secretsManager.createSecret(SECRET_STRING, opts -> {
-            opts.tags = Collections.singletonMap("wrong", "tag");
-        });
+        final CreateSecretResult foo = createSecret(SECRET_STRING, Lists.of(AwsTags.tag("wrong", "tag")));
 
         // When
         final String secret = revealSecret(foo.getName());
@@ -115,22 +114,22 @@ public class SecretSourceIT {
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldRevealSecretsOutsideCredentialsProvider() {
-        final CreateSecretOperation.Result foo = secretsManager.createSecret(SECRET_STRING, opts -> {});
+        final CreateSecretResult foo = createSecret(SECRET_STRING, Lists.of());
 
         assertSoftly(s -> {
-            s.assertThat(revealSecret(foo.getName())).as(SecretSource.class.getName()).isEqualTo(SECRET_STRING);
-            s.assertThat(lookupCredentials(StandardCredentials.class)).as(CredentialsProvider.class.getName()).isEmpty();
+            s.assertThat(revealSecret(foo.getName())).as("SecretSource").isEqualTo(SECRET_STRING);
+            s.assertThat(lookupCredentials(StandardCredentials.class)).as("CredentialsProvider").isEmpty();
         });
     }
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldRevealSecretsInsideCredentialsProvider() {
-        final CreateSecretOperation.Result foo = secretsManager.createStringSecret(SECRET_STRING);
+        final CreateSecretResult foo = createStringSecret(SECRET_STRING);
 
         assertSoftly(s -> {
-            s.assertThat(revealSecret(foo.getName())).as(SecretSource.class.getName()).isEqualTo(SECRET_STRING);
-            s.assertThat(lookupCredential(StringCredentials.class, foo.getName()).getSecret().getPlainText()).as(CredentialsProvider.class.getName()).isEqualTo(SECRET_STRING);
+            s.assertThat(revealSecret(foo.getName())).as("SecretSource").isEqualTo(SECRET_STRING);
+            s.assertThat(lookupCredential(StringCredentials.class, foo.getName()).getSecret().getPlainText()).as("CredentialsProvider").isEqualTo(SECRET_STRING);
         });
     }
 
@@ -140,6 +139,40 @@ public class SecretSourceIT {
 
     private <C extends Credentials> List<C> lookupCredentials(Class<C> type) {
         return jenkins.getCredentials().lookup(type);
+    }
+
+    private CreateSecretResult createStringSecret(String secretString) {
+        final List<Tag> tags = Lists.of(AwsTags.type(Type.string));
+
+        final CreateSecretRequest request = new CreateSecretRequest()
+                .withName(CredentialNames.random())
+                .withSecretString(secretString)
+                .withTags(tags);
+
+        return secretsManager.getClient().createSecret(request);
+    }
+
+    private CreateSecretResult createSecret(String secretString, List<Tag> tags) {
+        final CreateSecretRequest request = new CreateSecretRequest()
+                .withName(CredentialNames.random())
+                .withSecretString(secretString)
+                .withTags(tags);
+
+        return secretsManager.getClient().createSecret(request);
+    }
+
+    private CreateSecretResult createSecret(byte[] secretBinary, List<Tag> tags) {
+        final CreateSecretRequest request = new CreateSecretRequest()
+                .withName(CredentialNames.random())
+                .withSecretBinary(ByteBuffer.wrap(secretBinary))
+                .withTags(tags);
+
+        return secretsManager.getClient().createSecret(request);
+    }
+
+    private void deleteSecret(String secretId) {
+        final DeleteSecretRequest request = new DeleteSecretRequest().withSecretId(secretId);
+        secretsManager.getClient().deleteSecret(request);
     }
 
     private String revealSecret(String id) {

@@ -6,7 +6,7 @@ import org.junit.Test;
 
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
 
-public class PluginWebConfigurationTest extends AbstractPluginConfigurationTest {
+public class PluginWebConfigurationIT extends AbstractPluginConfigurationIT {
 
     @Rule
     public final JenkinsConfiguredWithWebRule r = new JenkinsConfiguredWithWebRule();

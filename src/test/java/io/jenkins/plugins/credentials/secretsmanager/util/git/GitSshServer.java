@@ -2,6 +2,7 @@ package io.jenkins.plugins.credentials.secretsmanager.util.git;
 
 import com.jcraft.jsch.JSch;
 
+import io.jenkins.plugins.credentials.secretsmanager.util.Lists;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.junit.ssh.SshTestGitServer;
 import org.eclipse.jgit.lib.Repository;
@@ -91,7 +92,7 @@ public class GitSshServer extends ExternalResource {
     }
 
     public static class Builder {
-        private List<String> repos = Collections.emptyList();
+        private List<String> repos = Lists.of();
         private Map<String, PublicKey> users = Collections.emptyMap();
 
         public Builder withRepos(String... repos) {

@@ -7,7 +7,6 @@ import hudson.security.ACL;
 import hudson.util.ListBoxModel;
 import jenkins.model.Jenkins;
 
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -22,7 +21,7 @@ public class JenkinsCredentials {
     }
 
     public <C extends Credentials> List<C> lookup(Class<C> type) {
-        return CredentialsProvider.lookupCredentials(type, jenkins, ACL.SYSTEM, Collections.emptyList());
+        return CredentialsProvider.lookupCredentials(type, jenkins, ACL.SYSTEM, Lists.of());
     }
 
     public <C extends StandardCredentials> ListBoxModel list(Class<C> type) {
