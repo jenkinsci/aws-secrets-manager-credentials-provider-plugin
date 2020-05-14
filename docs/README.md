@@ -69,12 +69,15 @@ Declarative Pipeline:
 
 ```groovy
 pipeline {
+    agent any
     environment {
         NEWRELIC_API_KEY = credentials('newrelic-api-key')
     }
     stages {
         stage('Foo') {
-            echo 'Hello world'
+            steps {
+              echo 'Hello world'
+            }
         }
     }
 }
@@ -109,13 +112,16 @@ Declarative Pipeline:
 
 ```groovy
 pipeline {
+    agent any
     environment {
         // Creates variables ARTIFACTORY=joe:supersecret, ARTIFACTORY_USR=joe, ARTIFACTORY_PSW=supersecret
         ARTIFACTORY = credentials('artifactory')
     }
     stages {
         stage('Foo') {
-            echo 'Hello world'
+            steps {
+              echo 'Hello world'
+            }
         }
     }
 }
@@ -153,13 +159,16 @@ Declarative Pipeline:
 
 ```groovy
 pipeline {
+    agent any
     environment {
         // Creates variables KEY=/temp/path/to/key, KEY_USR=joe
         KEY = credentials('ssh-key')
     }
     stages {
         stage('Foo') {
-            echo 'Hello world'
+            steps {
+              echo 'Hello world'
+            }
         }
     }
 }
@@ -222,12 +231,15 @@ Declarative Pipeline:
 
 ```groovy
 pipeline {
+    agent any
     environment {
         LICENSE_KEY_FILE = credentials('license-key')
     }
     stages {
         stage('Example') {
-            echo 'Hello world'
+            steps {
+              echo 'Hello world'
+            }
         }
     }
 }
