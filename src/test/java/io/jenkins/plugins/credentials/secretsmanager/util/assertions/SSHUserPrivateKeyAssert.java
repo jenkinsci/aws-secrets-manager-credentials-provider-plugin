@@ -1,12 +1,14 @@
 package io.jenkins.plugins.credentials.secretsmanager.util.assertions;
 
 import com.cloudbees.jenkins.plugins.sshcredentials.SSHUserPrivateKey;
+import com.cloudbees.jenkins.plugins.sshcredentials.impl.BasicSSHUserPrivateKey;
 import hudson.util.Secret;
+import org.assertj.core.api.AbstractAssert;
 
 import java.util.List;
 import java.util.Objects;
 
-public class SSHUserPrivateKeyAssert extends StandardCredentialsAssert<SSHUserPrivateKey> {
+public class SSHUserPrivateKeyAssert extends AbstractAssert<SSHUserPrivateKeyAssert, SSHUserPrivateKey> {
 
     public SSHUserPrivateKeyAssert(SSHUserPrivateKey actual) {
         super(actual, SSHUserPrivateKeyAssert.class);
@@ -42,6 +44,18 @@ public class SSHUserPrivateKeyAssert extends StandardCredentialsAssert<SSHUserPr
         if (!Objects.equals(actual.getPrivateKeys(), privateKeys)) {
             failWithMessage("Expected private keys to be <%s> but was <%s>", privateKeys, actual.getPrivateKeys());
         }
+
+        return this;
+    }
+
+    public SSHUserPrivateKeyAssert hasId(String id) {
+        new StandardCredentialsAssert(actual).hasId(id);
+
+        return this;
+    }
+
+    public SSHUserPrivateKeyAssert hasSameDescriptorIconAs(BasicSSHUserPrivateKey theirs) {
+        new StandardCredentialsAssert(actual).hasSameDescriptorIconAs(theirs);
 
         return this;
     }

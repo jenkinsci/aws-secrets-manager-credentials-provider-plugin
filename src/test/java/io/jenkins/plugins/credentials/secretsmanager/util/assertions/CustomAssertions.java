@@ -9,6 +9,8 @@ import org.jenkinsci.plugins.plaincredentials.FileCredentials;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
+import java.security.KeyStore;
+
 public class CustomAssertions {
 
     public static StandardCredentialsAssert assertThat(StandardCredentials actual) {
@@ -41,5 +43,9 @@ public class CustomAssertions {
 
     public static ListBoxModelAssert assertThat(ListBoxModel actual) {
         return new ListBoxModelAssert(actual);
+    }
+
+    public static KeyStoreAssert assertThat(KeyStore actual) {
+        return new KeyStoreAssert(actual);
     }
 }

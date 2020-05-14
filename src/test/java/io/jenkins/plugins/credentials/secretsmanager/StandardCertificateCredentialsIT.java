@@ -9,9 +9,11 @@ import com.cloudbees.plugins.credentials.common.StandardCertificateCredentials;
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import com.cloudbees.plugins.credentials.impl.CertificateCredentialsImpl;
 import hudson.util.ListBoxModel;
+import hudson.model.Result;
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
 import io.jenkins.plugins.credentials.secretsmanager.factory.Type;
 import io.jenkins.plugins.credentials.secretsmanager.util.*;
+import io.jenkins.plugins.credentials.secretsmanager.util.assertions.CustomSoftAssertions;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -24,10 +26,8 @@ import java.security.KeyStore;
 import java.security.cert.Certificate;
 import java.util.List;
 
-import static io.jenkins.plugins.credentials.secretsmanager.util.Crypto.keystoreToMap;
-import static org.assertj.core.api.Assertions.*;
-import static org.assertj.core.api.SoftAssertions.assertSoftly;
-import static io.jenkins.plugins.credentials.secretsmanager.util.assertions.CustomAssertions.*;
+import static io.jenkins.plugins.credentials.secretsmanager.util.assertions.CustomAssertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 
 /**
@@ -39,7 +39,7 @@ public class StandardCertificateCredentialsIT implements CredentialsTests {
     private static final KeyPair KEY_PAIR = Crypto.newKeyPair();
     private static final char[] PASSWORD = new char[]{};
     private static final String CN = "CN=localhost";
-    private static final Certificate CERT = Crypto.newSelfSignedCertificate(CN, KEY_PAIR);
+    private static final Certificate[] CERTIFICATE_CHAIN = { Crypto.newSelfSignedCertificate(CN, KEY_PAIR) };
 
     public final MyJenkinsConfiguredWithCodeRule jenkins = new MyJenkinsConfiguredWithCodeRule();
     public final AWSSecretsManagerRule secretsManager = new AutoErasingAWSSecretsManagerRule();
@@ -54,7 +54,7 @@ public class StandardCertificateCredentialsIT implements CredentialsTests {
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportListView() {
         // Given
-        final KeyStore keyStore = Crypto.singletonKeyStore(ALIAS, KEY_PAIR.getPrivate(), PASSWORD, new Certificate[]{CERT});
+        final KeyStore keyStore = Crypto.singletonKeyStore(ALIAS, KEY_PAIR.getPrivate(), PASSWORD, CERTIFICATE_CHAIN);
         final CreateSecretResult foo = createCertificateSecret(Crypto.save(keyStore, PASSWORD));
 
         // When
@@ -68,7 +68,7 @@ public class StandardCertificateCredentialsIT implements CredentialsTests {
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldHaveDescriptorIcon() {
-        final byte[] keystore = Crypto.save(Crypto.singletonKeyStore(ALIAS, KEY_PAIR.getPrivate(), PASSWORD, new Certificate[]{CERT}), PASSWORD);
+        final byte[] keystore = Crypto.save(Crypto.singletonKeyStore(ALIAS, KEY_PAIR.getPrivate(), PASSWORD, CERTIFICATE_CHAIN), PASSWORD);
         final CreateSecretResult foo = createCertificateSecret(keystore);
         final StandardCertificateCredentials ours = lookup(StandardCertificateCredentials.class, foo.getName());
 
@@ -82,7 +82,7 @@ public class StandardCertificateCredentialsIT implements CredentialsTests {
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldHaveId() {
         // Given
-        final KeyStore keyStore = Crypto.singletonKeyStore(ALIAS, KEY_PAIR.getPrivate(), PASSWORD, new Certificate[]{CERT});
+        final KeyStore keyStore = Crypto.singletonKeyStore(ALIAS, KEY_PAIR.getPrivate(), PASSWORD, CERTIFICATE_CHAIN);
         final CreateSecretResult foo = createCertificateSecret(Crypto.save(keyStore, PASSWORD));
 
         // When
@@ -97,7 +97,7 @@ public class StandardCertificateCredentialsIT implements CredentialsTests {
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldHaveEmptyPassword() {
         // Given
-        final KeyStore keyStore = Crypto.singletonKeyStore(ALIAS, KEY_PAIR.getPrivate(), PASSWORD, new Certificate[]{CERT});
+        final KeyStore keyStore = Crypto.singletonKeyStore(ALIAS, KEY_PAIR.getPrivate(), PASSWORD, CERTIFICATE_CHAIN);
         final CreateSecretResult foo = createCertificateSecret(Crypto.save(keyStore, PASSWORD));
 
         // When
@@ -112,22 +112,22 @@ public class StandardCertificateCredentialsIT implements CredentialsTests {
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldHaveKeystore() {
         // Given
-        final KeyStore keyStore = Crypto.singletonKeyStore(ALIAS, KEY_PAIR.getPrivate(), PASSWORD, new Certificate[]{CERT});
+        final KeyStore keyStore = Crypto.singletonKeyStore(ALIAS, KEY_PAIR.getPrivate(), PASSWORD, CERTIFICATE_CHAIN);
         final CreateSecretResult foo = createCertificateSecret(Crypto.save(keyStore, PASSWORD));
 
         // When
         final StandardCertificateCredentials credential = lookup(StandardCertificateCredentials.class, foo.getName());
 
         // Then
-        assertThat(Crypto.keystoreToMap(credential.getKeyStore()))
-                .containsEntry(ALIAS, Lists.of(CERT));
+        assertThat(credential.getKeyStore())
+                .containsEntry(ALIAS, CERTIFICATE_CHAIN);
     }
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportWithCredentialsBinding() {
         // Given
-        final KeyStore keyStore = Crypto.singletonKeyStore(ALIAS, KEY_PAIR.getPrivate(), PASSWORD, new Certificate[]{CERT});
+        final KeyStore keyStore = Crypto.singletonKeyStore(ALIAS, KEY_PAIR.getPrivate(), PASSWORD, CERTIFICATE_CHAIN);
         final CreateSecretResult foo = createCertificateSecret(Crypto.save(keyStore, PASSWORD));
 
         // When
@@ -140,7 +140,7 @@ public class StandardCertificateCredentialsIT implements CredentialsTests {
 
         // Then
         assertThat(run)
-                .hasResult(hudson.model.Result.SUCCESS)
+                .hasResult(Result.SUCCESS)
                 .hasLogContaining("Credential: {keystore: ****}");
     }
 
@@ -153,7 +153,7 @@ public class StandardCertificateCredentialsIT implements CredentialsTests {
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportSnapshots() {
         // Given
-        final KeyStore keyStore = Crypto.singletonKeyStore(ALIAS, KEY_PAIR.getPrivate(), PASSWORD, new Certificate[]{CERT});
+        final KeyStore keyStore = Crypto.singletonKeyStore(ALIAS, KEY_PAIR.getPrivate(), PASSWORD, CERTIFICATE_CHAIN);
         final CreateSecretResult foo = createCertificateSecret(Crypto.save(keyStore, PASSWORD));
         final StandardCertificateCredentials before = lookup(StandardCertificateCredentials.class, foo.getName());
 
@@ -161,11 +161,11 @@ public class StandardCertificateCredentialsIT implements CredentialsTests {
         final StandardCertificateCredentials after = CredentialSnapshots.snapshot(before);
 
         // Then
-        assertSoftly(s -> {
-            s.assertThat(after.getId()).as("ID").isEqualTo(before.getId());
-            s.assertThat(after.getPassword()).as("Password").isEqualTo(before.getPassword());
-            s.assertThat(keystoreToMap(after.getKeyStore())).as("KeyStore").containsEntry(ALIAS, Lists.of(CERT));
-        });
+        final CustomSoftAssertions s = new CustomSoftAssertions();
+        s.assertThat(after).hasId(before.getId());
+        s.assertThat(after).hasPassword(before.getPassword());
+        s.assertThat(after.getKeyStore()).containsEntry(ALIAS, CERTIFICATE_CHAIN);
+        s.assertAll();
     }
 
     @Test
@@ -178,7 +178,8 @@ public class StandardCertificateCredentialsIT implements CredentialsTests {
         final StandardCertificateCredentials credential = jenkins.getCredentials().lookup(StandardCertificateCredentials.class, foo.getName());
 
         // Then
-        assertThatThrownBy(credential::getKeyStore).isInstanceOf(CredentialsUnavailableException.class);
+        assertThatThrownBy(credential::getKeyStore)
+                .isInstanceOf(CredentialsUnavailableException.class);
     }
 
     private CreateSecretResult createCertificateSecret(byte[] secretBinary) {

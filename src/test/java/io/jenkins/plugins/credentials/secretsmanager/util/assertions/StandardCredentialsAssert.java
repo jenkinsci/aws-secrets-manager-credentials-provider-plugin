@@ -3,20 +3,19 @@ package io.jenkins.plugins.credentials.secretsmanager.util.assertions;
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import org.assertj.core.api.AbstractAssert;
 
-import java.util.List;
 import java.util.Objects;
 
-public class StandardCredentialsAssert <T extends StandardCredentials> extends AbstractAssert<StandardCredentialsAssert<T>, T> {
+public class StandardCredentialsAssert extends AbstractAssert<StandardCredentialsAssert, StandardCredentials> {
 
-    public StandardCredentialsAssert(T actual) {
+    public StandardCredentialsAssert(StandardCredentials actual) {
         super(actual, StandardCredentialsAssert.class);
     }
 
-    public StandardCredentialsAssert(T actual, Class<?> klass) {
+    public StandardCredentialsAssert(StandardCredentials actual, Class<?> klass) {
         super(actual, klass);
     }
 
-    public StandardCredentialsAssert<T> hasId(String id) {
+    public StandardCredentialsAssert hasId(String id) {
         isNotNull();
 
         if (!Objects.equals(actual.getId(), id)) {
@@ -26,7 +25,7 @@ public class StandardCredentialsAssert <T extends StandardCredentials> extends A
         return this;
     }
 
-    public StandardCredentialsAssert<T> hasSameDescriptorIconAs(StandardCredentials other) {
+    public StandardCredentialsAssert hasSameDescriptorIconAs(StandardCredentials other) {
         isNotNull();
 
         final String ourIconClassName = actual.getDescriptor().getIconClassName();

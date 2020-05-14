@@ -1,6 +1,7 @@
 package io.jenkins.plugins.credentials.secretsmanager.util.assertions;
 
 import com.google.common.io.ByteStreams;
+import org.assertj.core.api.AbstractAssert;
 import org.jenkinsci.plugins.plaincredentials.FileCredentials;
 
 import java.io.IOException;
@@ -8,7 +9,7 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Objects;
 
-public class FileCredentialsAssert extends StandardCredentialsAssert<FileCredentials> {
+public class FileCredentialsAssert extends AbstractAssert<FileCredentialsAssert, FileCredentials> {
 
     public FileCredentialsAssert(FileCredentials actual) {
         super(actual, FileCredentialsAssert.class);
@@ -53,6 +54,18 @@ public class FileCredentialsAssert extends StandardCredentialsAssert<FileCredent
         } catch (IOException e) {
             failWithMessage("Could not get file credential's content");
         }
+
+        return this;
+    }
+
+    public FileCredentialsAssert hasId(String id) {
+        new StandardCredentialsAssert(actual).hasId(id);
+
+        return this;
+    }
+
+    public FileCredentialsAssert hasSameDescriptorIconAs(FileCredentials theirs) {
+        new StandardCredentialsAssert(actual).hasSameDescriptorIconAs(theirs);
 
         return this;
     }

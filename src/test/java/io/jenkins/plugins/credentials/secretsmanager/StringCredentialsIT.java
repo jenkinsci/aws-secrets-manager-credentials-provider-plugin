@@ -60,7 +60,8 @@ public class StringCredentialsIT implements CredentialsTests {
         final StringCredentials credential = jenkins.getCredentials().lookup(StringCredentials.class, foo.getName());
 
         // Then
-        assertThat(credential).hasId(foo.getName());
+        assertThat(credential)
+                .hasId(foo.getName());
     }
 
     @Test
@@ -73,7 +74,8 @@ public class StringCredentialsIT implements CredentialsTests {
         final StringCredentials credential = jenkins.getCredentials().lookup(StringCredentials.class, foo.getName());
 
         // Then
-        assertThat(credential).hasSecret(SECRET);
+        assertThat(credential)
+                .hasSecret(SECRET);
     }
 
     @Test
