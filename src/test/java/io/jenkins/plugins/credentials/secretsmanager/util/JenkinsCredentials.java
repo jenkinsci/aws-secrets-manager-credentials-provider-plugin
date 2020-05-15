@@ -2,6 +2,7 @@ package io.jenkins.plugins.credentials.secretsmanager.util;
 
 import com.cloudbees.plugins.credentials.Credentials;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
+import com.cloudbees.plugins.credentials.CredentialsStore;
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import hudson.security.ACL;
 import hudson.util.ListBoxModel;
@@ -18,6 +19,10 @@ public class JenkinsCredentials {
 
     public JenkinsCredentials(Jenkins jenkins) {
         this.jenkins = jenkins;
+    }
+
+    public Iterable<CredentialsStore> lookupStores() {
+        return CredentialsProvider.lookupStores(jenkins);
     }
 
     public <C extends Credentials> List<C> lookup(Class<C> type) {

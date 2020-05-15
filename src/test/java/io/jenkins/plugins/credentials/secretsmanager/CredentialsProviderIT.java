@@ -4,7 +4,6 @@ import com.amazonaws.services.secretsmanager.model.CreateSecretRequest;
 import com.amazonaws.services.secretsmanager.model.CreateSecretResult;
 import com.amazonaws.services.secretsmanager.model.DeleteSecretRequest;
 import com.amazonaws.services.secretsmanager.model.Tag;
-import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.CredentialsScope;
 import com.cloudbees.plugins.credentials.CredentialsStore;
 import com.cloudbees.plugins.credentials.CredentialsUnavailableException;
@@ -47,7 +46,7 @@ public class CredentialsProviderIT {
 
     @Before
     public void setupStore() {
-        store = CredentialsProvider.lookupStores(jenkins.jenkins).iterator().next();
+        store = jenkins.getCredentials().lookupStores().iterator().next();
     }
 
     @Test
