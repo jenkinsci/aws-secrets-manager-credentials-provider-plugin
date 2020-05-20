@@ -343,5 +343,3 @@ In your IDE:
 3. Start Moto: `mvn docker:build docker:start`.
 4. Run tests.
 5. Stop Moto: `mvn docker:stop`.
-
-## [Delete me] Retest
