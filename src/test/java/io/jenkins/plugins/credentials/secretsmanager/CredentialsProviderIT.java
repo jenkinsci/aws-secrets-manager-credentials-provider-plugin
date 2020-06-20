@@ -1,41 +1,59 @@
 package io.jenkins.plugins.credentials.secretsmanager;
 
+import com.amazonaws.services.secretsmanager.model.CreateSecretRequest;
+import com.amazonaws.services.secretsmanager.model.CreateSecretResult;
+import com.amazonaws.services.secretsmanager.model.DeleteSecretRequest;
+import com.amazonaws.services.secretsmanager.model.Tag;
 import com.cloudbees.plugins.credentials.CredentialsScope;
+import com.cloudbees.plugins.credentials.CredentialsStore;
 import com.cloudbees.plugins.credentials.CredentialsUnavailableException;
+import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import com.cloudbees.plugins.credentials.domains.Domain;
-
-import io.jenkins.plugins.credentials.secretsmanager.factory.Tags;
-import io.jenkins.plugins.credentials.secretsmanager.factory.Type;
-import io.jenkins.plugins.credentials.secretsmanager.util.Maps;
-import org.jenkinsci.plugins.plaincredentials.StringCredentials;
-import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl;
-import org.junit.Test;
-
-import java.util.Collections;
-import java.util.List;
-
+import hudson.util.ListBoxModel;
 import hudson.util.Secret;
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
-import io.jenkins.plugins.credentials.secretsmanager.util.CreateSecretOperation;
-import io.jenkins.plugins.credentials.secretsmanager.util.CreateSecretOperation.Result;
+import io.jenkins.plugins.credentials.secretsmanager.factory.Type;
+import io.jenkins.plugins.credentials.secretsmanager.util.*;
+import org.jenkinsci.plugins.plaincredentials.StringCredentials;
+import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.RuleChain;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.tuple;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
 
 /**
  * The plugin should support CredentialsProvider usage to list available credentials.
  */
-public class CredentialsProviderIT extends AbstractPluginIT {
+public class CredentialsProviderIT {
 
     private static final String SECRET = "supersecret";
+
+    public final MyJenkinsConfiguredWithCodeRule jenkins = new MyJenkinsConfiguredWithCodeRule();
+    public final AWSSecretsManagerRule secretsManager = new AutoErasingAWSSecretsManagerRule();
+
+    @Rule
+    public final RuleChain chain = RuleChain
+            .outerRule(Rules.awsAccessKey("fake", "fake"))
+            .around(jenkins)
+            .around(secretsManager);
+
+    private CredentialsStore store;
+
+    @Before
+    public void setupStore() {
+        store = jenkins.getCredentials().lookupStores().iterator().next();
+    }
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldStartEmpty() {
         // When
-        final List<StringCredentials> credentials = lookupCredentials(StringCredentials.class);
+        final List<StringCredentials> credentials = lookup(StringCredentials.class);
 
         // Then
         assertThat(credentials).isEmpty();
@@ -45,7 +63,7 @@ public class CredentialsProviderIT extends AbstractPluginIT {
     @ConfiguredWithCode(value = "/default.yml")
     public void shouldFailGracefullyWhenSecretsManagerUnavailable() {
         // When
-        final List<StringCredentials> credentials = lookupCredentials(StringCredentials.class);
+        final List<StringCredentials> credentials = lookup(StringCredentials.class);
 
         // Then
         assertThat(credentials).isEmpty();
@@ -55,25 +73,27 @@ public class CredentialsProviderIT extends AbstractPluginIT {
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldUseSecretNameAsCredentialName() {
         // Given
-        final Result foo = createStringSecret(SECRET);
+        final CreateSecretResult foo = createStringSecret(SECRET);
 
         // When
-        final List<String> credentialNames = lookupCredentialNames(StringCredentials.class);
+        final ListBoxModel credentialNames = jenkins.getCredentials().list(StringCredentials.class);
 
         // Then
-        assertThat(credentialNames).containsOnly(foo.getName());
+        assertThat(credentialNames)
+                .extracting("name")
+                .containsOnly(foo.getName());
     }
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldTolerateDeletedCredentials() {
         // Given
-        final CreateSecretOperation.Result foo = createStringSecret(SECRET);
-        final CreateSecretOperation.Result bar = createOtherStringSecret(SECRET);
+        final CreateSecretResult foo = createStringSecret(SECRET);
+        final CreateSecretResult bar = createStringSecret(SECRET);
 
         // When
         deleteSecret(bar.getName());
-        final List<StringCredentials> credentials = lookupCredentials(StringCredentials.class);
+        final List<StringCredentials> credentials = lookup(StringCredentials.class);
 
         // Then
         assertThat(credentials)
@@ -85,11 +105,11 @@ public class CredentialsProviderIT extends AbstractPluginIT {
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldTolerateRecentlyDeletedCredentials() {
         // Given
-        final CreateSecretOperation.Result foo = createStringSecret(SECRET);
-        final CreateSecretOperation.Result bar = createOtherStringSecret(SECRET);
+        final CreateSecretResult foo = createStringSecret(SECRET);
+        final CreateSecretResult bar = createStringSecret(SECRET);
 
         // When
-        final List<StringCredentials> credentials = lookupCredentials(StringCredentials.class);
+        final List<StringCredentials> credentials = lookup(StringCredentials.class);
         deleteSecret(bar.getName());
 
         // Then
@@ -106,13 +126,11 @@ public class CredentialsProviderIT extends AbstractPluginIT {
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldIgnoreUntaggedSecrets() {
         // Given
-        final CreateSecretOperation.Result foo = createStringSecret(SECRET);
-        final CreateSecretOperation.Result bar = createOtherSecret(SECRET, opts -> {
-            opts.tags = Collections.emptyMap();
-        });
+        final CreateSecretResult foo = createStringSecret(SECRET);
+        final CreateSecretResult bar = createSecret(SECRET, Lists.of());
 
         // When
-        final List<StringCredentials> credentials = lookupCredentials(StringCredentials.class);
+        final List<StringCredentials> credentials = lookup(StringCredentials.class);
 
         // Then
         assertThat(credentials)
@@ -124,16 +142,16 @@ public class CredentialsProviderIT extends AbstractPluginIT {
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldTolerateUnrelatedTags() {
         // Given
-        final CreateSecretOperation.Result foo = createSecret(SECRET, opts -> {
-            opts.tags = Maps.of(
-                    Tags.type, Type.string,
-                    "foo", "bar",
-                    null, "baz",
-                    "qux", null);
-        });
+        final List<Tag> tags = Lists.of(
+                AwsTags.type(Type.string),
+                AwsTags.tag("foo", "bar"),
+                AwsTags.tag(null, "baz"),
+                AwsTags.tag("qux", null));
+
+        final CreateSecretResult foo = createSecret(SECRET, tags);
 
         // When
-        final List<StringCredentials> credentials = lookupCredentials(StringCredentials.class);
+        final List<StringCredentials> credentials = lookup(StringCredentials.class);
 
         // Then
         assertThat(credentials)
@@ -147,7 +165,7 @@ public class CredentialsProviderIT extends AbstractPluginIT {
         final StringCredentialsImpl credential = new StringCredentialsImpl(CredentialsScope.GLOBAL,"foo", "desc", Secret.fromString(SECRET));
 
         assertThatExceptionOfType(UnsupportedOperationException.class)
-                .isThrownBy(() -> store().updateCredentials(Domain.global(), credential, credential))
+                .isThrownBy(() -> store.updateCredentials(Domain.global(), credential, credential))
                 .withMessage("Jenkins may not update credentials in AWS Secrets Manager");
     }
 
@@ -155,7 +173,7 @@ public class CredentialsProviderIT extends AbstractPluginIT {
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldNotSupportInserts() {
         assertThatExceptionOfType(UnsupportedOperationException.class)
-                .isThrownBy(() -> store().addCredentials(Domain.global(), new StringCredentialsImpl(CredentialsScope.GLOBAL, "foo", "desc", Secret.fromString(SECRET))))
+                .isThrownBy(() -> store.addCredentials(Domain.global(), new StringCredentialsImpl(CredentialsScope.GLOBAL, "foo", "desc", Secret.fromString(SECRET))))
                 .withMessage("Jenkins may not add credentials to AWS Secrets Manager");
     }
 
@@ -163,7 +181,31 @@ public class CredentialsProviderIT extends AbstractPluginIT {
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldNotSupportDeletes() {
         assertThatExceptionOfType(UnsupportedOperationException.class)
-                .isThrownBy(() -> store().removeCredentials(Domain.global(), new StringCredentialsImpl(CredentialsScope.GLOBAL, "foo", "desc", Secret.fromString(SECRET))))
+                .isThrownBy(() -> store.removeCredentials(Domain.global(), new StringCredentialsImpl(CredentialsScope.GLOBAL, "foo", "desc", Secret.fromString(SECRET))))
                 .withMessage("Jenkins may not remove credentials from AWS Secrets Manager");
+    }
+
+    private <C extends StandardCredentials> List<C> lookup(Class<C> type) {
+        return jenkins.getCredentials().lookup(type);
+    }
+
+    private void deleteSecret(String secretId) {
+        final DeleteSecretRequest request = new DeleteSecretRequest().withSecretId(secretId);
+        secretsManager.getClient().deleteSecret(request);
+    }
+
+    private CreateSecretResult createStringSecret(String secretString) {
+        final List<Tag> tags = Lists.of(AwsTags.type(Type.string));
+
+        return createSecret(secretString, tags);
+    }
+
+    private CreateSecretResult createSecret(String secretString, List<Tag> tags) {
+        final CreateSecretRequest request = new CreateSecretRequest()
+                .withName(CredentialNames.random())
+                .withSecretString(secretString)
+                .withTags(tags);
+
+        return secretsManager.getClient().createSecret(request);
     }
 }

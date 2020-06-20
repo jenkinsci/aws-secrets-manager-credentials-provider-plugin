@@ -1,125 +1,139 @@
 package io.jenkins.plugins.credentials.secretsmanager;
 
+import com.amazonaws.services.secretsmanager.model.CreateSecretRequest;
+import com.amazonaws.services.secretsmanager.model.CreateSecretResult;
+import com.amazonaws.services.secretsmanager.model.Tag;
 import com.cloudbees.jenkins.plugins.sshcredentials.SSHUserPrivateKey;
 import com.cloudbees.jenkins.plugins.sshcredentials.impl.BasicSSHUserPrivateKey;
+import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import hudson.util.ListBoxModel;
-import hudson.util.Secret;
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
-import io.jenkins.plugins.credentials.secretsmanager.util.CreateSecretOperation;
-import io.jenkins.plugins.credentials.secretsmanager.util.Crypto;
-import io.jenkins.plugins.credentials.secretsmanager.util.Strings;
-import io.jenkins.plugins.credentials.secretsmanager.util.assertions.WorkflowRunAssert;
+import io.jenkins.plugins.credentials.secretsmanager.factory.Type;
+import io.jenkins.plugins.credentials.secretsmanager.util.*;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.RuleChain;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
-import static org.assertj.core.api.SoftAssertions.assertSoftly;
+import java.util.List;
+
+import static io.jenkins.plugins.credentials.secretsmanager.util.assertions.CustomAssertions.assertThat;
 
 /**
  * The plugin should support SSH private key credentials.
  */
-public class SSHUserPrivateKeyIT extends AbstractPluginIT implements CredentialsTests {
+public class SSHUserPrivateKeyIT implements CredentialsTests {
 
-    private static final Secret EMPTY_PASSPHRASE = Secret.fromString("");
     private static final String PRIVATE_KEY = Crypto.newPrivateKey();
     private static final String USERNAME = "joe";
+
+    public final MyJenkinsConfiguredWithCodeRule jenkins = new MyJenkinsConfiguredWithCodeRule();
+    public final AWSSecretsManagerRule secretsManager = new AutoErasingAWSSecretsManagerRule();
+
+    @Rule
+    public final RuleChain chain = RuleChain
+            .outerRule(Rules.awsAccessKey("fake", "fake"))
+            .around(jenkins)
+            .around(secretsManager);
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportListView() {
         // Given
-        final CreateSecretOperation.Result foo = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
+        final CreateSecretResult foo = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
 
         // When
-        final ListBoxModel list = listCredentials(SSHUserPrivateKey.class);
+        final ListBoxModel list = jenkins.getCredentials().list(SSHUserPrivateKey.class);
 
         // Then
         assertThat(list)
-                .extracting("name", "value")
-                .containsOnly(tuple(USERNAME, foo.getName()));
+                .containsOption(USERNAME, foo.getName());
     }
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldHaveId() {
         // Given
-        final CreateSecretOperation.Result foo = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
+        final CreateSecretResult foo = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
 
         // When
-        final SSHUserPrivateKey credential = lookupCredential(SSHUserPrivateKey.class, foo.getName());
+        final SSHUserPrivateKey credential = lookup(SSHUserPrivateKey.class, foo.getName());
 
         // Then
-        assertThat(credential.getId()).isEqualTo(foo.getName());
+        assertThat(credential)
+                .hasId(foo.getName());
     }
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldHaveUsername() {
         // Given
-        final CreateSecretOperation.Result foo = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
+        final CreateSecretResult foo = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
 
         // When
-        final SSHUserPrivateKey credential = lookupCredential(SSHUserPrivateKey.class, foo.getName());
+        final SSHUserPrivateKey credential = lookup(SSHUserPrivateKey.class, foo.getName());
 
         // Then
-        assertThat(credential.getUsername()).isEqualTo(USERNAME);
+        assertThat(credential)
+                .hasUsername(USERNAME);
     }
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldHavePrivateKey() {
         // Given
-        final CreateSecretOperation.Result foo = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
+        final CreateSecretResult foo = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
 
         // When
-        final SSHUserPrivateKey credential = lookupCredential(SSHUserPrivateKey.class, foo.getName());
+        final SSHUserPrivateKey credential = lookup(SSHUserPrivateKey.class, foo.getName());
 
         // Then
-        assertThat(credential.getPrivateKeys()).containsOnly(PRIVATE_KEY);
+        assertThat(credential)
+                .hasPrivateKeys(Lists.of(PRIVATE_KEY));
     }
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldHaveEmptyPassphrase() {
         // Given
-        final CreateSecretOperation.Result foo = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
+        final CreateSecretResult foo = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
 
         // When
-        final SSHUserPrivateKey credential = lookupCredential(SSHUserPrivateKey.class, foo.getName());
+        final SSHUserPrivateKey credential = lookup(SSHUserPrivateKey.class, foo.getName());
 
         // Then
-        assertThat(credential.getPassphrase()).isEqualTo(EMPTY_PASSPHRASE);
+        assertThat(credential)
+                .doesNotHavePassphrase();
     }
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldHaveDescriptorIcon() {
-        final CreateSecretOperation.Result foo = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
-        final SSHUserPrivateKey ours = lookupCredential(SSHUserPrivateKey.class, foo.getName());
+        final CreateSecretResult foo = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
+        final SSHUserPrivateKey ours = lookup(SSHUserPrivateKey.class, foo.getName());
 
         final BasicSSHUserPrivateKey theirs = new BasicSSHUserPrivateKey(null, "id", "username", null, "passphrase", "description");
 
-        assertThat(ours.getDescriptor().getIconClassName())
-                .isEqualTo(theirs.getDescriptor().getIconClassName());
+        assertThat(ours)
+                .hasSameDescriptorIconAs(theirs);
     }
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportWithCredentialsBinding() {
         // Given
-        final CreateSecretOperation.Result foo = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
+        final CreateSecretResult foo = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
 
         // When
-        final WorkflowRun run = runPipeline(Strings.m("",
+        final WorkflowRun run = runPipeline("",
                 "node {",
                 "  withCredentials([sshUserPrivateKey(credentialsId: '" + foo.getName() + "', keyFileVariable: 'KEYFILE', usernameVariable: 'USERNAME')]) {",
                 "    echo \"Credential: {username: $USERNAME, keyFile: $KEYFILE}\"",
                 "  }",
-                "}"));
+                "}");
 
         // Then
-        WorkflowRunAssert.assertThat(run)
+        assertThat(run)
                 .hasResult(hudson.model.Result.SUCCESS)
                 .hasLogContaining("Credential: {username: ****, keyFile: ****}");
     }
@@ -128,10 +142,10 @@ public class SSHUserPrivateKeyIT extends AbstractPluginIT implements Credentials
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportEnvironmentBinding() {
         // Given
-        final CreateSecretOperation.Result foo = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
+        final CreateSecretResult foo = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
 
         // When
-        final WorkflowRun run = runPipeline(Strings.m("",
+        final WorkflowRun run = runPipeline("",
                 "pipeline {",
                 "  agent any",
                 "  stages {",
@@ -144,10 +158,10 @@ public class SSHUserPrivateKeyIT extends AbstractPluginIT implements Credentials
                 "      }",
                 "    }",
                 "  }",
-                "}"));
+                "}");
 
         // Then
-        WorkflowRunAssert.assertThat(run)
+        assertThat(run)
                 .hasResult(hudson.model.Result.SUCCESS)
                 .hasLogContaining("{variable: ****, username: ****}");
     }
@@ -156,18 +170,38 @@ public class SSHUserPrivateKeyIT extends AbstractPluginIT implements Credentials
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportSnapshots() {
         // Given
-        final CreateSecretOperation.Result foo = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
-        final SSHUserPrivateKey before = lookupCredential(SSHUserPrivateKey.class, foo.getName());
+        final CreateSecretResult foo = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
+        final SSHUserPrivateKey before = lookup(SSHUserPrivateKey.class, foo.getName());
 
         // When
-        final SSHUserPrivateKey after = snapshot(before);
+        final SSHUserPrivateKey after = CredentialSnapshots.snapshot(before);
 
         // Then
-        assertSoftly(s -> {
-            s.assertThat(after.getId()).as("ID").isEqualTo(before.getId());
-            s.assertThat(after.getUsername()).as("Username").isEqualTo(before.getUsername());
-            s.assertThat(after.getPassphrase()).as("Passphrase").isEqualTo(before.getPassphrase());
-            s.assertThat(after.getPrivateKeys()).as("Private Key").isEqualTo(before.getPrivateKeys());
-        });
+        assertThat(after)
+                .hasUsername(before.getUsername())
+                .hasPassphrase(before.getPassphrase())
+                .hasPrivateKeys(before.getPrivateKeys())
+                .hasId(before.getId());
+    }
+
+    private CreateSecretResult createSshUserPrivateKeySecret(String username, String privateKey) {
+        final List<Tag> tags = Lists.of(
+                AwsTags.type(Type.sshUserPrivateKey),
+                AwsTags.username(username));
+
+        final CreateSecretRequest request = new CreateSecretRequest()
+                .withName(CredentialNames.random())
+                .withSecretString(privateKey)
+                .withTags(tags);
+
+        return secretsManager.getClient().createSecret(request);
+    }
+
+    private <C extends StandardCredentials> C lookup(Class<C> type, String id) {
+        return jenkins.getCredentials().lookup(type, id);
+    }
+
+    private WorkflowRun runPipeline(String... pipeline) {
+        return jenkins.getPipelines().run(Strings.m(pipeline));
     }
 }

@@ -5,7 +5,9 @@ import com.gargoylesoftware.htmlunit.html.DomNode;
 import com.gargoylesoftware.htmlunit.html.HtmlButton;
 import com.gargoylesoftware.htmlunit.html.HtmlElement;
 import io.jenkins.plugins.credentials.secretsmanager.util.JenkinsConfiguredWithWebRule;
+import io.jenkins.plugins.credentials.secretsmanager.util.Rules;
 import org.junit.Rule;
+import org.junit.rules.RuleChain;
 
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicReference;
@@ -13,15 +15,19 @@ import java.util.stream.Collectors;
 
 public class CheckConnectionWebIT extends AbstractCheckConnectionIT {
 
+    public final JenkinsConfiguredWithWebRule jenkins = new JenkinsConfiguredWithWebRule();
+
     @Rule
-    public final JenkinsConfiguredWithWebRule r = new JenkinsConfiguredWithWebRule();
+    public final RuleChain chain = RuleChain
+            .outerRule(Rules.awsAccessKey("fake", "fake"))
+            .around(jenkins);
 
     @Override
     protected Result validate(String serviceEndpoint, String signingRegion) {
 
         AtomicReference<Result> result = new AtomicReference<>();
 
-        r.configure(form -> {
+        jenkins.configure(form -> {
             form.getInputByName("_.endpointConfiguration").setChecked(true);
             form.getInputByName("_.serviceEndpoint").setValueAttribute(serviceEndpoint);
             form.getInputByName("_.signingRegion").setValueAttribute(signingRegion);

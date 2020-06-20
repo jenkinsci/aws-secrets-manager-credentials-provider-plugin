@@ -1,17 +1,10 @@
 package io.jenkins.plugins.credentials.secretsmanager.config;
 
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
 
 public abstract class AbstractCheckConnectionIT {
-
-    @BeforeClass
-    public static void fakeAwsCredentials() {
-        System.setProperty("aws.accessKeyId", "test");
-        System.setProperty("aws.secretKey", "test");
-    }
 
     protected abstract Result validate(String serviceEndpoint, String signingRegion);
 

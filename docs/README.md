@@ -8,6 +8,7 @@ Access credentials from AWS Secrets Manager in your Jenkins jobs.
 ## Contents
 
 - [Caching](caching/index.md)
+- [Filters](filters/index.md)
 - [Networking](networking/index.md)
 - [Screenshots](screenshots/index.md)
 - Project
@@ -18,8 +19,8 @@ Access credentials from AWS Secrets Manager in your Jenkins jobs.
 ## Features
 
 - Read-only view of Secrets Manager.
+- `CredentialsProvider` and `SecretSource` API support.
 - Credential metadata caching (duration: 5 minutes).
-- Jenkins [Configuration As Code](https://github.com/jenkinsci/configuration-as-code-plugin) support.
 - [Cross-account](http://docs.aws.amazon.com/IAM/latest/UserGuide/tutorial_cross-account-with-roles.html) Secrets Manager support with IAM roles.
  
 ## Setup 
@@ -43,12 +44,20 @@ Optional permissions:
 
 ## Usage
 
-1. **Upload the secret** to Secrets Manager as shown below (see also the [AWS documentation](https://docs.aws.amazon.com/cli/latest/reference/secretsmanager/create-secret.html)).
-2. **Reference the secret** by name in your Jenkins job.
+The plugin supports the following secrets resolution APIs:
 
-A Secrets Manager secret acts as one of the following Jenkins credential types, depending on the `jenkins:credentials:type` tag that you add to it. The tag's value must be the relevant Jenkinsfile credentials binding [type name](https://jenkins.io/doc/pipeline/steps/credentials-binding/), e.g. `string` for Secret Text.
+- [CredentialsProvider](#CredentialsProvider) (high-level API)
+- [SecretSource](#SecretSource) (low-level API)
 
-### Secret Text
+Note: Any string secret is accessible through SecretSource, but only a secret with the `jenkins:credentials:type` tag is accessible through CredentialsProvider. This distinction allows you to share tagged secrets between both APIs, while untagged secrets are only accessible through SecretSource.
+
+### CredentialsProvider
+
+The plugin allows secrets from Secrets Manager to be used as Jenkins credentials.
+ 
+A secret will act as one of the following Jenkins [credential types](https://jenkins.io/doc/pipeline/steps/credentials-binding/), based on the `jenkins:credentials:type` tag that you add to it.
+
+#### Secret Text
 
 A simple text *secret*.
 
@@ -56,10 +65,9 @@ A simple text *secret*.
 - Tags:
   - `jenkins:credentials:type` = `string`
 
-:white_check_mark: Use this credential type whenever it is practical. It is the simplest and most widely compatible type.
+##### Example
 
-
-#### Example
+AWS CLI:
 
 ```bash
 aws secretsmanager create-secret --name 'newrelic-api-key' --secret-string 'abc123' --tags 'Key=jenkins:credentials:type,Value=string' --description 'Acme Corp Newrelic API key'
@@ -93,7 +101,7 @@ node {
 }
 ```
 
-### Username with Password
+#### Username with Password
 
 A *username* and *password* pair.
 
@@ -102,7 +110,9 @@ A *username* and *password* pair.
   - `jenkins:credentials:type` = `usernamePassword`
   - `jenkins:credentials:username` = *username*
 
-#### Example
+##### Example
+
+AWS CLI:
 
 ```bash
 aws secretsmanager create-secret --name 'artifactory' --secret-string 'supersecret' --tags 'Key=jenkins:credentials:type,Value=usernamePassword' 'Key=jenkins:credentials:username,Value=joe' --description 'Acme Corp Artifactory login'
@@ -137,7 +147,7 @@ node {
 }
 ```
 
-### SSH User Private Key
+#### SSH User Private Key
 
 An SSH *private key*, with a *username*.
 
@@ -148,7 +158,9 @@ An SSH *private key*, with a *username*.
 
 Common private key formats include PKCS#1 (starts with `-----BEGIN [ALGORITHM] PRIVATE KEY-----`) and PKCS#8 (starts with `-----BEGIN PRIVATE KEY-----`).
 
-#### Example
+##### Example
+
+AWS CLI:
 
 ```bash
 ssh-keygen -t rsa -b 4096 -C 'acme@example.com' -f id_rsa
@@ -184,7 +196,7 @@ node {
 }
 ```
 
-### Certificate
+#### Certificate
 
 A client certificate *keystore* in PKCS#12 format, encrypted with a zero-length password.
 
@@ -192,7 +204,9 @@ A client certificate *keystore* in PKCS#12 format, encrypted with a zero-length 
 - Tags:
   - `jenkins:credentials:type` = `certificate`
 
-#### Example
+##### Example
+
+AWS CLI:
 
 ```bash
 openssl pkcs12 -export -in /path/to/cert.pem -inkey /path/to/key.pem -out certificate.p12 -passout pass:
@@ -209,7 +223,7 @@ node {
 }
 ```
 
-### Secret File
+#### Secret File
 
 A secret file with binary *content* and an optional *filename*.
 
@@ -220,7 +234,9 @@ A secret file with binary *content* and an optional *filename*.
 
 The credential ID is used as the filename by default. In the rare cases when you need to override this (for example, if the credential ID would be an invalid filename on your filesystem), you can set the `jenkins:credentials:filename` tag.
 
-#### Example
+##### Example
+
+AWS CLI:
 
 ```bash
 echo -n $'\x01\x02\x03' > license.bin
@@ -253,6 +269,30 @@ node {
         echo 'Hello world'
     }
 }
+```
+
+### SecretSource
+
+The plugin allows JCasC to interpolate string secrets from Secrets Manager.
+
+#### Example
+
+AWS CLI:
+
+```bash
+aws secretsmanager create-secret --name 'my-password' --secret-string 'abc123' --description 'Jenkins user password'
+```
+
+JCasC:
+
+```yaml
+jenkins:
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+      - id: "foo"
+        password: "${my-password}"
 ```
 
 ## Configuration
@@ -304,14 +344,15 @@ All secrets must be uploaded via the AWS CLI or API. This is because the AWS Web
 
 In Maven:
 
-```bash
-mvn verify
+```shell script
+mvn clean verify
 ```
 
 In your IDE:
 
-1. Generate translations: `mvn localizer:generate`. (This is a one-off task. You only need to re-run this if you change the translations, or if you clean the Maven target directory.)
+1. Generate translations: `mvn localizer:generate`. (This is a one-off task. You only need to re-run this if you change the translations, or if you clean the Maven `target` directory.)
 2. Compile.
 3. Start Moto: `mvn docker:build docker:start`.
 4. Run tests.
 5. Stop Moto: `mvn docker:stop`.
+

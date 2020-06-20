@@ -5,7 +5,7 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
 
-public abstract class AbstractPluginConfigurationTest {
+public abstract class AbstractPluginConfigurationIT {
 
     protected abstract PluginConfiguration getPluginConfiguration();
 

@@ -6,10 +6,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.SoftAssertions.assertSoftly;
-
-public class PluginCasCConfigurationTest extends AbstractPluginConfigurationTest {
+public class PluginCasCConfigurationIT extends AbstractPluginConfigurationIT {
     @Rule
     public JenkinsRule r = new JenkinsConfiguredWithCodeRule();
 

@@ -1,6 +1,8 @@
 package io.jenkins.plugins.credentials.secretsmanager.config;
 
+import io.jenkins.plugins.credentials.secretsmanager.util.Rules;
 import org.junit.Rule;
+import org.junit.rules.RuleChain;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.xml.sax.SAXException;
 
@@ -11,8 +13,12 @@ import java.util.regex.Pattern;
 
 public class CheckConnectionApiIT extends AbstractCheckConnectionIT {
 
+    public final JenkinsRule jenkins = new JenkinsRule();
+
     @Rule
-    public JenkinsRule r = new JenkinsRule();
+    public final RuleChain chain = RuleChain
+            .outerRule(Rules.awsAccessKey("fake", "fake"))
+            .around(jenkins);
 
     @Override
     protected Result validate(String serviceEndpoint, String signingRegion) {
@@ -31,7 +37,7 @@ public class CheckConnectionApiIT extends AbstractCheckConnectionIT {
 
     private JenkinsRule.JSONWebResponse doPost(String path, Object json) {
         try {
-            return r.postJSON(path, json);
+            return jenkins.postJSON(path, json);
         } catch (SAXException | IOException e) {
             throw new RuntimeException(e);
         }

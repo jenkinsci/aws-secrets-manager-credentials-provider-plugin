@@ -13,10 +13,6 @@ public class WorkflowRunAssert extends AbstractAssert<WorkflowRunAssert, Workflo
         super(actual, WorkflowRunAssert.class);
     }
 
-    public static WorkflowRunAssert assertThat(WorkflowRun actual) {
-        return new WorkflowRunAssert(actual);
-    }
-
     public WorkflowRunAssert hasResult(Result result) {
         isNotNull();
 
