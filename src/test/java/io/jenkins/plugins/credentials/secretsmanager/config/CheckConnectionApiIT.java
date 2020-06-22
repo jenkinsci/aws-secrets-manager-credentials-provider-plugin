@@ -1,5 +1,6 @@
 package io.jenkins.plugins.credentials.secretsmanager.config;
 
+import io.jenkins.plugins.credentials.secretsmanager.util.FormValidationResult;
 import io.jenkins.plugins.credentials.secretsmanager.util.Rules;
 import org.junit.Rule;
 import org.junit.rules.RuleChain;
@@ -21,7 +22,7 @@ public class CheckConnectionApiIT extends AbstractCheckConnectionIT {
             .around(jenkins);
 
     @Override
-    protected Result validate(String serviceEndpoint, String signingRegion) {
+    protected FormValidationResult validate(String serviceEndpoint, String signingRegion) {
         final JenkinsRule.JSONWebResponse response = doPost(
                     String.format("descriptorByName/io.jenkins.plugins.credentials.secretsmanager.config.EndpointConfiguration/testConnection?serviceEndpoint=%s&signingRegion=%s", serviceEndpoint, signingRegion),
                     "");
@@ -29,9 +30,9 @@ public class CheckConnectionApiIT extends AbstractCheckConnectionIT {
         final ParsedBody parsedBody = getValidationMessage(response.getContentAsString(StandardCharsets.UTF_8));
 
         if (parsedBody.status.equals("ok")) {
-            return Result.success(parsedBody.msg);
+            return FormValidationResult.success(parsedBody.msg);
         } else {
-            return Result.error(parsedBody.msg);
+            return FormValidationResult.error(parsedBody.msg);
         }
     }
 
