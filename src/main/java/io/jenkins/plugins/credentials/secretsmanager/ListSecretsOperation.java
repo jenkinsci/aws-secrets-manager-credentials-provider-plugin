@@ -6,6 +6,7 @@ import com.amazonaws.services.secretsmanager.model.ListSecretsResult;
 import com.amazonaws.services.secretsmanager.model.SecretListEntry;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -15,7 +16,7 @@ import java.util.stream.Collectors;
  * Look up all secrets in Secrets Manager using the ListSecrets command. Paginate through secrets
  * until there are none left to get.
  */
-class ListSecretsOperation implements Supplier<List<SecretListEntry>> {
+class ListSecretsOperation implements Supplier<Collection<SecretListEntry>> {
 
     private final AWSSecretsManager client;
 
@@ -24,7 +25,7 @@ class ListSecretsOperation implements Supplier<List<SecretListEntry>> {
     }
 
     @Override
-    public List<SecretListEntry> get() {
+    public Collection<SecretListEntry> get() {
         final List<SecretListEntry> secretList = new ArrayList<>();
 
         Optional<String> nextToken = Optional.empty();
