@@ -1,6 +1,7 @@
 package io.jenkins.plugins.credentials.secretsmanager.config;
 
 import io.jenkins.plugins.credentials.secretsmanager.util.JenkinsConfiguredWithWebRule;
+import io.jenkins.plugins.credentials.secretsmanager.util.PluginConfigurationForm;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -18,35 +19,29 @@ public class PluginWebConfigurationIT extends AbstractPluginConfigurationIT {
 
     @Override
     protected void setEndpointConfiguration(String serviceEndpoint, String signingRegion) {
-        r.configure(form -> {
-            form.getInputByName("_.endpointConfiguration").setChecked(true);
-            form.getInputByName("_.serviceEndpoint").setValueAttribute(serviceEndpoint);
-            form.getInputByName("_.signingRegion").setValueAttribute(signingRegion);
+        r.configure(f -> {
+            final PluginConfigurationForm form = new PluginConfigurationForm(f);
+
+            form.setEndpointConfiguration(serviceEndpoint, signingRegion);
         });
     }
 
     @Override
     protected void setTagFilters(String key, String value) {
-        r.configure(form -> {
-            form.getInputByName("_.filters").setChecked(true);
+        r.configure(f -> {
+            final PluginConfigurationForm form = new PluginConfigurationForm(f);
 
-            form.getInputByName("_.tag").setChecked(true);
-            form.getInputByName("_.key").setValueAttribute(key);
-            form.getInputByName("_.value").setValueAttribute(value);
+            form.setFilter(key, value);
         });
     }
 
     @Test
     public void shouldCustomiseAndResetConfiguration() {
-        r.configure(form -> {
-            form.getInputByName("_.endpointConfiguration").setChecked(true);
-            form.getInputByName("_.serviceEndpoint").setValueAttribute("http://localhost:4584");
-            form.getInputByName("_.signingRegion").setValueAttribute("us-east-1");
+        r.configure(f -> {
+            final PluginConfigurationForm form = new PluginConfigurationForm(f);
 
-            form.getInputByName("_.filters").setChecked(true);
-            form.getInputByName("_.tag").setChecked(true);
-            form.getInputByName("_.key").setValueAttribute("product");
-            form.getInputByName("_.value").setValueAttribute("foobar");
+            form.setEndpointConfiguration("http://localhost:4584", "us-east-1");
+            form.setFilter("product", "foobar");
         });
 
         final PluginConfiguration configBefore = getPluginConfiguration();
@@ -56,9 +51,10 @@ public class PluginWebConfigurationIT extends AbstractPluginConfigurationIT {
             s.assertThat(configBefore.getFilters().getTag()).as("Filters").isNotNull();
         });
 
-        r.configure(form -> {
-            form.getInputByName("_.endpointConfiguration").setChecked(false);
-            form.getInputByName("_.filters").setChecked(false);
+        r.configure(f -> {
+            final PluginConfigurationForm form = new PluginConfigurationForm(f);
+
+            form.clear();
         });
 
         final PluginConfiguration configAfter = getPluginConfiguration();

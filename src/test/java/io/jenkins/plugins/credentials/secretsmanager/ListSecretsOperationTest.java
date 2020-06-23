@@ -44,7 +44,7 @@ import com.amazonaws.services.secretsmanager.model.UpdateSecretVersionStageResul
 
 import org.junit.Test;
 
-import java.util.List;
+import java.util.Collection;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -55,7 +55,7 @@ public class ListSecretsOperationTest {
         final ListSecretsResult result = new ListSecretsResult().withSecretList();
         final ListSecretsOperation strategy = new ListSecretsOperation(new MockAwsSecretsManager(result));
 
-        final List<SecretListEntry> secrets = strategy.get();
+        final Collection<SecretListEntry> secrets = strategy.get();
 
         assertThat(secrets).isEmpty();
     }
@@ -65,7 +65,7 @@ public class ListSecretsOperationTest {
         final ListSecretsResult result = new ListSecretsResult().withSecretList(new SecretListEntry().withName("foo").withDescription("bar"));
         final ListSecretsOperation strategy = new ListSecretsOperation(new MockAwsSecretsManager(result));
 
-        final List<SecretListEntry> secrets = strategy.get();
+        final Collection<SecretListEntry> secrets = strategy.get();
 
         assertThat(secrets).containsExactly(new SecretListEntry().withDescription("bar").withName("foo"));
     }
@@ -75,7 +75,7 @@ public class ListSecretsOperationTest {
         final ListSecretsResult result = new ListSecretsResult().withSecretList(new SecretListEntry().withName("foo").withDescription("bar").withTags(new Tag().withKey("key").withValue("value")));
         final ListSecretsOperation strategy = new ListSecretsOperation(new MockAwsSecretsManager(result));
 
-        final List<SecretListEntry> secrets = strategy.get();
+        final Collection<SecretListEntry> secrets = strategy.get();
 
         assertThat(secrets).containsExactly(new SecretListEntry().withDescription("bar").withName("foo").withTags(new Tag().withKey("key").withValue("value")));
     }
