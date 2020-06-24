@@ -319,6 +319,7 @@ You can set plugin configuration using Jenkins [Configuration As Code](https://g
 ```yaml
 unclassified:
   awsCredentialsProvider:
+    prefix: foo/bar # optional
     filters:
       tag:
         key: product

@@ -19,6 +19,7 @@ public class PluginConfiguration extends GlobalConfiguration {
      */
     private EndpointConfiguration endpointConfiguration;
 
+    private String prefix;
     private Filters filters;
 
     public PluginConfiguration() {
@@ -40,6 +41,17 @@ public class PluginConfiguration extends GlobalConfiguration {
         save();
     }
 
+    public String getPrefix() {
+        return prefix;
+    }
+
+    @DataBoundSetter
+    @SuppressWarnings("unused")
+    public void setPrefix(String prefix) {
+        this.prefix = prefix;
+        save();
+    }
+
     public Filters getFilters() {
         return filters;
     }
@@ -57,6 +69,7 @@ public class PluginConfiguration extends GlobalConfiguration {
         // Workaround: Set any optional struct fields to null before binding configuration.
         // https://groups.google.com/forum/#!msg/jenkinsci-dev/MuRJ-yPRRoo/AvoPZAgbAAAJ
         this.endpointConfiguration = null;
+        this.prefix = null;
         this.filters = null;
 
         req.bindJSON(this, json);

@@ -26,13 +26,16 @@ public class AwsSecretSource extends SecretSource {
 
     private static final String AWS_SERVICE_ENDPOINT = "AWS_SERVICE_ENDPOINT";
     private static final String AWS_SIGNING_REGION = "AWS_SIGNING_REGION";
+    private static final String AWS_SECRETS_MANAGER_PREFIX = "AWS_SECRETS_MANAGER_PREFIX";
 
     private transient AWSSecretsManager client = null;
+    private transient String prefix = null;
 
     @Override
     public Optional<String> reveal(String id) throws IOException {
         try {
-            final GetSecretValueResult result = client.getSecretValue(new GetSecretValueRequest().withSecretId(id));
+            final String secretId = prefix != null ? prefix + id : id;
+            final GetSecretValueResult result = client.getSecretValue(new GetSecretValueRequest().withSecretId(secretId));
 
             if (result.getSecretBinary() != null) {
                 throw new IOException(String.format("The binary secret '%s' is not supported. Please change its value to a string, or alternatively delete it.", result.getName()));
@@ -52,14 +55,15 @@ public class AwsSecretSource extends SecretSource {
     @Override
     public void init() {
         try {
-            client = createClient();
+            final PluginConfiguration config = PluginConfiguration.getInstance();
+            client = createClient(config);
+            prefix = getPrefix(config).orElse(null);
         } catch (SdkClientException e) {
             LOG.log(Level.WARNING, "Could not set up AWS Secrets Manager client. Reason: {0}", e.getMessage());
         }
     }
 
-    private static AWSSecretsManager createClient() throws SdkClientException {
-        final PluginConfiguration config = PluginConfiguration.getInstance();
+    private static AWSSecretsManager createClient(PluginConfiguration config) throws SdkClientException {
         final EndpointConfiguration ec = config.getEndpointConfiguration();
 
         final AWSSecretsManagerClientBuilder builder = AWSSecretsManagerClient.builder();
@@ -93,6 +97,14 @@ public class AwsSecretSource extends SecretSource {
             return Optional.of(ec.getSigningRegion());
         } else {
             return Optional.ofNullable(System.getenv(AWS_SIGNING_REGION));
+        }
+    }
+
+    private static Optional<String> getPrefix(PluginConfiguration config) {
+        if(config.getPrefix() != null) {
+            return Optional.of(config.getPrefix());
+        } else {
+            return Optional.ofNullable(System.getenv(AWS_SECRETS_MANAGER_PREFIX));
         }
     }
 }

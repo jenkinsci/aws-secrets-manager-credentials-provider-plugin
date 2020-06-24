@@ -43,6 +43,7 @@ import io.jenkins.plugins.credentials.secretsmanager.config.EndpointConfiguratio
 import io.jenkins.plugins.credentials.secretsmanager.config.Filters;
 import io.jenkins.plugins.credentials.secretsmanager.config.PluginConfiguration;
 import jenkins.model.Jenkins;
+import org.apache.commons.lang.StringUtils;
 
 @Extension
 public class AwsCredentialsProvider extends CredentialsProvider {
@@ -96,6 +97,7 @@ public class AwsCredentialsProvider extends CredentialsProvider {
 
         final PluginConfiguration config = PluginConfiguration.getInstance();
         final EndpointConfiguration ec = config.getEndpointConfiguration();
+        final String prefix = config.getPrefix();
         final Filters filters = config.getFilters();
 
         final AWSSecretsManagerClientBuilder builder = AWSSecretsManagerClient.builder();
@@ -108,18 +110,30 @@ public class AwsCredentialsProvider extends CredentialsProvider {
         }
         final AWSSecretsManager client = builder.build();
 
-        final Predicate<SecretListEntry> secretFilter;
+
+        final Predicate<SecretListEntry> prefixFilter;
+        if (prefix != null) {
+            prefixFilter = s -> s.getName().startsWith(prefix);
+        } else {
+            prefixFilter = s -> true;
+        }
+
+        final Predicate<SecretListEntry> tagFilter;
         if (filters != null && filters.getTag() != null) {
             final Tag filterTag = new Tag().withKey(filters.getTag().getKey()).withValue(filters.getTag().getValue());
-            secretFilter = s -> Optional.ofNullable(s.getTags()).orElse(Collections.emptyList()).contains(filterTag);
+            tagFilter = s -> Optional.ofNullable(s.getTags()).orElse(Collections.emptyList()).contains(filterTag);
         } else {
-            secretFilter = s -> true;
+            tagFilter = s -> true;
         }
 
         final Map<String, IdCredentials> credentials = new ListSecretsOperation(client).get().stream()
-                .filter(secretFilter)
+                .filter(prefixFilter)
+                .filter(tagFilter)
                 .flatMap(s -> {
-                    final String name = s.getName();
+                    String name = s.getName();
+                    if(prefix != null) {
+                        name = StringUtils.removeStart(name, prefix);
+                    }
                     final String description = Optional.ofNullable(s.getDescription()).orElse("");
                     final Map<String, String> tags = Optional.ofNullable(s.getTags()).orElse(Collections.emptyList()).stream()
                             .filter(tag -> (tag.getKey() != null) && (tag.getValue() != null))
