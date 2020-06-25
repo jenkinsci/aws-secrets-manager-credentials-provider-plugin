@@ -2,10 +2,16 @@ package io.jenkins.plugins.credentials.secretsmanager.config.filters;
 
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
 import io.jenkins.plugins.casc.misc.JenkinsConfiguredWithCodeRule;
+import io.jenkins.plugins.credentials.secretsmanager.config.Filter;
 import io.jenkins.plugins.credentials.secretsmanager.config.PluginConfiguration;
+import io.jenkins.plugins.credentials.secretsmanager.config.Value;
+import io.jenkins.plugins.credentials.secretsmanager.util.Lists;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 
 public class CasCFiltersIT extends AbstractFiltersIT {
 
@@ -18,14 +24,33 @@ public class CasCFiltersIT extends AbstractFiltersIT {
     }
 
     @Override
-    protected void setTagFilters(String key, String value) {
+    protected void setFilters(Filter... filters) {
         // no-op (configured by annotations)
     }
 
     @Override
     @Test
-    @ConfiguredWithCode("/config/filters/tag.yml")
-    public void shouldCustomiseTagFilter() {
-        super.shouldCustomiseTagFilter();
+    @ConfiguredWithCode("/config/filters/name.yml")
+    public void shouldCustomiseFilters() {
+        super.shouldCustomiseFilters();
+    }
+
+    @Test
+    @ConfiguredWithCode("/config/filters/multiple.yml")
+    public void shouldCustomiseMultipleFilters() {
+        // Given
+        setFilters(
+                new Filter("tag-key", Lists.of(new Value("foo"))),
+                new Filter("tag-value", Lists.of(new Value("bar"))));
+
+        // When
+        final PluginConfiguration config = getPluginConfiguration();
+
+        // Then
+        assertThat(config.getListSecrets().getFilters())
+                .extracting("key", "values")
+                .contains(
+                        tuple("tag-key", Lists.of(new Value("foo"))),
+                        tuple("tag-value", Lists.of(new Value("bar"))));
     }
 }

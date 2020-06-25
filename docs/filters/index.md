@@ -1,25 +1,66 @@
 # Filters
 
-The CredentialsProvider implementation in this plugin calls `secretsmanager:ListSecrets` to cache the secrets' metadata. At this time, Secrets Manager does not support server-side restrictions on this list, so it returns all secrets in the AWS account, whether you have given Jenkins the `secretsmanager:GetSecretValue` permission to actually resolve those secrets or not. This can result in unwanted entries appearing in the credentials UI, which users will mistake for resolvable credentials. 
+Specify filters for the `secretsmanager:ListSecrets` API call to control which secrets are shown in Jenkins.
 
-To improve the user experience of this aspect of Jenkins, you can specify optional filters in the plugin configuration. Only the secrets that match the filter criteria will be presented through the CredentialsProvider. This hides unwanted entries from the credentials UI. 
+Filters can be specified for the following fields:
 
-Notes:
+- Description (filter key: `description`)
+- Name (filter key: `name`)
+- Tags (filter keys: `tag-key`, `tag-value`)
 
-- These are client-side filters. As such they only provide usability benefits. They have no security benefits, as Jenkins still fetches the full secret list from AWS.
-- The SecretSource implementation does not use the filters, as they are not relevant to it.
+Multiple values for the same filter combine with an **implicit OR** operator. Multiple filters combine with an **implicit AND** operator.
 
-## Tag Filter
+Filters are applied server-side by Secrets Manager, and use the Amazon syntax. For full instructions on constructing filters, read the [ListSecrets API documentation](https://docs.aws.amazon.com/secretsmanager/latest/apireference/API_ListSecrets.html).
 
-You can choose to only show credentials that have a tag with a particular key and value.
+Note: The `SecretSource` implementation does not use the filters, as they are not relevant to it.
 
-Example: `product` = `foo`.
+## Examples
+
+Show credentials with the tag `foo` = [any value]:
 
 ```yaml
 unclassified:
   awsCredentialsProvider:
     filters:
-      tag:
-        key: product
-        value: foo
+      - key: tag-key
+        values:
+          - foo
+```
+
+Show credentials with the tag `foo` = `bar` (this involves combining multiple filters):
+
+```yaml
+unclassified:
+  awsCredentialsProvider:
+    filters:
+      - key: tag-key
+        values:
+          - foo
+      - key: tag-value
+        values:
+          - bar
+```
+
+Show credentials where the description contains "foo" or "bar":
+
+```yaml
+unclassified:
+  awsCredentialsProvider:
+    filters:
+      - key: "description"
+        values:
+          - "foo"
+          - "bar"
+```
+
+Show credentials where the name contains "environments/foo" or "environments/bar":
+
+```yaml
+unclassified:
+  awsCredentialsProvider:
+    filters:
+      - key: "name"
+        values:
+          - "environments/foo"
+          - "environments/bar"
 ```

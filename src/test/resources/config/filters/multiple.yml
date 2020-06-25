@@ -1,0 +1,10 @@
+unclassified:
+  awsCredentialsProvider:
+    listSecrets:
+      filters:
+        - key: tag-key
+          values:
+            - foo
+        - key: tag-value
+          values:
+            - bar

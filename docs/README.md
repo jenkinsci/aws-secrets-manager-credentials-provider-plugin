@@ -320,13 +320,17 @@ You can set plugin configuration using Jenkins [Configuration As Code](https://g
 ```yaml
 unclassified:
   awsCredentialsProvider:
-    filters:
-      tag:
-        key: product
-        value: roadrunner
     endpointConfiguration:
       serviceEndpoint: http://localhost:4584
       signingRegion: us-east-1
+    cacheDuration: 300
+    listSecrets:
+      filters:
+        - key: name
+          values:
+            - foo
+            - bar
+      sortOrder: asc
 ```
 
 ## Bugs

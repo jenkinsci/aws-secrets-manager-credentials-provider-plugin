@@ -1,6 +1,7 @@
 package io.jenkins.plugins.credentials.secretsmanager.supplier;
 
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
+import com.amazonaws.services.secretsmanager.model.Filter;
 import com.amazonaws.services.secretsmanager.model.ListSecretsRequest;
 import com.amazonaws.services.secretsmanager.model.ListSecretsResult;
 import com.amazonaws.services.secretsmanager.model.SecretListEntry;
@@ -20,8 +21,11 @@ class ListSecretsOperation implements Supplier<Collection<SecretListEntry>> {
 
     private final AWSSecretsManager client;
 
-    ListSecretsOperation(AWSSecretsManager client) {
+    private final Collection<Filter> filters;
+
+    ListSecretsOperation(AWSSecretsManager client, Collection<Filter> filters) {
         this.client = client;
+        this.filters = filters;
     }
 
     @Override
@@ -30,9 +34,9 @@ class ListSecretsOperation implements Supplier<Collection<SecretListEntry>> {
 
         Optional<String> nextToken = Optional.empty();
         do {
-            final ListSecretsRequest request = nextToken.map((nt) -> new ListSecretsRequest()
-                    .withNextToken(nt))
-                    .orElse(new ListSecretsRequest());
+            final ListSecretsRequest base = new ListSecretsRequest()
+                    .withFilters(filters);
+            final ListSecretsRequest request = nextToken.map((nt) -> base.withNextToken(nt)).orElse(base);
             final ListSecretsResult result = client.listSecrets(request);
             final List<SecretListEntry> secrets = result.getSecretList()
                     .stream()
