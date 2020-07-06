@@ -52,4 +52,28 @@ public class FiltersIT {
 
         return secretsManager.getClient().createSecret(request);
     }
+    
+    @Test
+    @ConfiguredWithCode(value = "/names.yml")
+    public void shouldFilterByName() {
+        // Given
+        final CreateSecretOperation.Result foo = createSecret("dev/supersecret", opts -> {
+            opts.tags = Maps.of(
+                    Tags.type, Type.string,
+                    "environment", "dev");
+        });
+        final CreateSecretOperation.Result bar = createOtherSecret("itg/supersecret", opts -> {
+            opts.tags = Maps.of(
+                    Tags.type, Type.string,
+                    "environment", "itg");
+        });
+
+        // When
+        final List<StringCredentials> credentials = lookupCredentials(StringCredentials.class);
+
+        // Then
+        assertThat(credentials)
+                .extracting("id", "secret")
+                .containsOnly(tuple(foo.getName(), Secret.fromString("dev/supersecret")));
+    }
 }

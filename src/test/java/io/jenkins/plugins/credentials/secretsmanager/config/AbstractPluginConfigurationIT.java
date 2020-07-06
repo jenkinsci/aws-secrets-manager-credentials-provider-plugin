@@ -13,6 +13,8 @@ public abstract class AbstractPluginConfigurationIT {
 
     protected abstract void setTagFilters(String key, String value);
 
+    protected abstract void setNameFilters(String pattern);
+
     @Test
     public void shouldHaveDefaultConfiguration() {
         final PluginConfiguration config = getPluginConfiguration();
@@ -50,5 +52,19 @@ public abstract class AbstractPluginConfigurationIT {
         assertThat(config.getFilters().getTag())
                 .extracting("key", "value")
                 .containsOnly("product", "foobar");
+    }
+
+    @Test
+    public void shouldCustomiseNameFilter() {
+        // Given
+        setNameFilters("dev");
+
+        // When
+        final PluginConfiguration config = getPluginConfiguration();
+
+        // Then
+        assertThat(config.getFilters().getName())
+                .extracting("pattern")
+                .containsOnly("dev");
     }
 }

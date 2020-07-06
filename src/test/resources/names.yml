@@ -1,0 +1,10 @@
+# Integration test for filter by tag
+
+unclassified:
+  awsCredentialsProvider:
+    filters:
+      name:
+        pattern: dev
+    endpointConfiguration:
+      serviceEndpoint: http://localhost:4584
+      signingRegion: us-east-1

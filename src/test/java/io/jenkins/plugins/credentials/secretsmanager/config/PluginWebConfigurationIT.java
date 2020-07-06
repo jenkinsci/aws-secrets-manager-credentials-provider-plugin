@@ -30,8 +30,17 @@ public class PluginWebConfigurationIT extends AbstractPluginConfigurationIT {
     protected void setTagFilters(String key, String value) {
         r.configure(f -> {
             final PluginConfigurationForm form = new PluginConfigurationForm(f);
-
             form.setFilter(key, value);
+        });
+    }
+
+    protected void setNameFilters(String pattern) {
+        r.configure(form -> {
+            form.getInputByName("_.filters").setChecked(true);
+
+            form.getInputByName("_.tag").setChecked(false);
+            form.getInputByName("_.name").setChecked(true);
+            form.getInputByName("_.pattern").setValueAttribute(pattern);
         });
     }
 

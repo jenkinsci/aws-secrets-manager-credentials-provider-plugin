@@ -26,6 +26,11 @@ public class PluginCasCConfigurationIT extends AbstractPluginConfigurationIT {
     }
 
     @Override
+    protected void setNameFilters(String pattern) {
+        // no-op (configured by annotations)
+    }
+
+    @Override
     @Test
     @ConfiguredWithCode("/default.yml")
     public void shouldHaveDefaultConfiguration() {
@@ -44,5 +49,12 @@ public class PluginCasCConfigurationIT extends AbstractPluginConfigurationIT {
     @ConfiguredWithCode("/custom-tag.yml")
     public void shouldCustomiseTagFilter() {
         super.shouldCustomiseTagFilter();
+    }
+
+    @Override
+    @Test
+    @ConfiguredWithCode("/custom-name.yml")
+    public void shouldCustomiseNameFilter() {
+        super.shouldCustomiseNameFilter();
     }
 }

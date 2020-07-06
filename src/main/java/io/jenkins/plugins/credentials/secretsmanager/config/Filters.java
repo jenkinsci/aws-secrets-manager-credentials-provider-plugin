@@ -20,20 +20,32 @@ public class Filters extends AbstractDescribableImpl<Filters> implements Seriali
      * with one of the specified values.)
      */
     private Tag tag;
+    private Name name;
 
     @DataBoundConstructor
-    public Filters(Tag tag) {
+    public Filters(Tag tag, Name name) {
         this.tag = tag;
+        this.name = name;
     }
 
     public Tag getTag() {
         return tag;
     }
 
+    public Name getName() {
+        return name;
+    }
+
     @DataBoundSetter
     @SuppressWarnings("unused")
     public void setTag(Tag tag) {
         this.tag = tag;
+    }
+
+    @DataBoundSetter
+    @SuppressWarnings("unused")
+    public void setName(Name name) {
+        this.name = name;
     }
 
     @Extension
