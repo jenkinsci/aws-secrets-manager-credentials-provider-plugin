@@ -7,6 +7,7 @@ Access credentials from AWS Secrets Manager in your Jenkins jobs.
 
 ## Contents
 
+- [Authentication](authentication/index.md)
 - [Caching](caching/index.md)
 - [Filters](filters/index.md)
 - [Networking](networking/index.md)
