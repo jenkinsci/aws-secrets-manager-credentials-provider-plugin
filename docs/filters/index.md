@@ -8,6 +8,7 @@ Notes:
 
 - These are client-side filters. As such they only provide usability benefits. They have no security benefits, as Jenkins still fetches the full secret list from AWS.
 - The SecretSource implementation does not use the filters, as they are not relevant to it.
+- Filters are `AND`'d when multiple filters are specified.
 
 ## Tag Filter
 
@@ -22,4 +23,21 @@ unclassified:
       tag:
         key: product
         value: foo
+```
+
+## Name Filter
+
+You can choose to only show credentials where name contains a specifed string. This can be useful if you use namespacing in your AWS Secret name.
+
+Example:
+AWS Secret is namespaced for Jenkins integration environment.
+AWS Secret name = `itg/jenkins/github_access_token`
+`pattern` = `itg/jenkins`.
+
+```yaml
+unclassified:
+  awsCredentialsProvider:
+    filters:
+      name:
+        pattern: itg/jenkins
 ```
