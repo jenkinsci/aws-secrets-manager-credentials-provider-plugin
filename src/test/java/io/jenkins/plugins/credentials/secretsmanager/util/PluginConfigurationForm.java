@@ -25,12 +25,21 @@ public class PluginConfigurationForm {
         form.getInputByName("_.filters").setChecked(false);
     }
 
-    public void setFilter(String key, String value) {
+    public void setFilterByTag(String key, String value) {
         form.getInputByName("_.filters").setChecked(true);
 
         form.getInputByName("_.tag").setChecked(true);
+        form.getInputByName("_.name").setChecked(false);
         form.getInputByName("_.key").setValueAttribute(key);
         form.getInputByName("_.value").setValueAttribute(value);
+    }
+
+    public void setFilterByName(String pattern) {
+        form.getInputByName("_.filters").setChecked(true);
+
+        form.getInputByName("_.tag").setChecked(false);
+        form.getInputByName("_.name").setChecked(true);
+        form.getInputByName("_.pattern").setValueAttribute(pattern);
     }
 
     public void clearEndpointConfiguration() {

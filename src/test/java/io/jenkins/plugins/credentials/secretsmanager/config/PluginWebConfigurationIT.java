@@ -30,17 +30,15 @@ public class PluginWebConfigurationIT extends AbstractPluginConfigurationIT {
     protected void setTagFilters(String key, String value) {
         r.configure(f -> {
             final PluginConfigurationForm form = new PluginConfigurationForm(f);
-            form.setFilter(key, value);
+            form.setFilterByTag(key, value);
         });
     }
 
+    @Override
     protected void setNameFilters(String pattern) {
-        r.configure(form -> {
-            form.getInputByName("_.filters").setChecked(true);
-
-            form.getInputByName("_.tag").setChecked(false);
-            form.getInputByName("_.name").setChecked(true);
-            form.getInputByName("_.pattern").setValueAttribute(pattern);
+        r.configure(f -> {
+            final PluginConfigurationForm form = new PluginConfigurationForm(f);
+            form.setFilterByName(pattern);
         });
     }
 
@@ -50,7 +48,7 @@ public class PluginWebConfigurationIT extends AbstractPluginConfigurationIT {
             final PluginConfigurationForm form = new PluginConfigurationForm(f);
 
             form.setEndpointConfiguration("http://localhost:4584", "us-east-1");
-            form.setFilter("product", "foobar");
+            form.setFilterByTag("product", "foobar");
         });
 
         final PluginConfiguration configBefore = getPluginConfiguration();

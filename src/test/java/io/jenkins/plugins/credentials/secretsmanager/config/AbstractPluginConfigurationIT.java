@@ -51,7 +51,7 @@ public abstract class AbstractPluginConfigurationIT {
         // Then
         assertThat(config.getFilters().getTag())
                 .extracting("key", "value")
-                .containsOnly("product", "foobar");
+                .containsOnly("product", "foobars");
     }
 
     @Test
@@ -64,7 +64,7 @@ public abstract class AbstractPluginConfigurationIT {
 
         // Then
         assertThat(config.getFilters().getName())
-                .extracting("pattern")
-                .containsOnly("dev");
+                .extracting("id", "pattern")
+                .containsOnly("del");
     }
 }

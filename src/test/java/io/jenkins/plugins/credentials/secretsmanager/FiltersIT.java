@@ -57,19 +57,11 @@ public class FiltersIT {
     @ConfiguredWithCode(value = "/names.yml")
     public void shouldFilterByName() {
         // Given
-        final CreateSecretOperation.Result foo = createSecret("dev/supersecret", opts -> {
-            opts.tags = Maps.of(
-                    Tags.type, Type.string,
-                    "environment", "dev");
-        });
-        final CreateSecretOperation.Result bar = createOtherSecret("itg/supersecret", opts -> {
-            opts.tags = Maps.of(
-                    Tags.type, Type.string,
-                    "environment", "itg");
-        });
+        final CreateSecretResult foo = createSecret("dev/supersecret", Lists.of(AwsTags.type(Type.string), AwsTags.tag("environment", "dev")));
+        final CreateSecretResult bar = createSecret("itg/supersecret", Lists.of(AwsTags.type(Type.string), AwsTags.tag("environment", "itg")));
 
         // When
-        final List<StringCredentials> credentials = lookupCredentials(StringCredentials.class);
+        final List<StringCredentials> credentials = jenkins.getCredentials().lookup(StringCredentials.class);
 
         // Then
         assertThat(credentials)

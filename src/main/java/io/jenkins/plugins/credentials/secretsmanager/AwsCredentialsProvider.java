@@ -22,6 +22,7 @@ import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -52,7 +53,8 @@ public class AwsCredentialsProvider extends CredentialsProvider {
     private final AwsCredentialsStore store = new AwsCredentialsStore(this);
 
     private final Supplier<Collection<IdCredentials>> credentialsSupplier =
-            memoizeWithExpiration(AwsCredentialsProvider::fetchCredentials, Duration.ofMinutes(5));
+            //memoizeWithExpiration(AwsCredentialsProvider::fetchCredentials, Duration.ofMinutes(5));
+            memoizeWithExpiration(AwsCredentialsProvider::fetchCredentials, Duration.ofSeconds(30));
 
     @Override
     @NonNull
@@ -108,27 +110,21 @@ public class AwsCredentialsProvider extends CredentialsProvider {
         }
         final AWSSecretsManager client = builder.build();
 
-        final Predicate<SecretListEntry> secretFilter;
-        if (filters != null && (filters.getTag() != null || filters.getName() != null)) {
-
+        List<Predicate<SecretListEntry>> secretFilters = new ArrayList<Predicate<SecretListEntry>>();
+        if (filters != null) {
             if (filters.getTag() != null) {
                 final Tag filterTag = new Tag().withKey(filters.getTag().getKey()).withValue(filters.getTag().getValue());
-
-                if (filters.getName() != null) {
-                    secretFilter = s -> Optional.ofNullable(s.getTags()).orElse(Collections.emptyList()).contains(filterTag) &&
-                                        s.getName().contains(filters.getName().getPattern());
-                } else {
-                    secretFilter = s -> Optional.ofNullable(s.getTags()).orElse(Collections.emptyList()).contains(filterTag);
-                }
-            } else {
-                secretFilter = s -> s.getName().contains(filters.getName().getPattern());
+                secretFilters.add(s -> Optional.ofNullable(s.getTags()).orElse(Collections.emptyList()).contains(filterTag));
+                LOG.log(Level.CONFIG, "add filter: " + filters.getTag());
             }
-        } else {
-            secretFilter = s -> true;
+            if (filters.getName() != null) {
+                secretFilters.add(s -> s.getName().contains(filters.getName().getPattern()));
+                LOG.log(Level.CONFIG, "add filter: " + filters.getName());
+            }
         }
 
         final Map<String, IdCredentials> credentials = new ListSecretsOperation(client).get().stream()
-                .filter(secretFilter)
+                .filter(secretFilters.stream().reduce(x->true, Predicate::and))
                 .flatMap(s -> {
                     final String name = s.getName();
                     final String description = Optional.ofNullable(s.getDescription()).orElse("");

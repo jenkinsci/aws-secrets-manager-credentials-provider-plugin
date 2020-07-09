@@ -1,4 +1,4 @@
-# Integration test for filter by tag
+# Integration test for filter by name
 
 unclassified:
   awsCredentialsProvider:
