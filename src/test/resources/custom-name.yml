@@ -2,4 +2,4 @@ unclassified:
   awsCredentialsProvider:
     filters:
       name:
-        pattern: dev
+        pattern: dev/jenkins

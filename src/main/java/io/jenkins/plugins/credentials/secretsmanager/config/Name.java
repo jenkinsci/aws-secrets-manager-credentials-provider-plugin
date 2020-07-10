@@ -33,10 +33,6 @@ public class Name extends AbstractDescribableImpl<Name> implements Serializable 
         this.pattern = pattern;
     }
 
-    public String toString() {
-        return "Filter Name: \'" + pattern + "\'";
-    }
-
     @Extension
     @Symbol("filters")
     @SuppressWarnings("unused")

@@ -115,11 +115,9 @@ public class AwsCredentialsProvider extends CredentialsProvider {
             if (filters.getTag() != null) {
                 final Tag filterTag = new Tag().withKey(filters.getTag().getKey()).withValue(filters.getTag().getValue());
                 secretFilters.add(s -> Optional.ofNullable(s.getTags()).orElse(Collections.emptyList()).contains(filterTag));
-                LOG.log(Level.CONFIG, "add filter: " + filters.getTag());
             }
             if (filters.getName() != null) {
                 secretFilters.add(s -> s.getName().contains(filters.getName().getPattern()));
-                LOG.log(Level.CONFIG, "add filter: " + filters.getName());
             }
         }
 

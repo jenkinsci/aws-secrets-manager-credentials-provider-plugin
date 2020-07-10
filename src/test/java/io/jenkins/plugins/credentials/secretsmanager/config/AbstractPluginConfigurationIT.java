@@ -51,20 +51,20 @@ public abstract class AbstractPluginConfigurationIT {
         // Then
         assertThat(config.getFilters().getTag())
                 .extracting("key", "value")
-                .containsOnly("product", "foobars");
+                .containsOnly("product", "foobar");
     }
 
     @Test
     public void shouldCustomiseNameFilter() {
         // Given
-        setNameFilters("dev");
+        setNameFilters("dev/jenkins");
 
         // When
         final PluginConfiguration config = getPluginConfiguration();
 
         // Then
-        assertThat(config.getFilters().getName())
-                .extracting("id", "pattern")
-                .containsOnly("del");
+        assertThat(config.getFilters().getName().getPattern())
+                .as("check Name filter pattern")
+                .isEqualTo("dev/jenkins");
     }
 }

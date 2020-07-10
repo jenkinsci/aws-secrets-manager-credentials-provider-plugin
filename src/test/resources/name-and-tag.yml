@@ -1,0 +1,13 @@
+# Integration test for filter by name
+
+unclassified:
+  awsCredentialsProvider:
+    filters:
+      tag:
+        key: product
+        value: roadrunner
+      name:
+        pattern: dev/jenkins
+    endpointConfiguration:
+      serviceEndpoint: http://localhost:4584
+      signingRegion: us-east-1

@@ -4,7 +4,7 @@ unclassified:
   awsCredentialsProvider:
     filters:
       name:
-        pattern: dev
+        pattern: dev/jenkins
     endpointConfiguration:
       serviceEndpoint: http://localhost:4584
       signingRegion: us-east-1

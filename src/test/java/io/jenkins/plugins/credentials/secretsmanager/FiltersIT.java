@@ -32,8 +32,34 @@ public class FiltersIT {
     @ConfiguredWithCode(value = "/tags.yml")
     public void shouldFilterByTag() {
         // Given
-        final CreateSecretResult foo = createSecret("supersecret", Lists.of(AwsTags.type(Type.string), AwsTags.tag("product", "roadrunner")));
-        final CreateSecretResult bar = createSecret("supersecret", Lists.of(AwsTags.type(Type.string), AwsTags.tag("product", "coyote")));
+        final CreateSecretResult foo = createSecret(CredentialNames.random(), "supersecret", Lists.of(AwsTags.type(Type.string), AwsTags.tag("product", "roadrunner")));
+        final CreateSecretResult bar = createSecret(CredentialNames.random(), "supersecret", Lists.of(AwsTags.type(Type.string), AwsTags.tag("product", "coyote")));
+
+        // When
+        final List<StringCredentials> credentials = jenkins.getCredentials().lookup(StringCredentials.class);
+
+        // Then
+        assertThat(credentials)
+                .extracting("id", "secret")
+                .containsOnly(tuple(foo.getName(), Secret.fromString("supersecret")));
+    }
+    
+    @Test
+    @ConfiguredWithCode(value = "/name.yml")
+    public void shouldFilterByName() {
+        filterByName();
+    }
+
+    @Test
+    @ConfiguredWithCode(value = "/name-and-tag.yml")
+    public void shouldFilterByNameAndTag() {
+        filterByName();
+    }
+
+    private void filterByName() {
+        // Given
+        final CreateSecretResult foo = createSecret("dev/jenkins/secret", "supersecret", Lists.of(AwsTags.type(Type.string), AwsTags.tag("product", "roadrunner")));
+        final CreateSecretResult bar = createSecret("itg/jenkins/secret", "supersecret", Lists.of(AwsTags.type(Type.string), AwsTags.tag("product", "coyote")));
 
         // When
         final List<StringCredentials> credentials = jenkins.getCredentials().lookup(StringCredentials.class);
@@ -44,28 +70,12 @@ public class FiltersIT {
                 .containsOnly(tuple(foo.getName(), Secret.fromString("supersecret")));
     }
 
-    private CreateSecretResult createSecret(String secretString, List<Tag> tags) {
+    private CreateSecretResult createSecret(String secretName, String secretString, List<Tag> tags) {
         final CreateSecretRequest request = new CreateSecretRequest()
-                .withName(CredentialNames.random())
+                .withName(secretName)
                 .withSecretString(secretString)
                 .withTags(tags);
 
         return secretsManager.getClient().createSecret(request);
-    }
-    
-    @Test
-    @ConfiguredWithCode(value = "/names.yml")
-    public void shouldFilterByName() {
-        // Given
-        final CreateSecretResult foo = createSecret("dev/supersecret", Lists.of(AwsTags.type(Type.string), AwsTags.tag("environment", "dev")));
-        final CreateSecretResult bar = createSecret("itg/supersecret", Lists.of(AwsTags.type(Type.string), AwsTags.tag("environment", "itg")));
-
-        // When
-        final List<StringCredentials> credentials = jenkins.getCredentials().lookup(StringCredentials.class);
-
-        // Then
-        assertThat(credentials)
-                .extracting("id", "secret")
-                .containsOnly(tuple(foo.getName(), Secret.fromString("dev/supersecret")));
     }
 }

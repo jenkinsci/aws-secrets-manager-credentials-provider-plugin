@@ -44,10 +44,6 @@ public class Tag extends AbstractDescribableImpl<Tag> implements Serializable {
         this.value = value;
     }
 
-    public String toString() {
-        return "Filter Tag: \'" + key + ":" + value + "\'";
-    }
-
     @Extension
     @Symbol("filters")
     @SuppressWarnings("unused")
