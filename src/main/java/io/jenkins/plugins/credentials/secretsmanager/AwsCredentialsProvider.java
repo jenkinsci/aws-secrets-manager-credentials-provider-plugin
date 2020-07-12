@@ -53,8 +53,7 @@ public class AwsCredentialsProvider extends CredentialsProvider {
     private final AwsCredentialsStore store = new AwsCredentialsStore(this);
 
     private final Supplier<Collection<IdCredentials>> credentialsSupplier =
-            //memoizeWithExpiration(AwsCredentialsProvider::fetchCredentials, Duration.ofMinutes(5));
-            memoizeWithExpiration(AwsCredentialsProvider::fetchCredentials, Duration.ofSeconds(30));
+            memoizeWithExpiration(AwsCredentialsProvider::fetchCredentials, Duration.ofMinutes(5));
 
     @Override
     @NonNull
