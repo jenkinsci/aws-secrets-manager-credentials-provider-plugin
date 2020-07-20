@@ -1,11 +1,11 @@
 package io.jenkins.plugins.credentials.secretsmanager.util;
 
 import com.gargoylesoftware.htmlunit.ElementNotFoundException;
-import com.gargoylesoftware.htmlunit.html.HtmlButton;
-import com.gargoylesoftware.htmlunit.html.HtmlForm;
-import com.gargoylesoftware.htmlunit.html.HtmlInput;
+import com.gargoylesoftware.htmlunit.html.*;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class PluginConfigurationForm {
@@ -43,8 +43,12 @@ public class PluginConfigurationForm {
         form.getInputByName("_.signingRegion").setValueAttribute(signingRegion);
     }
 
-    private String getValidateSuccessMessage() {
-        return form.getOneHtmlElementByAttribute("div", "class", "ok").getTextContent();
+    private Optional<String> getValidateSuccessMessage() {
+        return form.getElementsByAttribute("div", "class", "ok")
+                .stream()
+                .map(DomNode::getTextContent)
+                .filter(msg -> !msg.equalsIgnoreCase("Without a resource root URL, resources will be served from the main domain with Content-Security-Policy set."))
+                .findFirst();
     }
 
     private String getValidateErrorMessage() {
@@ -67,12 +71,12 @@ public class PluginConfigurationForm {
             throw new RuntimeException(e);
         }
 
-        try {
-            final String success = this.getValidateSuccessMessage();
-            return FormValidationResult.success(success);
-        } catch (ElementNotFoundException ignored) {
-            final String failure = this.getValidateErrorMessage();
-            return FormValidationResult.error(failure);
+        final Optional<String> successMessage = this.getValidateSuccessMessage();
+        if (successMessage.isPresent()) {
+            return FormValidationResult.success(successMessage.get());
+        } else {
+            final String failureMessage = this.getValidateErrorMessage();
+            return FormValidationResult.error(failureMessage);
         }
     }
 }
