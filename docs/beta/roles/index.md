@@ -2,9 +2,9 @@
 
 The plugin can access more secrets using secondary IAM roles.
 
-The most common use case is to access secrets in other accounts using [cross-account roles](http://docs.aws.amazon.com/IAM/latest/UserGuide/tutorial_cross-account-with-roles.html). In this setup, Jenkins accesses secrets in its own account using its implicit primary role, and is assigned a secondary role for each other account that it should read secrets from.
+The most common use case is to access secrets in other accounts using [cross-account roles](https://docs.aws.amazon.com/IAM/latest/UserGuide/tutorial_cross-account-with-roles.html). In this setup, Jenkins accesses secrets in its own account using its (implicit) primary role, and is assigned a secondary role for each other account that it should read secrets from.
 
-Secrets in different accounts may have the same name. To allow them to co-exist, credentials from primary and secondary roles (accounts) use different secret attributes for their identifiers:
+Secrets in different accounts may have the same name. To allow them to co-exist within Jenkins, credentials from primary and secondary roles use different secret attributes for their IDs:
 
 <table>
     <thead>
