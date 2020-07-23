@@ -8,6 +8,7 @@ Access credentials from AWS Secrets Manager in your Jenkins jobs.
 ## Contents
 
 - [Authentication](authentication/index.md)
+- [Beta Features](beta/index.md)
 - [Caching](caching/index.md)
 - [Filters](filters/index.md)
 - [Networking](networking/index.md)
@@ -22,7 +23,6 @@ Access credentials from AWS Secrets Manager in your Jenkins jobs.
 - Read-only view of Secrets Manager.
 - `CredentialsProvider` and `SecretSource` API support.
 - Credential metadata caching (duration: 5 minutes).
-- [Cross-account](http://docs.aws.amazon.com/IAM/latest/UserGuide/tutorial_cross-account-with-roles.html) Secrets Manager support with IAM roles.
  
 ## Setup 
 
@@ -356,4 +356,3 @@ In your IDE:
 3. Start Moto: `mvn docker:build docker:start`.
 4. Run tests.
 5. Stop Moto: `mvn docker:stop`.
-

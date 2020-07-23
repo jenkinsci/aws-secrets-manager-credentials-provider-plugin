@@ -73,7 +73,7 @@ public class EndpointConfiguration extends AbstractDescribableImpl<EndpointConfi
         }
 
         /**
-         * Test the connection to AWS Secrets Manager.
+         * Test the endpoint configuration.
          *
          * @param serviceEndpoint the AWS service endpoint e.g. http://localhost:4584
          * @param signingRegion the AWS signing region e.g. us-east-1
@@ -81,7 +81,7 @@ public class EndpointConfiguration extends AbstractDescribableImpl<EndpointConfi
          */
         @POST
         @SuppressWarnings("unused")
-        public FormValidation doTestConnection(
+        public FormValidation doTestEndpointConfiguration(
                 @QueryParameter("serviceEndpoint") final String serviceEndpoint,
                 @QueryParameter("signingRegion") final String signingRegion) {
             Jenkins.getInstance().checkPermission(Jenkins.ADMINISTER);

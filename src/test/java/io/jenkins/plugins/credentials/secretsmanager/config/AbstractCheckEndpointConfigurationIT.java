@@ -5,12 +5,12 @@ import org.junit.Test;
 
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
 
-public abstract class AbstractCheckConnectionIT {
+public abstract class AbstractCheckEndpointConfigurationIT {
 
     protected abstract FormValidationResult validate(String serviceEndpoint, String signingRegion);
 
     @Test
-    public void shouldTestConnection() {
+    public void shouldAllowGoodEndpointConfiguration() {
         // When
         final FormValidationResult result = validate("http://localhost:4584", "us-east-1");
 
@@ -22,7 +22,7 @@ public abstract class AbstractCheckConnectionIT {
     }
 
     @Test
-    public void shouldRevealClientErrorsInTestConnection() {
+    public void shouldRejectBadEndpointConfiguration() {
         // When
         final FormValidationResult result = validate("http://localhost:1", "us-east-1");
 

@@ -1,0 +1,10 @@
+# Integration test for cross-account roles
+
+unclassified:
+  awsCredentialsProvider:
+    beta:
+      roles:
+        - arn:rol/malformatted
+    endpointConfiguration:
+      serviceEndpoint: http://localhost:4584
+      signingRegion: us-east-1
