@@ -49,13 +49,15 @@
         <revision>0.3.3</revision>
         <changelist>-SNAPSHOT</changelist>
         <java.level>8</java.level>
+        <lts>2.204</lts>
+        <jenkins.version>${lts}.6</jenkins.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
             <dependency>
                 <groupId>io.jenkins.tools.bom</groupId>
-                <artifactId>bom-${jenkins.version}.x</artifactId>
+                <artifactId>bom-${lts}.x</artifactId>
                 <version>11</version>
                 <scope>import</scope>
                 <type>pom</type>
