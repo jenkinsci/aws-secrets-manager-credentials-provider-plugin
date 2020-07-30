@@ -46,14 +46,21 @@ public class CredentialsSupplier implements Supplier<Collection<StandardCredenti
         final Filters filters = config.getFilters();
         final Predicate<SecretListEntry> secretFilter = newSecretFilter(filters);
 
-        final Roles roles = Optional.ofNullable(config.getBeta()).map(beta -> beta.getRoles()).orElse(null);
-        final List<String> roleArns = newRoleArns(roles);
+        final List<Client> clients = Optional.ofNullable(config.getBeta())
+                .flatMap(beta -> Optional.ofNullable(beta.getClients()))
+                .map(c -> c.getClients())
+                .orElse(Collections.emptyList());
 
         final Supplier<Collection<StandardCredentials>> mainSupplier =
                 new SingleAccountCredentialsSupplier(newClient(endpointConfiguration), SecretListEntry::getName, secretFilter);
 
-        final Collection<Supplier<Collection<StandardCredentials>>> otherSuppliers = roleArns.stream()
-                .map(roleArn -> new SingleAccountCredentialsSupplier(newClient(roleArn, endpointConfiguration), SecretListEntry::getARN, secretFilter))
+        final Collection<Supplier<Collection<StandardCredentials>>> otherSuppliers = clients.stream()
+                .map(clientConfig -> {
+                    final String role = clientConfig.getRole();
+                    final AwsClientBuilder.EndpointConfiguration e = newEndpointConfiguration(clientConfig.getEndpointConfiguration()); // maybe null
+                    final AWSSecretsManager secretsManager = newClient(role, e);
+                    return new SingleAccountCredentialsSupplier(secretsManager, SecretListEntry::getARN, secretFilter);
+                })
                 .collect(Collectors.toList());
 
         final ParallelSupplier<Collection<StandardCredentials>> allSuppliers = new ParallelSupplier<>(Lists.concat(mainSupplier, otherSuppliers));
@@ -96,14 +103,6 @@ public class CredentialsSupplier implements Supplier<Collection<StandardCredenti
                 .withEndpointConfiguration(endpointConfiguration)
                 .withCredentials(roleCredentials)
                 .build();
-    }
-
-    private static List<String> newRoleArns(Roles roles) {
-        if (roles != null && roles.getArns() != null) {
-            return roles.getArns().stream().map(ARN::getValue).collect(Collectors.toList());
-        } else {
-            return Collections.emptyList();
-        }
     }
 
     private static AwsClientBuilder.EndpointConfiguration newEndpointConfiguration(EndpointConfiguration ec) {

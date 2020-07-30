@@ -26,7 +26,7 @@ public class PluginCasCConfigurationIT extends AbstractPluginConfigurationIT {
     }
 
     @Override
-    protected void setRoles(String role) {
+    protected void setClients(String role) {
         // no-op (configured by annotations)
     }
 
@@ -53,8 +53,8 @@ public class PluginCasCConfigurationIT extends AbstractPluginConfigurationIT {
 
     @Override
     @Test
-    @ConfiguredWithCode("/custom-roles.yml")
-    public void shouldCustomiseRoles() {
-        super.shouldCustomiseRoles();
+    @ConfiguredWithCode("/custom-clients.yml")
+    public void shouldCustomiseClients() {
+        super.shouldCustomiseClients();
     }
 }

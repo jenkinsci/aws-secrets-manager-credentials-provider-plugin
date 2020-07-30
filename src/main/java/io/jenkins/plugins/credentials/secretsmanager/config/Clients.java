@@ -10,37 +10,37 @@ import org.kohsuke.stapler.DataBoundSetter;
 
 import javax.annotation.Nonnull;
 import java.io.Serializable;
+import java.util.List;
 
-public class ARN extends AbstractDescribableImpl<ARN> implements Serializable {
+public class Clients extends AbstractDescribableImpl<Clients> implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private String value;
+    /** The secondary AWS Secrets Manager clients. */
+    private List<Client> clients;
 
     @DataBoundConstructor
-    public ARN(String value) {
-        this.value = value;
+    public Clients(List<Client> clients) {
+        this.clients = clients;
     }
 
-    public String getValue() {
-        return value;
+    public List<Client> getClients() {
+        return clients;
     }
 
     @DataBoundSetter
-    public void setValue(String value) {
-        this.value = value;
+    public void setClients(List<Client> clients) {
+        this.clients = clients;
     }
 
     @Extension
-    @Symbol("arn")
+    @Symbol("clients")
     @SuppressWarnings("unused")
-    public static class DescriptorImpl extends Descriptor<ARN> {
-
+    public static class DescriptorImpl extends Descriptor<Clients> {
         @Override
         @Nonnull
         public String getDisplayName() {
-            return Messages.arn();
+            return Messages.clients();
         }
-
     }
 }

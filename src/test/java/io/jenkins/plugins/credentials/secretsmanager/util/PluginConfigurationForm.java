@@ -1,10 +1,9 @@
 package io.jenkins.plugins.credentials.secretsmanager.util;
 
-import com.gargoylesoftware.htmlunit.ElementNotFoundException;
 import com.gargoylesoftware.htmlunit.html.*;
+import io.jenkins.plugins.credentials.secretsmanager.config.EndpointConfiguration;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -19,7 +18,7 @@ public class PluginConfigurationForm {
     public void clear() {
         this.clearEndpointConfiguration();
         this.clearFilters();
-        this.clearRoles();
+        this.clearClients();
     }
 
     public void clearFilters() {
@@ -37,18 +36,18 @@ public class PluginConfigurationForm {
                 .ifPresent(lastValueInputInForm -> lastValueInputInForm.setValueAttribute(value));
     }
 
-    public void clearRoles() {
-        form.getInputByName("_.roles").setChecked(false);
+    public void clearClients() {
+        form.getInputByName("_.clients").setChecked(false);
     }
 
-    public void setRole(String arn) {
+    public void setClient(String role, EndpointConfiguration endpointConfiguration) {
         form.getInputByName("_.beta").setChecked(true);
-        form.getInputByName("_.roles").setChecked(true);
-        // TODO Use the 'Add' button to test multiple roles
+        form.getInputByName("_.clients").setChecked(true);
+        // TODO Use the 'Add' button to test multiple clients
         final HtmlInput input = form
-                .getElementsByAttribute("div", "name", "arns").get(0)
-                .getOneHtmlElementByAttribute("input", "name", "_.value");
-        input.setValueAttribute(arn);
+                .getElementsByAttribute("div", "name", "clients").get(0)
+                .getOneHtmlElementByAttribute("input", "name", "_.role");
+        input.setValueAttribute(role);
     }
 
     public void clearEndpointConfiguration() {

@@ -14,9 +14,9 @@ public abstract class AbstractPluginConfigurationIT {
     protected abstract void setTagFilters(String key, String value);
 
     /*
-     * Only 1 role is supported for now (because locating the Add button in HtmlUnit is difficult)
+     * Only 1 client is supported for now (because locating the Add button in HtmlUnit is difficult)
      */
-    protected abstract void setRoles(String role);
+    protected abstract void setClients(String role);
 
     @Test
     public void shouldHaveDefaultConfiguration() {
@@ -59,17 +59,17 @@ public abstract class AbstractPluginConfigurationIT {
     }
 
     @Test
-    public void shouldCustomiseRoles() {
+    public void shouldCustomiseClients() {
         // Given
         final String foo = "arn:aws:iam::111111111111:role/foo-role";
-        setRoles(foo);
+        setClients(foo);
 
         // When
         final PluginConfiguration config = getPluginConfiguration();
 
         // Then
-        assertThat(config.getBeta().getRoles().getArns())
-                .extracting("value")
+        assertThat(config.getBeta().getClients().getClients())
+                .extracting("role")
                 .containsOnly(foo);
     }
 }

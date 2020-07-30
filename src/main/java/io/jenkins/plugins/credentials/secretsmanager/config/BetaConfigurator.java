@@ -11,6 +11,7 @@ import io.jenkins.plugins.casc.model.Mapping;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -49,10 +50,10 @@ public class BetaConfigurator extends BaseConfigurator<Beta>
     @NonNull
     public Set<Attribute<Beta,?>> describe() {
         return Sets.newHashSet(
-                new MultivaluedAttribute<Beta, String>("roles", String.class)
-                        .setter((target, roleArns) -> {
-                            final List<ARN> arns = roleArns.stream().map(ARN::new).collect(Collectors.toList());
-                            target.setRoles(new Roles(arns));
+                new MultivaluedAttribute<Beta, Client>("clients", Client.class)
+                        .setter((target, clients) -> {
+                            final Clients container = new Clients(new ArrayList<>(clients));
+                            target.setClients(container);
                         }));
     }
 

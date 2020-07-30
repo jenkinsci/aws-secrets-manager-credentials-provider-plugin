@@ -39,8 +39,8 @@ public class RolesIT {
     }
 
     @Test
-    @ConfiguredWithCode(value = "/invalid-roles.yml")
-    public void shouldFailWhenRoleNotValid() {
+    @ConfiguredWithCode(value = "/invalid-clients.yml")
+    public void shouldFailWhenClientRoleNotValid() {
         // Given
         final CreateSecretResult foo = createStringSecret("supersecret");
 

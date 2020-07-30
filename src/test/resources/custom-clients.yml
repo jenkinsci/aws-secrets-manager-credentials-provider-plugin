@@ -1,0 +1,5 @@
+unclassified:
+  awsCredentialsProvider:
+    beta:
+      clients:
+        - role: "arn:aws:iam::111111111111:role/foo-role"
