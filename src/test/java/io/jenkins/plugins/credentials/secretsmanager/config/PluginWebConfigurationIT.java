@@ -59,7 +59,7 @@ public class PluginWebConfigurationIT extends AbstractPluginConfigurationIT {
         assertSoftly(s -> {
             s.assertThat(configBefore.getEndpointConfiguration()).as("Endpoint Configuration").isNotNull();
             s.assertThat(configBefore.getFilters().getTag()).as("Filters").isNotNull();
-            s.assertThat(configBefore.getBeta().getClients().getClients()).as("Clients").isNotEmpty();
+            s.assertThat(configBefore.getBeta().getClients().build()).as("Clients").isNotEmpty();
         });
 
         r.configure(f -> {

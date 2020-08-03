@@ -4,6 +4,8 @@ import hudson.Extension;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
 import io.jenkins.plugins.credentials.secretsmanager.Messages;
+import io.jenkins.plugins.credentials.secretsmanager.config.clients.Clients;
+import io.jenkins.plugins.credentials.secretsmanager.config.clients.DefaultClient;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
@@ -38,6 +40,11 @@ public class Beta extends AbstractDescribableImpl<Beta> implements Serializable 
     @Symbol("beta")
     @SuppressWarnings("unused")
     public static class DescriptorImpl extends Descriptor<Beta> {
+
+        public Clients getDefaultClients() {
+            return new DefaultClient();
+        }
+
         @Override
         @Nonnull
         public String getDisplayName() {

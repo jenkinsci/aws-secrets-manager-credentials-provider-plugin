@@ -4,7 +4,6 @@ unclassified:
   awsCredentialsProvider:
     beta:
       clients:
-        - role: "arn:rol/malformatted"
-    endpointConfiguration:
-      serviceEndpoint: http://localhost:4584
-      signingRegion: us-east-1
+        - credentialsProvider:
+            assumeRole:
+              roleArn: "arn:rol/malformatted"

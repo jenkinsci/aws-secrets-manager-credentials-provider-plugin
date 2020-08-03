@@ -1,26 +1,23 @@
-package io.jenkins.plugins.credentials.secretsmanager.config;
+package io.jenkins.plugins.credentials.secretsmanager.config.clients;
 
+import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import hudson.Extension;
-import hudson.model.AbstractDescribableImpl;
-import hudson.model.Descriptor;
 import io.jenkins.plugins.credentials.secretsmanager.Messages;
+import io.jenkins.plugins.credentials.secretsmanager.config.Client;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
 import javax.annotation.Nonnull;
-import java.io.Serializable;
 import java.util.List;
+import java.util.stream.Collectors;
 
-public class Clients extends AbstractDescribableImpl<Clients> implements Serializable {
+public class Custom extends Clients {
 
-    private static final long serialVersionUID = 1L;
-
-    /** The secondary AWS Secrets Manager clients. */
     private List<Client> clients;
 
     @DataBoundConstructor
-    public Clients(List<Client> clients) {
+    public Custom(List<Client> clients) {
         this.clients = clients;
     }
 
@@ -33,14 +30,21 @@ public class Clients extends AbstractDescribableImpl<Clients> implements Seriali
         this.clients = clients;
     }
 
+    @Override
+    public List<AWSSecretsManager> build() {
+        return clients.stream()
+                .map(Client::build)
+                .collect(Collectors.toList());
+    }
+
     @Extension
-    @Symbol("clients")
+    @Symbol("custom")
     @SuppressWarnings("unused")
-    public static class DescriptorImpl extends Descriptor<Clients> {
+    public static class DescriptorImpl extends Clients.DescriptorImpl {
         @Override
         @Nonnull
         public String getDisplayName() {
-            return Messages.clients();
+            return Messages.customClients();
         }
     }
 }

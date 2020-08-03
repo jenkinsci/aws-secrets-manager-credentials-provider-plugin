@@ -62,6 +62,14 @@ public class EndpointConfiguration extends AbstractDescribableImpl<EndpointConfi
         return "Service Endpoint = " + serviceEndpoint + ", Signing Region = " + signingRegion;
     }
 
+    public AwsClientBuilder.EndpointConfiguration build() {
+        if (serviceEndpoint == null || signingRegion == null) {
+            return null;
+        }
+
+        return new AwsClientBuilder.EndpointConfiguration(serviceEndpoint, signingRegion);
+    }
+
     @Extension
     @Symbol("endpointConfiguration")
     @SuppressWarnings("unused")

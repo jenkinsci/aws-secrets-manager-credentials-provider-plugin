@@ -1,9 +1,13 @@
 package io.jenkins.plugins.credentials.secretsmanager.config;
 
+import com.amazonaws.services.secretsmanager.AWSSecretsManager;
+import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder;
 import hudson.Extension;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
 import io.jenkins.plugins.credentials.secretsmanager.Messages;
+import io.jenkins.plugins.credentials.secretsmanager.config.credentials_provider.CredentialsProvider;
+import io.jenkins.plugins.credentials.secretsmanager.config.credentials_provider.DefaultAWSCredentialsProviderChain;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
@@ -15,15 +19,17 @@ public class Client extends AbstractDescribableImpl<Client> implements Serializa
 
     private static final long serialVersionUID = 1L;
 
+    private CredentialsProvider credentialsProvider;
+
     private EndpointConfiguration endpointConfiguration;
 
-    /** The custom IAM role ARN. **/
-    private String role;
+    private Region region;
 
     @DataBoundConstructor
-    public Client(EndpointConfiguration endpointConfiguration, String role) {
+    public Client(CredentialsProvider credentialsProvider, EndpointConfiguration endpointConfiguration, Region region) {
+        this.credentialsProvider = credentialsProvider;
         this.endpointConfiguration = endpointConfiguration;
-        this.role = role;
+        this.region = region;
     }
 
     public EndpointConfiguration getEndpointConfiguration() {
@@ -35,19 +41,51 @@ public class Client extends AbstractDescribableImpl<Client> implements Serializa
         this.endpointConfiguration = endpointConfiguration;
     }
 
-    public String getRole() {
-        return role;
+    public CredentialsProvider getCredentialsProvider() {
+        return credentialsProvider;
     }
 
     @DataBoundSetter
-    public void setRole(String role) {
-        this.role = role;
+    public void setCredentialsProvider(CredentialsProvider credentialsProvider) {
+        this.credentialsProvider = credentialsProvider;
+    }
+
+    public Region getRegion() {
+        return region;
+    }
+
+    @DataBoundSetter
+    public void setRegion(Region region) {
+        this.region = region;
+    }
+
+    public AWSSecretsManager build() {
+        final AWSSecretsManagerClientBuilder builder = AWSSecretsManagerClientBuilder.standard();
+
+        if (credentialsProvider != null) {
+            builder.setCredentials(credentialsProvider.build());
+        }
+
+        if (endpointConfiguration != null) {
+            builder.setEndpointConfiguration(endpointConfiguration.build());
+        }
+
+        if (region != null) {
+            builder.setRegion(region.getRegion());
+        }
+
+        return builder.build();
     }
 
     @Extension
     @Symbol("client")
     @SuppressWarnings("unused")
     public static class DescriptorImpl extends Descriptor<Client> {
+
+        public CredentialsProvider getDefaultCredentialsProvider() {
+            return new DefaultAWSCredentialsProviderChain();
+        }
+
         @Override
         @Nonnull
         public String getDisplayName() {

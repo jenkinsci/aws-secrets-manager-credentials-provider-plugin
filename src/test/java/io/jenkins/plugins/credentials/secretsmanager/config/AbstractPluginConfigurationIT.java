@@ -68,7 +68,7 @@ public abstract class AbstractPluginConfigurationIT {
         final PluginConfiguration config = getPluginConfiguration();
 
         // Then
-        assertThat(config.getBeta().getClients().getClients())
+        assertThat(config.getBeta().getClients().build())
                 .extracting("role")
                 .containsOnly(foo);
     }
