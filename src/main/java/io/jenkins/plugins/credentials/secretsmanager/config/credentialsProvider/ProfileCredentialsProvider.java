@@ -1,4 +1,4 @@
-package io.jenkins.plugins.credentials.secretsmanager.config.credentials_provider;
+package io.jenkins.plugins.credentials.secretsmanager.config.credentialsProvider;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
 import hudson.Extension;
@@ -8,6 +8,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
 import javax.annotation.Nonnull;
+import java.util.Objects;
 
 public class ProfileCredentialsProvider extends CredentialsProvider {
 
@@ -30,6 +31,19 @@ public class ProfileCredentialsProvider extends CredentialsProvider {
     @Override
     public AWSCredentialsProvider build() {
         return new com.amazonaws.auth.profile.ProfileCredentialsProvider(profileName);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ProfileCredentialsProvider that = (ProfileCredentialsProvider) o;
+        return Objects.equals(profileName, that.profileName);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(profileName);
     }
 
     @Extension

@@ -11,8 +11,6 @@ import io.jenkins.plugins.casc.Configurator;
 import io.jenkins.plugins.casc.impl.attributes.MultivaluedAttribute;
 import io.jenkins.plugins.casc.model.CNode;
 import io.jenkins.plugins.casc.model.Mapping;
-import io.jenkins.plugins.credentials.secretsmanager.config.clients.Clients;
-import io.jenkins.plugins.credentials.secretsmanager.config.clients.Custom;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 
@@ -55,7 +53,7 @@ public class BetaConfigurator extends BaseConfigurator<Beta>
         return Sets.newHashSet(
                 new MultivaluedAttribute<Beta, Client>("clients", Client.class)
                         .setter((target, clients) -> {
-                            final Clients container = new Custom(new ArrayList<>(clients));
+                            final Clients container = new Clients(new ArrayList<>(clients));
                             target.setClients(container);
                         }));
     }

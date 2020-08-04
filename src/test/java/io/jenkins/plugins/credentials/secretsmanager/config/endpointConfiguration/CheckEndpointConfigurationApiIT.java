@@ -1,8 +1,7 @@
-package io.jenkins.plugins.credentials.secretsmanager.config;
+package io.jenkins.plugins.credentials.secretsmanager.config.endpointConfiguration;
 
 import io.jenkins.plugins.credentials.secretsmanager.util.FormValidationResult;
 import io.jenkins.plugins.credentials.secretsmanager.util.Rules;
-import io.jenkins.plugins.credentials.secretsmanager.util.FormValidationResult;
 import org.junit.Rule;
 import org.junit.rules.RuleChain;
 import org.jvnet.hudson.test.JenkinsRule;

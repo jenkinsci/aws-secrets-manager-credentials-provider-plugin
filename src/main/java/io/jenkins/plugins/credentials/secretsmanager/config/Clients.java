@@ -1,23 +1,29 @@
-package io.jenkins.plugins.credentials.secretsmanager.config.clients;
+package io.jenkins.plugins.credentials.secretsmanager.config;
 
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
+import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder;
 import hudson.Extension;
+import hudson.model.AbstractDescribableImpl;
+import hudson.model.Descriptor;
 import io.jenkins.plugins.credentials.secretsmanager.Messages;
-import io.jenkins.plugins.credentials.secretsmanager.config.Client;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
 import javax.annotation.Nonnull;
+import java.io.Serializable;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class Custom extends Clients {
+public class Clients extends AbstractDescribableImpl<Clients> implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private List<Client> clients;
 
     @DataBoundConstructor
-    public Custom(List<Client> clients) {
+    public Clients(List<Client> clients) {
         this.clients = clients;
     }
 
@@ -30,21 +36,25 @@ public class Custom extends Clients {
         this.clients = clients;
     }
 
-    @Override
     public List<AWSSecretsManager> build() {
+        if (clients == null) {
+            final AWSSecretsManager secretsManager = AWSSecretsManagerClientBuilder.defaultClient();
+            return Collections.singletonList(secretsManager);
+        }
+
         return clients.stream()
                 .map(Client::build)
                 .collect(Collectors.toList());
     }
 
     @Extension
-    @Symbol("custom")
+    @Symbol("clients")
     @SuppressWarnings("unused")
-    public static class DescriptorImpl extends Clients.DescriptorImpl {
+    public static class DescriptorImpl extends Descriptor<Clients> {
         @Override
         @Nonnull
         public String getDisplayName() {
-            return Messages.customClients();
+            return Messages.clients();
         }
     }
 }

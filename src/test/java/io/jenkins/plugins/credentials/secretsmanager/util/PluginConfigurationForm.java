@@ -1,7 +1,9 @@
 package io.jenkins.plugins.credentials.secretsmanager.util;
 
-import com.gargoylesoftware.htmlunit.html.*;
-import io.jenkins.plugins.credentials.secretsmanager.config.EndpointConfiguration;
+import com.gargoylesoftware.htmlunit.html.DomNode;
+import com.gargoylesoftware.htmlunit.html.HtmlButton;
+import com.gargoylesoftware.htmlunit.html.HtmlForm;
+import com.gargoylesoftware.htmlunit.html.HtmlSelect;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -40,14 +42,45 @@ public class PluginConfigurationForm {
         form.getInputByName("_.clients").setChecked(false);
     }
 
-    public void setClient(String role, EndpointConfiguration endpointConfiguration) {
+    public void setClientWithRegion(String region) {
         form.getInputByName("_.beta").setChecked(true);
         form.getInputByName("_.clients").setChecked(true);
-        // TODO Use the 'Add' button to test multiple clients
-        final HtmlInput input = form
-                .getElementsByAttribute("div", "name", "clients").get(0)
-                .getOneHtmlElementByAttribute("input", "name", "_.role");
-        input.setValueAttribute(role);
+        form.getInputByName("_.region").setChecked(true);
+        form.getInputsByName("_.region").get(1).setValueAttribute(region);
+    }
+
+    public void setClientWithEndpointConfiguration(String serviceEndpoint, String signingRegion) {
+        form.getInputByName("_.beta").setChecked(true);
+        form.getInputByName("_.clients").setChecked(true);
+        form.getInputByName("_.endpointConfiguration").setChecked(true);
+        form.getInputByName("_.serviceEndpoint").setValueAttribute(serviceEndpoint);
+        form.getInputByName("_.signingRegion").setValueAttribute(signingRegion);
+    }
+
+    public void setClientWithDefaultAWSCredentialsProviderChain() {
+        form.getInputByName("_.beta").setChecked(true);
+        form.getInputByName("_.clients").setChecked(true);
+        setClientCredentialsProviderSelect("Default");
+    }
+
+    public void setClientWithProfileCredentialsProvider(String profileName) {
+        form.getInputByName("_.beta").setChecked(true);
+        form.getInputByName("_.clients").setChecked(true);
+        setClientCredentialsProviderSelect("Profile");
+        form.getInputByName("_.profileName").setValueAttribute(profileName);
+    }
+
+    public void setClientWithSTSAssumeRoleSessionCredentialsProvider(String roleArn, String roleSessionName) {
+        form.getInputByName("_.beta").setChecked(true);
+        form.getInputByName("_.clients").setChecked(true);
+        setClientCredentialsProviderSelect("STS AssumeRole");
+        form.getInputByName("_.roleArn").setValueAttribute(roleArn);
+        form.getInputByName("_.roleSessionName").setValueAttribute(roleSessionName);
+    }
+
+    private void setClientCredentialsProviderSelect(String optionText) {
+        final HtmlSelect select = (HtmlSelect) form.getByXPath("//div[contains(string(@name), 'clients')]//select[contains(string(@class),'dropdownList')]").get(0);
+        select.getOptionByText(optionText).setSelected(true);
     }
 
     public void clearEndpointConfiguration() {

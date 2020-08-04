@@ -6,10 +6,10 @@ import com.amazonaws.services.secretsmanager.model.SecretListEntry;
 import com.amazonaws.services.secretsmanager.model.Tag;
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import io.jenkins.plugins.credentials.secretsmanager.config.Client;
-import io.jenkins.plugins.credentials.secretsmanager.config.clients.Clients;
+import io.jenkins.plugins.credentials.secretsmanager.config.Clients;
 import io.jenkins.plugins.credentials.secretsmanager.config.Filters;
 import io.jenkins.plugins.credentials.secretsmanager.config.PluginConfiguration;
-import io.jenkins.plugins.credentials.secretsmanager.config.credentials_provider.DefaultAWSCredentialsProviderChain;
+import io.jenkins.plugins.credentials.secretsmanager.config.credentialsProvider.DefaultAWSCredentialsProviderChain;
 import io.jenkins.plugins.credentials.secretsmanager.factory.CredentialsFactory;
 
 import java.util.*;

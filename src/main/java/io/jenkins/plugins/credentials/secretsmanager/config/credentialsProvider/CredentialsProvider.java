@@ -1,4 +1,4 @@
-package io.jenkins.plugins.credentials.secretsmanager.config.credentials_provider;
+package io.jenkins.plugins.credentials.secretsmanager.config.credentialsProvider;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
 import hudson.model.AbstractDescribableImpl;

@@ -1,4 +1,4 @@
-package io.jenkins.plugins.credentials.secretsmanager.config.credentials_provider;
+package io.jenkins.plugins.credentials.secretsmanager.config.credentialsProvider;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
 import hudson.Extension;
@@ -8,10 +8,12 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
 import javax.annotation.Nonnull;
+import java.util.Objects;
 
 public class STSAssumeRoleSessionCredentialsProvider extends CredentialsProvider {
 
     private static final int DEFAULT_ROLE_SESSION_DURATION_SECONDS = 900;
+    // TODO use as default
     private static final String DEFAULT_ROLE_SESSION_NAME = "io.jenkins.plugins.aws-secrets-manager-credentials-provider";
 
     private String roleArn;
@@ -47,6 +49,20 @@ public class STSAssumeRoleSessionCredentialsProvider extends CredentialsProvider
         return new com.amazonaws.auth.STSAssumeRoleSessionCredentialsProvider.Builder(roleArn, roleSessionName)
                 .withRoleSessionDurationSeconds(DEFAULT_ROLE_SESSION_DURATION_SECONDS)
                 .build();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        STSAssumeRoleSessionCredentialsProvider that = (STSAssumeRoleSessionCredentialsProvider) o;
+        return Objects.equals(roleArn, that.roleArn) &&
+                Objects.equals(roleSessionName, that.roleSessionName);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(roleArn, roleSessionName);
     }
 
     @Extension

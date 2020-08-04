@@ -1,4 +1,4 @@
-package io.jenkins.plugins.credentials.secretsmanager.config.credentials_provider;
+package io.jenkins.plugins.credentials.secretsmanager.config.credentialsProvider;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
 import hudson.Extension;
@@ -18,6 +18,13 @@ public class DefaultAWSCredentialsProviderChain extends CredentialsProvider {
     @Override
     public AWSCredentialsProvider build() {
         return new com.amazonaws.auth.DefaultAWSCredentialsProviderChain();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null) return false;
+        return getClass() == o.getClass();
     }
 
     @Extension
