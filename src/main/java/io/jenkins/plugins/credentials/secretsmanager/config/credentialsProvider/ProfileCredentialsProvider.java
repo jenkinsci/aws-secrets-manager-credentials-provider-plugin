@@ -53,7 +53,7 @@ public class ProfileCredentialsProvider extends CredentialsProvider {
         @Override
         @Nonnull
         public String getDisplayName() {
-            return Messages.ProfileCredentialsProvider();
+            return Messages.profile();
         }
     }
 }

@@ -16,6 +16,7 @@ import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.verb.POST;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 import javax.annotation.Nonnull;
 
@@ -60,6 +61,20 @@ public class EndpointConfiguration extends AbstractDescribableImpl<EndpointConfi
     @Override
     public String toString() {
         return "Service Endpoint = " + serviceEndpoint + ", Signing Region = " + signingRegion;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        EndpointConfiguration that = (EndpointConfiguration) o;
+        return Objects.equals(serviceEndpoint, that.serviceEndpoint) &&
+                Objects.equals(signingRegion, that.signingRegion);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(serviceEndpoint, signingRegion);
     }
 
     public AwsClientBuilder.EndpointConfiguration build() {

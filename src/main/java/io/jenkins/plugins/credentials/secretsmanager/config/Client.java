@@ -14,6 +14,7 @@ import org.kohsuke.stapler.DataBoundSetter;
 
 import javax.annotation.Nonnull;
 import java.io.Serializable;
+import java.util.Objects;
 
 public class Client extends AbstractDescribableImpl<Client> implements Serializable {
 
@@ -75,6 +76,21 @@ public class Client extends AbstractDescribableImpl<Client> implements Serializa
         }
 
         return builder.build();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Client client = (Client) o;
+        return Objects.equals(credentialsProvider, client.credentialsProvider) &&
+                Objects.equals(endpointConfiguration, client.endpointConfiguration) &&
+                Objects.equals(region, client.region);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(credentialsProvider, endpointConfiguration, region);
     }
 
     @Extension

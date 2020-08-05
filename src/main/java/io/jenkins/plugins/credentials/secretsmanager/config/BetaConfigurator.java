@@ -14,7 +14,7 @@ import io.jenkins.plugins.casc.model.Mapping;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Set;
 
 @Extension(optional = true, ordinal = 2)
@@ -53,7 +53,7 @@ public class BetaConfigurator extends BaseConfigurator<Beta>
         return Sets.newHashSet(
                 new MultivaluedAttribute<Beta, Client>("clients", Client.class)
                         .setter((target, clients) -> {
-                            final Clients container = new Clients(new ArrayList<>(clients));
+                            final Clients container = new Clients(new HashSet<>(clients));
                             target.setClients(container);
                         }));
     }

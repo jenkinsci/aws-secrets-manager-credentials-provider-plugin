@@ -10,6 +10,7 @@ import org.kohsuke.stapler.DataBoundSetter;
 
 import javax.annotation.Nonnull;
 import java.io.Serializable;
+import java.util.Objects;
 
 public class Region extends AbstractDescribableImpl<Region> implements Serializable {
 
@@ -27,6 +28,19 @@ public class Region extends AbstractDescribableImpl<Region> implements Serializa
     @DataBoundSetter
     public void setRegion(String region) {
         this.region = region;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Region region1 = (Region) o;
+        return Objects.equals(region, region1.region);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(region);
     }
 
     @Extension

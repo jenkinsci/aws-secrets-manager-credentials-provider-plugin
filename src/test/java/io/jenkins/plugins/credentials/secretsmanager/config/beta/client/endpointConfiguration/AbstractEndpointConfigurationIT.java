@@ -1,10 +1,10 @@
 package io.jenkins.plugins.credentials.secretsmanager.config.beta.client.endpointConfiguration;
 
+import io.jenkins.plugins.credentials.secretsmanager.config.EndpointConfiguration;
 import io.jenkins.plugins.credentials.secretsmanager.config.PluginConfiguration;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
 
 public abstract class AbstractEndpointConfigurationIT {
 
@@ -24,7 +24,7 @@ public abstract class AbstractEndpointConfigurationIT {
 
         // Then
         assertThat(config.getBeta().getClients().getClients())
-                .extracting("endpointConfiguration.serviceEndpoint", "endpointConfiguration.signingRegion")
-                .containsOnly(tuple(serviceEndpoint, signingRegion));
+                .extracting("endpointConfiguration")
+                .containsOnly(new EndpointConfiguration(serviceEndpoint, signingRegion));
     }
 }

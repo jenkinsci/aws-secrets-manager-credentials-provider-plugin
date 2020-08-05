@@ -19,6 +19,8 @@ With custom clients, you can decide:
 - Whether *same-account* secrets access should be enabled.
 - Which *cross-account* calls you want to make.
 
+To help you avoid duplicate client configurations (where two or more client configurations have the same credentials provider, endpoint configuration, and region), the plugin automatically de-duplicates client configurations.
+
 To set this up, for each secondary client:
 
 1. Create the associated IAM role and policies in AWS.

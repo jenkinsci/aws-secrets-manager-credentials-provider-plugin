@@ -72,7 +72,7 @@ public class STSAssumeRoleSessionCredentialsProvider extends CredentialsProvider
         @Override
         @Nonnull
         public String getDisplayName() {
-            return Messages.STSAssumeRoleSessionCredentialsProvider();
+            return Messages.assumeRole();
         }
     }
 }

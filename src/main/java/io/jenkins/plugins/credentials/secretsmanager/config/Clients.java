@@ -14,25 +14,26 @@ import javax.annotation.Nonnull;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class Clients extends AbstractDescribableImpl<Clients> implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private List<Client> clients;
+    private Set<Client> clients;
 
     @DataBoundConstructor
-    public Clients(List<Client> clients) {
+    public Clients(Set<Client> clients) {
         this.clients = clients;
     }
 
-    public List<Client> getClients() {
+    public Set<Client> getClients() {
         return clients;
     }
 
     @DataBoundSetter
-    public void setClients(List<Client> clients) {
+    public void setClients(Set<Client> clients) {
         this.clients = clients;
     }
 

@@ -7,6 +7,7 @@ import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import javax.annotation.Nonnull;
+import java.util.Objects;
 
 public class DefaultAWSCredentialsProviderChain extends CredentialsProvider {
 
@@ -27,6 +28,11 @@ public class DefaultAWSCredentialsProviderChain extends CredentialsProvider {
         return getClass() == o.getClass();
     }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash();
+    }
+
     @Extension
     @Symbol("default")
     @SuppressWarnings("unused")
@@ -35,7 +41,7 @@ public class DefaultAWSCredentialsProviderChain extends CredentialsProvider {
         @Override
         @Nonnull
         public String getDisplayName() {
-            return Messages.DefaultAWSCredentialsProviderChain();
+            return Messages.defaultClient();
         }
     }
 }

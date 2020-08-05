@@ -1,6 +1,7 @@
 package io.jenkins.plugins.credentials.secretsmanager.config.beta.client.region;
 
 import io.jenkins.plugins.credentials.secretsmanager.config.PluginConfiguration;
+import io.jenkins.plugins.credentials.secretsmanager.config.Region;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -22,7 +23,7 @@ public abstract class AbstractRegionIT {
 
         // Then
         assertThat(config.getBeta().getClients().getClients())
-                .extracting("region.region")
-                .containsOnly(region);
+                .extracting("region")
+                .containsOnly(new Region(region));
     }
 }
