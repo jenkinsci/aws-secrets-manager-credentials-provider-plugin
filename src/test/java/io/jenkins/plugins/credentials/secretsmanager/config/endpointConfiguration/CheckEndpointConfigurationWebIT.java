@@ -1,5 +1,6 @@
 package io.jenkins.plugins.credentials.secretsmanager.config.endpointConfiguration;
 
+import com.gargoylesoftware.htmlunit.html.HtmlButton;
 import io.jenkins.plugins.credentials.secretsmanager.util.FormValidationResult;
 import io.jenkins.plugins.credentials.secretsmanager.util.JenkinsConfiguredWithWebRule;
 import io.jenkins.plugins.credentials.secretsmanager.util.PluginConfigurationForm;
@@ -27,7 +28,8 @@ public class CheckEndpointConfigurationWebIT extends AbstractCheckEndpointConfig
 
             form.setEndpointConfiguration(serviceEndpoint, signingRegion);
 
-            final FormValidationResult r = form.clickValidateButton("Test Endpoint Configuration");
+            final HtmlButton validateButton = form.getValidateButtons("Test Endpoint Configuration").get(1);
+            final FormValidationResult r = form.clickValidateButton(validateButton);
             result.set(r);
         });
 
