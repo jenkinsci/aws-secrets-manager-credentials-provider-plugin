@@ -1,4 +1,4 @@
-# Clients
+# Client Configuration
 
 The plugin allows you to configure the Secrets Manager client(s) that it uses to access secrets.
 
@@ -8,7 +8,7 @@ The plugin allows you to configure the Secrets Manager client(s) that it uses to
             <th>Client Configuration</th>
             <th>Same-account access</th>
             <th>Cross-account access</th>
-            <th>Same-account AND cross-account access</th>
+            <th>Multiple clients</th>
         </tr>
     </thead>
     <tbody>
@@ -31,11 +31,11 @@ The plugin allows you to configure the Secrets Manager client(s) that it uses to
 
 The default client performs *same-account* secret access, using the default `AWSCredentialsProvider` chain to authenticate and authorize with Secrets Manager.
 
-No extra Jenkins configuration is necessary to use the default client. This is the simplest option and should serve most use cases.
+No extra Jenkins configuration is necessary to use the default client configuration. This is the simplest option and should serve most use cases.
 
 ## Custom
 
-The plugin can access more (or different) secrets when you enable custom clients.
+The plugin can access more (or different) secrets when you enable the custom client configuration.
 
 The most common use case is to access secrets in other accounts using [IAM cross-account roles](https://docs.aws.amazon.com/IAM/latest/UserGuide/tutorial_cross-account-with-roles.html). In this setup, Jenkins performs *same-account* secrets access with its IAM principal's *implicit* role, and performs *cross-account* secrets access with *explicit* roles for each secondary account.
 
@@ -51,6 +51,20 @@ To set this up, for each secondary client:
 1. Create the associated IAM role and policies in AWS.
 2. Ensure that Jenkins can assume the role and retrieve secrets.
 3. Add the client to the `clients` list in the plugin configuration.
+
+**Example:** Jenkins is installed in an AWS account. You want Jenkins to access secrets in the same account, and also secrets in account ID 111111111111:
+
+```yaml
+unclassified:
+  awsCredentialsProvider:
+    beta:
+      clients:
+        - {}  # Client with default settings
+        - credentialsProvider:
+            assumeRole:
+              roleArn: "arn:aws:iam::111111111111:role/foo"
+              roleSessionName: "jenkins"
+```
 
 ### Options
 
@@ -118,7 +132,7 @@ unclassified:
 
 #### Region
 
-You can override the AWS region for each client.
+You can override the AWS region for each client. You will typically do this when the target account is in a different region to Jenkins.
 
 ```yaml
 unclassified:
@@ -139,8 +153,8 @@ Secrets in different accounts may have the same name. To allow them to co-exist 
 <table>
     <thead>
         <tr>
-            <td>Client</td>
-            <td>Credential ID</td>
+            <th>Client</th>
+            <th>Credential ID</th>
         </tr>
     </thead>
     <tbody>
