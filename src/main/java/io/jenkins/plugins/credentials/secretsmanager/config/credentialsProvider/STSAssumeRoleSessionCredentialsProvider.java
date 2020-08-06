@@ -13,8 +13,6 @@ import java.util.Objects;
 public class STSAssumeRoleSessionCredentialsProvider extends CredentialsProvider {
 
     private static final int DEFAULT_ROLE_SESSION_DURATION_SECONDS = 900;
-    // TODO use as default
-    private static final String DEFAULT_ROLE_SESSION_NAME = "io.jenkins.plugins.aws-secrets-manager-credentials-provider";
 
     private String roleArn;
 

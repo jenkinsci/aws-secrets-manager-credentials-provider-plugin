@@ -37,7 +37,7 @@ No extra Jenkins configuration is necessary to use the default client configurat
 
 The plugin can access more (or different) secrets when you enable the custom client configuration.
 
-The most common use case is to access secrets in other accounts using [IAM cross-account roles](https://docs.aws.amazon.com/IAM/latest/UserGuide/tutorial_cross-account-with-roles.html). In this setup, Jenkins performs *same-account* secrets access with its IAM principal's *implicit* role, and performs *cross-account* secrets access with *explicit* roles for each secondary account.
+The most common use case is to access secrets in other accounts using [IAM cross-account roles](https://docs.aws.amazon.com/IAM/latest/UserGuide/tutorial_cross-account-with-roles.html). In this setup, Jenkins performs *same-account* secrets access with its IAM principal's *implicit* role, and performs *cross-account* secrets access with *explicit* roles.
 
 With custom clients, you can decide:
  
@@ -46,9 +46,9 @@ With custom clients, you can decide:
 
 The plugin de-duplicates client configurations (where two clients have the same credentials provider, endpoint configuration, and region) when you save the Jenkins configuration. This helps you to avoid redundant clients.
 
-To set this up, for each secondary client:
+To set this up, for each client:
 
-1. Create the associated IAM role and policies in AWS.
+1. Create the associated IAM roles and policies in AWS.
 2. Ensure that Jenkins can assume the role and retrieve secrets.
 3. Add the client to the `clients` list in the plugin configuration.
 
