@@ -1,6 +1,6 @@
 package io.jenkins.plugins.credentials.secretsmanager.config;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.ImmutableSet;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
@@ -50,7 +50,7 @@ public class BetaConfigurator extends BaseConfigurator<Beta>
     @Override
     @NonNull
     public Set<Attribute<Beta,?>> describe() {
-        return Sets.newHashSet(
+        return ImmutableSet.of(
                 new MultivaluedAttribute<Beta, Client>("clients", Client.class)
                         .setter((target, clients) -> {
                             final Clients container = new Clients(new HashSet<>(clients));

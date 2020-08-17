@@ -1,6 +1,6 @@
 package io.jenkins.plugins.credentials.secretsmanager.config;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.ImmutableSet;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import io.jenkins.plugins.casc.Attribute;
@@ -41,7 +41,7 @@ public class ClientConfigurator  extends BaseConfigurator<Client>
     @Override
     @NonNull
     public Set<Attribute<Client,?>> describe() {
-        return Sets.newHashSet(
+        return ImmutableSet.of(
                 new Attribute<Client, CredentialsProvider>("credentialsProvider", CredentialsProvider.class),
                 new Attribute<Client, EndpointConfiguration>("endpointConfiguration", EndpointConfiguration.class),
                 new Attribute<Client, String>("region", String.class)
