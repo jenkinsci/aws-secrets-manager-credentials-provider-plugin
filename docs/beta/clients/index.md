@@ -116,9 +116,7 @@ unclassified:
 
 #### Endpoint Configuration
 
-You can override the AWS endpoint configuration for each client.
-
-Note: This is rarely necessary in real installations. It is typically only used in integration tests.
+You can set the AWS endpoint configuration for each client.
 
 ```yaml
 unclassified:
@@ -132,7 +130,7 @@ unclassified:
 
 #### Region
 
-You can override the AWS region for each client. You will typically do this when the target account is in a different region to Jenkins.
+You can set the AWS region for each client. You will typically do this when the target account is in a different region to Jenkins.
 
 ```yaml
 unclassified:
