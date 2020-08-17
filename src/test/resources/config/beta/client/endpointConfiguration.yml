@@ -1,0 +1,7 @@
+unclassified:
+  awsCredentialsProvider:
+    beta:
+      clients:
+        - endpointConfiguration:
+            serviceEndpoint: "http://localhost:4584"
+            signingRegion: "us-east-1"

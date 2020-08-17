@@ -18,29 +18,27 @@ public class Beta extends AbstractDescribableImpl<Beta> implements Serializable 
 
     private static final long serialVersionUID = 1L;
 
-    /**
-     * The IAM role ARNs to assume. For multi-account secrets retrieval.
-     */
-    private Roles roles;
+    private Clients clients;
 
     @DataBoundConstructor
-    public Beta(Roles roles) {
-        this.roles = roles;
+    public Beta(Clients clients) {
+        this.clients = clients;
     }
 
-    public Roles getRoles() {
-        return roles;
+    public Clients getClients() {
+        return clients;
     }
 
     @DataBoundSetter
-    public void setRoles(Roles roles) {
-        this.roles = roles;
+    public void setClients(Clients clients) {
+        this.clients = clients;
     }
 
     @Extension
     @Symbol("beta")
     @SuppressWarnings("unused")
     public static class DescriptorImpl extends Descriptor<Beta> {
+
         @Override
         @Nonnull
         public String getDisplayName() {

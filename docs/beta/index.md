@@ -2,7 +2,7 @@
 
 The plugin contains the following beta features:
 
-- [Secondary IAM Roles](roles/index.md)
+- [Client Configuration](clients/index.md)
 
 ## Warnings
 

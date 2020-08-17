@@ -4,16 +4,18 @@ import com.google.common.collect.Sets;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
-import io.jenkins.plugins.casc.*;
+import io.jenkins.plugins.casc.Attribute;
+import io.jenkins.plugins.casc.BaseConfigurator;
+import io.jenkins.plugins.casc.ConfigurationContext;
+import io.jenkins.plugins.casc.Configurator;
 import io.jenkins.plugins.casc.impl.attributes.MultivaluedAttribute;
 import io.jenkins.plugins.casc.model.CNode;
 import io.jenkins.plugins.casc.model.Mapping;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 
-import java.util.List;
+import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Extension(optional = true, ordinal = 2)
 @Restricted(NoExternalUse.class)
@@ -49,10 +51,10 @@ public class BetaConfigurator extends BaseConfigurator<Beta>
     @NonNull
     public Set<Attribute<Beta,?>> describe() {
         return Sets.newHashSet(
-                new MultivaluedAttribute<Beta, String>("roles", String.class)
-                        .setter((target, roleArns) -> {
-                            final List<ARN> arns = roleArns.stream().map(ARN::new).collect(Collectors.toList());
-                            target.setRoles(new Roles(arns));
+                new MultivaluedAttribute<Beta, Client>("clients", Client.class)
+                        .setter((target, clients) -> {
+                            final Clients container = new Clients(new HashSet<>(clients));
+                            target.setClients(container);
                         }));
     }
 

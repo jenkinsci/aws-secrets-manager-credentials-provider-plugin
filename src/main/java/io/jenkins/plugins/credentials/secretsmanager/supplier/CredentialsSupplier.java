@@ -1,16 +1,15 @@
 package io.jenkins.plugins.credentials.secretsmanager.supplier;
 
 import com.amazonaws.SdkBaseException;
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.STSAssumeRoleSessionCredentialsProvider;
-import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
-import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder;
 import com.amazonaws.services.secretsmanager.model.SecretListEntry;
 import com.amazonaws.services.secretsmanager.model.Tag;
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
-import io.jenkins.plugins.credentials.secretsmanager.AssumeRoleDefaults;
-import io.jenkins.plugins.credentials.secretsmanager.config.*;
+import io.jenkins.plugins.credentials.secretsmanager.config.Client;
+import io.jenkins.plugins.credentials.secretsmanager.config.Clients;
+import io.jenkins.plugins.credentials.secretsmanager.config.Filters;
+import io.jenkins.plugins.credentials.secretsmanager.config.PluginConfiguration;
+import io.jenkins.plugins.credentials.secretsmanager.config.credentialsProvider.DefaultAWSCredentialsProviderChain;
 import io.jenkins.plugins.credentials.secretsmanager.factory.CredentialsFactory;
 
 import java.util.*;
@@ -21,6 +20,7 @@ import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class CredentialsSupplier implements Supplier<Collection<StandardCredentials>> {
 
@@ -40,34 +40,40 @@ public class CredentialsSupplier implements Supplier<Collection<StandardCredenti
 
         final PluginConfiguration config = PluginConfiguration.getInstance();
 
-        final EndpointConfiguration ec = config.getEndpointConfiguration();
-        final AwsClientBuilder.EndpointConfiguration endpointConfiguration = newEndpointConfiguration(ec);
-
         final Filters filters = config.getFilters();
         final Predicate<SecretListEntry> secretFilter = newSecretFilter(filters);
 
-        final Roles roles = Optional.ofNullable(config.getBeta()).map(beta -> beta.getRoles()).orElse(null);
-        final List<String> roleArns = newRoleArns(roles);
+        final Optional<List<AWSSecretsManager>> clients = Optional.ofNullable(config.getBeta())
+                .flatMap(beta -> Optional.ofNullable(beta.getClients()))
+                .map(Clients::build);
 
-        final Supplier<Collection<StandardCredentials>> mainSupplier =
-                new SingleAccountCredentialsSupplier(newClient(endpointConfiguration), SecretListEntry::getName, secretFilter);
+        final Stream<StandardCredentials> creds;
+        if (clients.isPresent()) {
+            // Custom behavior
+            final Collection<Supplier<Collection<StandardCredentials>>> multipleSuppliers = clients.get().stream()
+                    .map(client -> new SingleAccountCredentialsSupplier(client, SecretListEntry::getARN, secretFilter))
+                    .collect(Collectors.toList());
 
-        final Collection<Supplier<Collection<StandardCredentials>>> otherSuppliers = roleArns.stream()
-                .map(roleArn -> new SingleAccountCredentialsSupplier(newClient(roleArn, endpointConfiguration), SecretListEntry::getARN, secretFilter))
-                .collect(Collectors.toList());
-
-        final ParallelSupplier<Collection<StandardCredentials>> allSuppliers = new ParallelSupplier<>(Lists.concat(mainSupplier, otherSuppliers));
-
-        try {
-            return allSuppliers.get()
-                    .stream()
-                    .flatMap(Collection::stream)
-                    .collect(Collectors.toMap(StandardCredentials::getId, Function.identity()))
-                    .values();
-        } catch (CompletionException | IllegalStateException e) {
-            // Re-throw in a way that the provider knows how to catch
-            throw new SdkBaseException(e.getCause());
+            final ParallelSupplier<Collection<StandardCredentials>> supplier = new ParallelSupplier<>(multipleSuppliers);
+            try {
+                creds = supplier.get()
+                        .stream()
+                        .flatMap(Collection::stream);
+            } catch (CompletionException | IllegalStateException e) {
+                // Re-throw in a way that the provider knows how to catch
+                throw new SdkBaseException(e.getCause());
+            }
+        } else {
+            // Default behavior
+            final Client clientConfig = new Client(new DefaultAWSCredentialsProviderChain(), config.getEndpointConfiguration(), null);
+            final AWSSecretsManager secretsManager = clientConfig.build();
+            final SingleAccountCredentialsSupplier supplier = new SingleAccountCredentialsSupplier(secretsManager, SecretListEntry::getName, secretFilter);
+            creds = supplier.get().stream();
         }
+
+        return creds
+                .collect(Collectors.toMap(StandardCredentials::getId, Function.identity()))
+                .values();
     }
 
     private static Predicate<SecretListEntry> newSecretFilter(Filters filters) {
@@ -78,39 +84,6 @@ public class CredentialsSupplier implements Supplier<Collection<StandardCredenti
             return s -> Optional.ofNullable(s.getTags()).orElse(Collections.emptyList()).contains(filterTag);
         } else {
             return s -> true;
-        }
-    }
-
-    private static AWSSecretsManager newClient(AwsClientBuilder.EndpointConfiguration endpointConfiguration) {
-        return AWSSecretsManagerClientBuilder.standard()
-                .withEndpointConfiguration(endpointConfiguration)
-                .build();
-    }
-
-    private static AWSSecretsManager newClient(String roleArn, AwsClientBuilder.EndpointConfiguration endpointConfiguration) {
-        final AWSCredentialsProvider roleCredentials = new STSAssumeRoleSessionCredentialsProvider.Builder(roleArn, AssumeRoleDefaults.SESSION_NAME)
-                .withRoleSessionDurationSeconds(AssumeRoleDefaults.SESSION_DURATION_SECONDS)
-                .build();
-
-        return AWSSecretsManagerClientBuilder.standard()
-                .withEndpointConfiguration(endpointConfiguration)
-                .withCredentials(roleCredentials)
-                .build();
-    }
-
-    private static List<String> newRoleArns(Roles roles) {
-        if (roles != null && roles.getArns() != null) {
-            return roles.getArns().stream().map(ARN::getValue).collect(Collectors.toList());
-        } else {
-            return Collections.emptyList();
-        }
-    }
-
-    private static AwsClientBuilder.EndpointConfiguration newEndpointConfiguration(EndpointConfiguration ec) {
-        if (ec == null || (ec.getServiceEndpoint() == null || ec.getSigningRegion() == null)) {
-            return null;
-        } else {
-            return new AwsClientBuilder.EndpointConfiguration(ec.getServiceEndpoint(), ec.getSigningRegion());
         }
     }
 
