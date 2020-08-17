@@ -33,6 +33,8 @@ public abstract class CredentialsFactory {
      * @param name the secret's name (must be unique within the AWS account)
      * @param description the secret's description
      * @param tags the secret's AWS tags
+     * @param client the Secrets Manager client that will retrieve the secret's value on demand
+     * @return a credential (if one could be constructed from the secret's properties)
      */
     public static Optional<StandardCredentials> create(String name, String description, Map<String, String> tags, AWSSecretsManager client) {
         final String type = tags.getOrDefault(Tags.type, "");
