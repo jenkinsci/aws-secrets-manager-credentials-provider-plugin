@@ -38,11 +38,6 @@ public class CasCFiltersIT extends AbstractFiltersIT {
     @Test
     @ConfiguredWithCode("/config/filters/multiple.yml")
     public void shouldCustomiseMultipleFilters() {
-        // Given
-        setFilters(
-                new Filter("tag-key", Lists.of(new Value("foo"))),
-                new Filter("tag-value", Lists.of(new Value("bar"))));
-
         // When
         final PluginConfiguration config = getPluginConfiguration();
 

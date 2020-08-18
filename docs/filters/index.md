@@ -8,7 +8,7 @@ Filters can be specified for the following fields:
 - Name (filter key: `name`)
 - Tags (filter keys: `tag-key`, `tag-value`)
 
-Multiple values for the same filter combine with an **implicit OR** operator. Multiple filters combine with an **implicit AND** operator.
+Multiple filters combine with an **implicit AND** operator. Multiple values for the same filter combine with an **implicit OR** operator.
 
 Filters are applied server-side by Secrets Manager, and use the Amazon syntax. For full instructions on constructing filters, read the [ListSecrets API documentation](https://docs.aws.amazon.com/secretsmanager/latest/apireference/API_ListSecrets.html).
 
@@ -22,9 +22,9 @@ Show credentials with the tag `foo` = [any value]:
 unclassified:
   awsCredentialsProvider:
     filters:
-      - key: tag-key
+      - key: "tag-key"
         values:
-          - foo
+          - "foo"
 ```
 
 Show credentials with the tag `foo` = `bar` (this involves combining multiple filters):
@@ -33,12 +33,12 @@ Show credentials with the tag `foo` = `bar` (this involves combining multiple fi
 unclassified:
   awsCredentialsProvider:
     filters:
-      - key: tag-key
+      - key: "tag-key"
         values:
-          - foo
-      - key: tag-value
+          - "foo"
+      - key: "tag-value"
         values:
-          - bar
+          - "bar"
 ```
 
 Show credentials where the description contains "foo" or "bar":
