@@ -300,10 +300,11 @@ jenkins:
 
 Available settings:
 
-- Filter secrets by tag (key, value)
 - Endpoint Configuration
   - Service Endpoint
   - Signing Region
+- ListSecrets configuration
+  - Filters (secret description, secret name, secret tags)
 
 The plugin's default behavior requires **no configuration**.
 
