@@ -21,7 +21,7 @@ public class PluginConfigurationIT {
 
         assertSoftly(s -> {
             s.assertThat(config.getEndpointConfiguration()).as("Endpoint Configuration").isNull();
-            s.assertThat(config.getFilters()).as("Filters").isNull();
+            s.assertThat(config.getListSecrets()).as("ListSecrets").isNull();
             s.assertThat(config.getBeta()).as("Beta Features").isNull();
         });
     }

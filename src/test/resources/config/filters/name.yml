@@ -1,0 +1,7 @@
+unclassified:
+  awsCredentialsProvider:
+    listSecrets:
+      filters:
+        - key: name
+          values:
+            - foo

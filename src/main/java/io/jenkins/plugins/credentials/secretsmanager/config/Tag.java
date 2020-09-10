@@ -13,6 +13,7 @@ import hudson.Extension;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
 
+@Deprecated
 public class Tag extends AbstractDescribableImpl<Tag> implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -45,7 +46,7 @@ public class Tag extends AbstractDescribableImpl<Tag> implements Serializable {
     }
 
     @Extension
-    @Symbol("filters")
+    @Symbol("tag")
     @SuppressWarnings("unused")
     public static class DescriptorImpl extends Descriptor<Tag> {
         @Override

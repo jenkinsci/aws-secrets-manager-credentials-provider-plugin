@@ -8,6 +8,8 @@ import io.jenkins.plugins.credentials.secretsmanager.util.Rules;
 import org.junit.Rule;
 import org.junit.rules.RuleChain;
 
+import java.io.IOException;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class CheckEndpointConfigurationWebIT extends AbstractCheckEndpointConfigurationIT {
@@ -29,7 +31,21 @@ public class CheckEndpointConfigurationWebIT extends AbstractCheckEndpointConfig
             form.setEndpointConfiguration(serviceEndpoint, signingRegion);
 
             final HtmlButton validateButton = form.getValidateButtons("Test Endpoint Configuration").get(1);
-            final FormValidationResult r = form.clickValidateButton(validateButton);
+            try {
+                validateButton.click();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+            final FormValidationResult r;
+            final Optional<String> successMessage = form.getValidateSuccessMessage();
+            if (successMessage.isPresent()) {
+                r = FormValidationResult.success(successMessage.get());
+            } else {
+                final String failureMessage = form.getValidateErrorMessage();
+                r = FormValidationResult.error(failureMessage);
+            }
+
             result.set(r);
         });
 

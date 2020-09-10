@@ -1,24 +1,24 @@
 package io.jenkins.plugins.credentials.secretsmanager.config;
 
+import hudson.Extension;
+import hudson.model.AbstractDescribableImpl;
+import hudson.model.Descriptor;
 import io.jenkins.plugins.credentials.secretsmanager.Messages;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
+import javax.annotation.Nonnull;
 import java.io.Serializable;
 
-import javax.annotation.Nonnull;
-
-import hudson.Extension;
-import hudson.model.AbstractDescribableImpl;
-import hudson.model.Descriptor;
-
+/**
+ * This was deprecated when AWS introduced server-side filters in the secretsmanager:ListSecrets API call.
+ */
+@Deprecated
 public class Filters extends AbstractDescribableImpl<Filters> implements Serializable {
 
-    /**
-     * Filter secrets received by their AWS tag. (To pass, a secret must have the specified tag key
-     * with one of the specified values.)
-     */
+    private static final long serialVersionUID = 1L;
+
     private Tag tag;
 
     @DataBoundConstructor
@@ -31,11 +31,11 @@ public class Filters extends AbstractDescribableImpl<Filters> implements Seriali
     }
 
     @DataBoundSetter
-    @SuppressWarnings("unused")
     public void setTag(Tag tag) {
         this.tag = tag;
     }
 
+    @Deprecated
     @Extension
     @Symbol("filters")
     @SuppressWarnings("unused")

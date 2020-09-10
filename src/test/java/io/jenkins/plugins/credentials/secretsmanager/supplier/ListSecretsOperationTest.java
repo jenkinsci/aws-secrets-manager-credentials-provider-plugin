@@ -8,6 +8,7 @@ import com.amazonaws.services.secretsmanager.model.*;
 import org.junit.Test;
 
 import java.util.Collection;
+import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -16,7 +17,7 @@ public class ListSecretsOperationTest {
     @Test
     public void shouldHandleMissingSecret() {
         final ListSecretsResult result = new ListSecretsResult().withSecretList();
-        final ListSecretsOperation strategy = new ListSecretsOperation(new MockAwsSecretsManager(result));
+        final ListSecretsOperation strategy = new ListSecretsOperation(new MockAwsSecretsManager(result), Collections.emptyList());
 
         final Collection<SecretListEntry> secrets = strategy.get();
 
@@ -26,7 +27,7 @@ public class ListSecretsOperationTest {
     @Test
     public void shouldHandleSecret() {
         final ListSecretsResult result = new ListSecretsResult().withSecretList(new SecretListEntry().withName("foo").withDescription("bar"));
-        final ListSecretsOperation strategy = new ListSecretsOperation(new MockAwsSecretsManager(result));
+        final ListSecretsOperation strategy = new ListSecretsOperation(new MockAwsSecretsManager(result), Collections.emptyList());
 
         final Collection<SecretListEntry> secrets = strategy.get();
 
@@ -36,7 +37,7 @@ public class ListSecretsOperationTest {
     @Test
     public void shouldHandleSecretWithTags() {
         final ListSecretsResult result = new ListSecretsResult().withSecretList(new SecretListEntry().withName("foo").withDescription("bar").withTags(new Tag().withKey("key").withValue("value")));
-        final ListSecretsOperation strategy = new ListSecretsOperation(new MockAwsSecretsManager(result));
+        final ListSecretsOperation strategy = new ListSecretsOperation(new MockAwsSecretsManager(result), Collections.emptyList());
 
         final Collection<SecretListEntry> secrets = strategy.get();
 

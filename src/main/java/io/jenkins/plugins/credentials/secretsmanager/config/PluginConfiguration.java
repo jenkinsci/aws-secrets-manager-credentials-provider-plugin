@@ -1,11 +1,17 @@
 package io.jenkins.plugins.credentials.secretsmanager.config;
 
-import hudson.Extension;
-import jenkins.model.GlobalConfiguration;
+import com.amazonaws.services.secretsmanager.model.FilterNameStringType;
 import net.sf.json.JSONObject;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.StaplerRequest;
+
+import hudson.Extension;
+import jenkins.model.GlobalConfiguration;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 @Extension
 @Symbol("awsCredentialsProvider")
@@ -19,7 +25,10 @@ public class PluginConfiguration extends GlobalConfiguration {
      */
     private EndpointConfiguration endpointConfiguration;
 
-    private Filters filters;
+    @Deprecated
+    private transient Filters filters;
+
+    private ListSecrets listSecrets;
 
     public PluginConfiguration() {
         load();
@@ -27,6 +36,18 @@ public class PluginConfiguration extends GlobalConfiguration {
 
     public static PluginConfiguration getInstance() {
         return all().get(PluginConfiguration.class);
+    }
+
+    protected Object readResolve() {
+        if (filters != null && filters.getTag() != null) {
+            final Tag tag = filters.getTag();
+            final Filter tagKey = new Filter(FilterNameStringType.TagKey.toString(), Collections.singletonList(new Value(tag.getKey())));
+            final Filter tagValue = new Filter(FilterNameStringType.TagValue.toString(), Collections.singletonList(new Value(tag.getValue())));
+            final List<Filter> filters = Arrays.asList(tagKey, tagValue);
+            listSecrets = new ListSecrets(filters);
+        }
+
+        return this;
     }
 
     public Beta getBeta() {
@@ -51,14 +72,14 @@ public class PluginConfiguration extends GlobalConfiguration {
         save();
     }
 
-    public Filters getFilters() {
-        return filters;
+    public ListSecrets getListSecrets() {
+        return listSecrets;
     }
 
     @DataBoundSetter
     @SuppressWarnings("unused")
-    public void setFilters(Filters filters) {
-        this.filters = filters;
+    public void setListSecrets(ListSecrets listSecrets) {
+        this.listSecrets = listSecrets;
         save();
     }
 
@@ -69,7 +90,7 @@ public class PluginConfiguration extends GlobalConfiguration {
         // https://groups.google.com/forum/#!msg/jenkinsci-dev/MuRJ-yPRRoo/AvoPZAgbAAAJ
         this.beta = null;
         this.endpointConfiguration = null;
-        this.filters = null;
+        this.listSecrets = null;
 
         req.bindJSON(this, json);
         save();

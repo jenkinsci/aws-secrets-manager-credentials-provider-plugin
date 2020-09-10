@@ -2,7 +2,6 @@ package io.jenkins.plugins.credentials.secretsmanager.config.beta.client.region;
 
 import io.jenkins.plugins.credentials.secretsmanager.config.PluginConfiguration;
 import io.jenkins.plugins.credentials.secretsmanager.util.JenkinsConfiguredWithWebRule;
-import io.jenkins.plugins.credentials.secretsmanager.util.PluginConfigurationForm;
 import org.junit.Rule;
 
 public class WebRegionIT extends AbstractRegionIT {
@@ -17,9 +16,12 @@ public class WebRegionIT extends AbstractRegionIT {
 
     @Override
     protected void setRegion(String region) {
-        r.configure(f -> {
-            final PluginConfigurationForm form = new PluginConfigurationForm(f);
-            form.setClientWithRegion(region);
+        r.configure(form -> {
+            form.getInputByName("_.beta").setChecked(true);
+            form.getInputByName("_.clients").setChecked(true);
+            // the checkbox and the text field happen to have the same name
+            form.getInputsByName("_.region").get(0).setChecked(true);
+            form.getInputsByName("_.region").get(1).setValueAttribute(region);
         });
     }
 

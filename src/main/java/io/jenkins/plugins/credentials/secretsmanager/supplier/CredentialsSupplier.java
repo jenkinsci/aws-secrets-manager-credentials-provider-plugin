@@ -1,10 +1,17 @@
 package io.jenkins.plugins.credentials.secretsmanager.supplier;
 
 import com.amazonaws.SdkBaseException;
+import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.auth.STSAssumeRoleSessionCredentialsProvider;
+import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
+import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder;
+import com.amazonaws.services.secretsmanager.model.Filter;
 import com.amazonaws.services.secretsmanager.model.SecretListEntry;
 import com.amazonaws.services.secretsmanager.model.Tag;
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
+import io.jenkins.plugins.credentials.secretsmanager.FiltersFactory;
+import io.jenkins.plugins.credentials.secretsmanager.config.*;
 import io.jenkins.plugins.credentials.secretsmanager.config.Client;
 import io.jenkins.plugins.credentials.secretsmanager.config.Clients;
 import io.jenkins.plugins.credentials.secretsmanager.config.Filters;
@@ -15,7 +22,6 @@ import io.jenkins.plugins.credentials.secretsmanager.factory.CredentialsFactory;
 import java.util.*;
 import java.util.concurrent.CompletionException;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -40,8 +46,10 @@ public class CredentialsSupplier implements Supplier<Collection<StandardCredenti
 
         final PluginConfiguration config = PluginConfiguration.getInstance();
 
-        final Filters filters = config.getFilters();
-        final Predicate<SecretListEntry> secretFilter = newSecretFilter(filters);
+        final List<io.jenkins.plugins.credentials.secretsmanager.config.Filter> filtersConfig = Optional.ofNullable(config.getListSecrets())
+                .map(ListSecrets::getFilters)
+                .orElse(Collections.emptyList());
+        final Collection<Filter> filters = FiltersFactory.create(filtersConfig);
 
         final Optional<List<AWSSecretsManager>> clients = Optional.ofNullable(config.getBeta())
                 .flatMap(beta -> Optional.ofNullable(beta.getClients()))
@@ -51,7 +59,7 @@ public class CredentialsSupplier implements Supplier<Collection<StandardCredenti
         if (clients.isPresent()) {
             // Custom behavior
             final Collection<Supplier<Collection<StandardCredentials>>> multipleSuppliers = clients.get().stream()
-                    .map(client -> new SingleAccountCredentialsSupplier(client, SecretListEntry::getARN, secretFilter))
+                    .map(client -> new SingleAccountCredentialsSupplier(client, SecretListEntry::getARN, filters))
                     .collect(Collectors.toList());
 
             final ParallelSupplier<Collection<StandardCredentials>> supplier = new ParallelSupplier<>(multipleSuppliers);
@@ -67,7 +75,7 @@ public class CredentialsSupplier implements Supplier<Collection<StandardCredenti
             // Default behavior
             final Client clientConfig = new Client(new DefaultAWSCredentialsProviderChain(), config.getEndpointConfiguration(), null);
             final AWSSecretsManager secretsManager = clientConfig.build();
-            final SingleAccountCredentialsSupplier supplier = new SingleAccountCredentialsSupplier(secretsManager, SecretListEntry::getName, secretFilter);
+            final SingleAccountCredentialsSupplier supplier = new SingleAccountCredentialsSupplier(secretsManager, SecretListEntry::getName, filters);
             creds = supplier.get().stream();
         }
 
@@ -76,35 +84,23 @@ public class CredentialsSupplier implements Supplier<Collection<StandardCredenti
                 .values();
     }
 
-    private static Predicate<SecretListEntry> newSecretFilter(Filters filters) {
-        if (filters != null && filters.getTag() != null) {
-            final com.amazonaws.services.secretsmanager.model.Tag filterTag = new Tag()
-                    .withKey(filters.getTag().getKey())
-                    .withValue(filters.getTag().getValue());
-            return s -> Optional.ofNullable(s.getTags()).orElse(Collections.emptyList()).contains(filterTag);
-        } else {
-            return s -> true;
-        }
-    }
-
     private static class SingleAccountCredentialsSupplier implements Supplier<Collection<StandardCredentials>> {
 
         private final AWSSecretsManager client;
         private final Function<SecretListEntry, String> nameSelector;
-        private final Predicate<SecretListEntry> secretFilter;
+        private final Collection<Filter> filters;
 
-        SingleAccountCredentialsSupplier(AWSSecretsManager client, Function<SecretListEntry, String> nameSelector, Predicate<SecretListEntry> secretFilter) {
+        SingleAccountCredentialsSupplier(AWSSecretsManager client, Function<SecretListEntry, String> nameSelector, Collection<Filter> filters) {
             this.client = client;
             this.nameSelector = nameSelector;
-            this.secretFilter = secretFilter;
+            this.filters = filters;
         }
 
         @Override
         public Collection<StandardCredentials> get() {
-            final Collection<SecretListEntry> secretList = new ListSecretsOperation(client).get();
+            final Collection<SecretListEntry> secretList = new ListSecretsOperation(client, filters).get();
 
             return secretList.stream()
-                    .filter(secretFilter)
                     .flatMap(secretListEntry -> {
                         final String name = nameSelector.apply(secretListEntry);
                         final String description = Optional.ofNullable(secretListEntry.getDescription()).orElse("");

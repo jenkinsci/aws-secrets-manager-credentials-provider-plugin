@@ -99,7 +99,7 @@ public class SecretSourceIT {
     }
 
     @Test
-    @ConfiguredWithCode(value = "/tags.yml")
+    @ConfiguredWithCode(value = "/filters.yml")
     public void shouldIgnoreFilters() {
         // Given
         final CreateSecretResult foo = createSecret(SECRET_STRING, Lists.of(AwsTags.tag("wrong", "tag")));
