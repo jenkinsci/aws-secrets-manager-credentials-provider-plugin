@@ -46,7 +46,7 @@ public class Tag extends AbstractDescribableImpl<Tag> implements Serializable {
     }
 
     @Extension
-    @Symbol("tag")
+    @Symbol("filters")
     @SuppressWarnings("unused")
     public static class DescriptorImpl extends Descriptor<Tag> {
         @Override
