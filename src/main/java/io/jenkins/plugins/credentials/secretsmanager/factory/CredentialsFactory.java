@@ -36,22 +36,22 @@ public abstract class CredentialsFactory {
      * @param client the Secrets Manager client that will retrieve the secret's value on demand
      * @return a credential (if one could be constructed from the secret's properties)
      */
-    public static Optional<StandardCredentials> create(String name, String description, Map<String, String> tags, AWSSecretsManager client) {
+    public static Optional<StandardCredentials> create(String arn, String name, String description, Map<String, String> tags, AWSSecretsManager client) {
         final String type = tags.getOrDefault(Tags.type, "");
         final String username = tags.getOrDefault(Tags.username, "");
         final String filename = tags.getOrDefault(Tags.filename, name);
 
         switch (type) {
             case Type.string:
-                return Optional.of(new AwsStringCredentials(name, description, new SecretSupplier(client, name)));
+                return Optional.of(new AwsStringCredentials(name, description, new SecretSupplier(client, arn)));
             case Type.usernamePassword:
-                return Optional.of(new AwsUsernamePasswordCredentials(name, description, new SecretSupplier(client, name), username));
+                return Optional.of(new AwsUsernamePasswordCredentials(name, description, new SecretSupplier(client, arn), username));
             case Type.sshUserPrivateKey:
-                return Optional.of(new AwsSshUserPrivateKey(name, description, new StringSupplier(client, name), username));
+                return Optional.of(new AwsSshUserPrivateKey(name, description, new StringSupplier(client, arn), username));
             case Type.certificate:
-                return Optional.of(new AwsCertificateCredentials(name, description, new SecretBytesSupplier(client, name)));
+                return Optional.of(new AwsCertificateCredentials(name, description, new SecretBytesSupplier(client, arn)));
             case Type.file:
-                return Optional.of(new AwsFileCredentials(name, description, filename, new SecretBytesSupplier(client, name)));
+                return Optional.of(new AwsFileCredentials(name, description, filename, new SecretBytesSupplier(client, arn)));
             default:
                 return Optional.empty();
         }

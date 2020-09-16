@@ -15,6 +15,7 @@ This plugin is the high-level counterpart of the [AWS Secrets Manager SecretSour
 - [Filters](filters/index.md)
 - [Networking](networking/index.md)
 - [Screenshots](screenshots/index.md)
+- [Transformations](transformations/index.md)
 - [Troubleshooting](troubleshooting/index.md)
 - Project
   - [Changelog](https://github.com/jenkinsci/aws-secrets-manager-credentials-provider-plugin/releases)
@@ -336,6 +337,7 @@ Available settings:
   - Region
 - ListSecrets configuration
   - [Filters](filters/index.md)
+- [Transformations](transformations/index.md)
 
 ### Configuration As Code (CasC)
 
@@ -366,7 +368,13 @@ unclassified:
             - (string)
         - key: description
           values:
-            - (string)  # note: filtering by tags or name is usually a better approach
+            - (string)
+    transformations:           # optional
+      description:
+        hide: {}
+      name:
+        removePrefix:
+          prefix: (string)
 ```
 
 ## Development
