@@ -20,7 +20,6 @@ import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -29,15 +28,13 @@ import java.util.stream.Collectors;
 @Extension
 public class AwsCredentialsProvider extends CredentialsProvider {
 
-    private static final long DEFAULT_CACHE_DURATION = 300;
-
     private static final Logger LOG = Logger.getLogger(AwsCredentialsProvider.class.getName());
 
     private final AwsCredentialsStore store = new AwsCredentialsStore(this);
 
     private final Supplier<Collection<StandardCredentials>> credentialsSupplier =
-            memoizeWithExpiration(CredentialsSupplier.standard(), () -> // FIXME positive number check
-                    Duration.ofSeconds(Optional.ofNullable(PluginConfiguration.getInstance()).map(PluginConfiguration::getCacheDuration).orElse(DEFAULT_CACHE_DURATION)));
+            memoizeWithExpiration(CredentialsSupplier.standard(), () ->
+                    Duration.ofSeconds(PluginConfiguration.getInstance().getCacheDuration()));
 
     @Override
     @NonNull

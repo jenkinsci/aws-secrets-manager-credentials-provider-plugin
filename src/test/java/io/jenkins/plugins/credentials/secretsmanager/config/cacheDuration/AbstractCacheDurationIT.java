@@ -14,12 +14,12 @@ public abstract class AbstractCacheDurationIT {
     @Test
     public void shouldCustomiseCacheDuration() {
         // Given
-        setCacheDuration(1);
+        setCacheDuration(60);
 
         // When
         final PluginConfiguration config = getPluginConfiguration();
 
         // Then
-        assertThat(config.getCacheDuration()).isEqualTo(1);
+        assertThat(config.getCacheDuration()).isEqualTo(60);
     }
 }
