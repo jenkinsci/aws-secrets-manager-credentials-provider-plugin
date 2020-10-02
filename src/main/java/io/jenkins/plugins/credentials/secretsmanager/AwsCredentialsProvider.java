@@ -5,12 +5,12 @@ import com.cloudbees.plugins.credentials.Credentials;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.CredentialsStore;
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
-import com.google.common.base.Suppliers;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.model.ItemGroup;
 import hudson.model.ModelObject;
 import hudson.security.ACL;
+import io.jenkins.plugins.credentials.secretsmanager.config.PluginConfiguration;
 import io.jenkins.plugins.credentials.secretsmanager.supplier.CredentialsSupplier;
 import jenkins.model.Jenkins;
 import org.acegisecurity.Authentication;
@@ -20,7 +20,7 @@ import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
+import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -29,12 +29,15 @@ import java.util.stream.Collectors;
 @Extension
 public class AwsCredentialsProvider extends CredentialsProvider {
 
+    private static final long DEFAULT_CACHE_DURATION = 300;
+
     private static final Logger LOG = Logger.getLogger(AwsCredentialsProvider.class.getName());
 
     private final AwsCredentialsStore store = new AwsCredentialsStore(this);
 
     private final Supplier<Collection<StandardCredentials>> credentialsSupplier =
-            memoizeWithExpiration(CredentialsSupplier.standard(), Duration.ofMinutes(5));
+            memoizeWithExpiration(CredentialsSupplier.standard(), () -> // FIXME positive number check
+                    Duration.ofSeconds(Optional.ofNullable(PluginConfiguration.getInstance()).map(PluginConfiguration::getCacheDuration).orElse(DEFAULT_CACHE_DURATION)));
 
     @Override
     @NonNull
@@ -69,7 +72,7 @@ public class AwsCredentialsProvider extends CredentialsProvider {
         return "icon-aws-secrets-manager-credentials-store";
     }
 
-    private static <T> Supplier<T> memoizeWithExpiration(Supplier<T> base, Duration duration) {
-        return Suppliers.memoizeWithExpiration(base::get, duration.toMillis(), TimeUnit.MILLISECONDS)::get;
+    private static <T> Supplier<T> memoizeWithExpiration(Supplier<T> base, Supplier<Duration> duration) {
+        return CustomSuppliers.memoizeWithExpiration(base, duration);
     }
 }

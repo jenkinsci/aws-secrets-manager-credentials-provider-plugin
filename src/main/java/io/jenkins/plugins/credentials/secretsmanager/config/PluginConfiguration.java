@@ -1,13 +1,12 @@
 package io.jenkins.plugins.credentials.secretsmanager.config;
 
 import com.amazonaws.services.secretsmanager.model.FilterNameStringType;
+import hudson.Extension;
+import jenkins.model.GlobalConfiguration;
 import net.sf.json.JSONObject;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.StaplerRequest;
-
-import hudson.Extension;
-import jenkins.model.GlobalConfiguration;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -17,16 +16,12 @@ import java.util.List;
 @Symbol("awsCredentialsProvider")
 public class PluginConfiguration extends GlobalConfiguration {
 
-    private static final int DEFAULT_CACHE_DURATION = 300;
-
     private Beta beta;
 
     /**
-     * The credential cache duration, in seconds.
-     *
-     * TODO A value of 0 or less disables the cache.
+     * The credential cache duration, in seconds. If this is null, the default will be used.
      */
-    private Integer cacheDuration;
+    private Long cacheDuration;
 
     /**
      * The AWS Secrets Manager endpoint configuration. If this is null, the default will be used. If
@@ -41,10 +36,6 @@ public class PluginConfiguration extends GlobalConfiguration {
 
     public PluginConfiguration() {
         load();
-
-        if (cacheDuration == null) {
-            cacheDuration = DEFAULT_CACHE_DURATION;
-        }
     }
 
     public static PluginConfiguration getInstance() {
@@ -74,13 +65,13 @@ public class PluginConfiguration extends GlobalConfiguration {
         save();
     }
 
-    public int getCacheDuration() {
+    public Long getCacheDuration() {
         return cacheDuration;
     }
 
     @DataBoundSetter
     @SuppressWarnings("unused")
-    public void setCacheDuration(int cacheDuration) {
+    public void setCacheDuration(Long cacheDuration) {
         this.cacheDuration = cacheDuration;
     }
 

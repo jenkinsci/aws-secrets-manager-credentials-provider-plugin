@@ -4,7 +4,7 @@ This plugin uses AWS Secrets Manager, which is a remote service. It uses caching
 
 ## Credentials List
 
-The plugin caches the credential list that it obtains from Secrets Manager for 5 minutes.
+The plugin caches the credential list that it obtains from Secrets Manager. The default cache duration is 5 minutes (300 seconds). You can configure this value.
 
 ## Credential Value
 
