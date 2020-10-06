@@ -34,7 +34,7 @@ public class AwsCredentialsProvider extends CredentialsProvider {
 
     private final Supplier<Collection<StandardCredentials>> credentialsSupplier =
             memoizeWithExpiration(CredentialsSupplier.standard(), () ->
-                    Duration.ofSeconds(PluginConfiguration.getInstance().getCacheDuration()));
+                    PluginConfiguration.normalize(PluginConfiguration.getInstance().getCache()));
 
     @Override
     @NonNull

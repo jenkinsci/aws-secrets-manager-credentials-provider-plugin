@@ -1,10 +1,10 @@
-package io.jenkins.plugins.credentials.secretsmanager.config.cacheDuration;
+package io.jenkins.plugins.credentials.secretsmanager.config.cache;
 
 import io.jenkins.plugins.credentials.secretsmanager.config.PluginConfiguration;
 import io.jenkins.plugins.credentials.secretsmanager.util.JenkinsConfiguredWithWebRule;
 import org.junit.Rule;
 
-public class WebCacheDurationIT extends AbstractCacheDurationIT {
+public class WebCacheIT extends AbstractCacheIT {
 
     @Rule
     public final JenkinsConfiguredWithWebRule r = new JenkinsConfiguredWithWebRule();
@@ -15,9 +15,9 @@ public class WebCacheDurationIT extends AbstractCacheDurationIT {
     }
 
     @Override
-    protected void setCacheDuration(int cacheDuration) {
+    protected void setCache(boolean cache) {
         r.configure(form -> {
-            form.getInputByName("_.cacheDuration").setValueAttribute(String.valueOf(cacheDuration));
+            form.getInputByName("_.cache").setChecked(cache);
         });
     }
 }

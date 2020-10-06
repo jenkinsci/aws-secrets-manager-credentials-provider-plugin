@@ -20,7 +20,6 @@ public class PluginConfigurationIT {
         final PluginConfiguration config = getPluginConfiguration();
 
         assertSoftly(s -> {
-            s.assertThat(config.getCacheDuration()).as("Cache Duration").isEqualTo(300);
             s.assertThat(config.getEndpointConfiguration()).as("Endpoint Configuration").isNull();
             s.assertThat(config.getListSecrets()).as("ListSecrets").isNull();
             s.assertThat(config.getBeta()).as("Beta Features").isNull();

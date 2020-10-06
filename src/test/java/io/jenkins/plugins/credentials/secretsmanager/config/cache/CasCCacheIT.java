@@ -1,4 +1,4 @@
-package io.jenkins.plugins.credentials.secretsmanager.config.cacheDuration;
+package io.jenkins.plugins.credentials.secretsmanager.config.cache;
 
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
 import io.jenkins.plugins.casc.misc.JenkinsConfiguredWithCodeRule;
@@ -7,7 +7,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 
-public class CasCCacheDurationIT extends AbstractCacheDurationIT {
+public class CasCCacheIT extends AbstractCacheIT {
 
     @Rule
     public final JenkinsRule r = new JenkinsConfiguredWithCodeRule();
@@ -18,14 +18,28 @@ public class CasCCacheDurationIT extends AbstractCacheDurationIT {
     }
 
     @Override
-    protected void setCacheDuration(int cacheDuration) {
+    protected void setCache(boolean cache) {
         // no-op (configured by annotations)
     }
 
     @Override
     @Test
-    @ConfiguredWithCode("/config/cacheDuration.yml")
-    public void shouldCustomiseCacheDuration() {
-        super.shouldCustomiseCacheDuration();
+    @ConfiguredWithCode("/config/cache/default.yml")
+    public void shouldHaveDefault() {
+        super.shouldHaveDefault();
+    }
+
+    @Override
+    @Test
+    @ConfiguredWithCode("/config/cache/true.yml")
+    public void shouldEnableCache() {
+        super.shouldEnableCache();
+    }
+
+    @Override
+    @Test
+    @ConfiguredWithCode("/config/cache/false.yml")
+    public void shouldDisableCache() {
+        super.shouldDisableCache();
     }
 }
