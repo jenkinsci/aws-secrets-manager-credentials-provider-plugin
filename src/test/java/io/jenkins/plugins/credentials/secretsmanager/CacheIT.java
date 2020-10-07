@@ -32,7 +32,7 @@ public class CacheIT {
 
     @Test
     @ConfiguredWithCode("/integration.yml")
-    public void shouldCacheCredentialsWhenEnabled() {
+    public void shouldCacheCredentialsByDefault() {
         // Given
         final CreateSecretResult foo = createSecretWithTag("product", "foo");
         final CreateSecretResult bar = createSecretWithTag("product", "bar");
@@ -53,6 +53,27 @@ public class CacheIT {
 
     @Test
     @ConfiguredWithCode("/cache.yml")
+    public void shouldCacheCredentialsWhenEnabled() {
+        // Given
+        final CreateSecretResult foo = createSecretWithTag("product", "foo");
+        final CreateSecretResult bar = createSecretWithTag("product", "bar");
+
+        // When
+        final List<StringCredentials> first = jenkins.getCredentials().lookup(StringCredentials.class);
+        // and
+        setFilter("tag-value", "foo");
+        // and
+        final List<StringCredentials> second = jenkins.getCredentials().lookup(StringCredentials.class);
+
+        // Then
+        assertSoftly(s -> {
+            s.assertThat(first).as("First call").extracting("id").containsOnly(foo.getName(), bar.getName());
+            s.assertThat(second).as("Second call").extracting("id").containsOnly(foo.getName(), bar.getName());
+        });
+    }
+
+    @Test
+    @ConfiguredWithCode("/no-cache.yml")
     public void shouldNotCacheCredentialsWhenDisabled() {
         // Given
         final CreateSecretResult foo = createSecretWithTag("product", "foo");
