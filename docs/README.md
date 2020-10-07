@@ -321,7 +321,7 @@ You can set plugin configuration using Jenkins [Configuration As Code](https://g
 ```yaml
 unclassified:
   awsCredentialsProvider:
-    cacheDuration: 60
+    cache: false
     endpointConfiguration:
       serviceEndpoint: http://localhost:4584
       signingRegion: us-east-1

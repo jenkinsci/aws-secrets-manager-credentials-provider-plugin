@@ -8,7 +8,17 @@ The plugin caches the credential list that it obtains from Secrets Manager by de
 
 When the cache is enabled, credentials are cached for 5 minutes.
 
-You can disable the cache if necessary. This change may not be immediate on a running Jenkins server; it takes effect after the current cache expires. Please bear in mind the following consequences:
+You can disable the cache by setting the relevant configuration option in CasC or the Web UI:
+
+```yaml
+unclassified:
+  awsCredentialsProvider:
+    cache: false
+``` 
+ 
+If Jenkins is running, this change will take effect after the current cache expires.
+
+This change has consequences:
 
 - Disabling the cache increases load on the AWS <code>secretsmanager:ListSecrets</code> endpoint. In high load situations, Jenkins may exceed the endpoint's [rate limit](https://docs.aws.amazon.com/secretsmanager/latest/userguide/reference_limits.html).
 - Disabling the cache increases the time required to look up credentials. (Every lookup will require network round-trips, which take time.)
