@@ -59,7 +59,7 @@
             <dependency>
                 <groupId>io.jenkins.tools.bom</groupId>
                 <artifactId>bom-${lts}.x</artifactId>
-                <version>12</version>
+                <version>11</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
