@@ -9,7 +9,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class PluginConfigurationTest {
 
     private static final Duration DEFAULT_CACHE_DURATION = Duration.ofSeconds(300);
-    private static final Duration MINIMUM_CACHE_DURATION = Duration.ofMillis(1);
+    private static final Duration MINIMUM_CACHE_DURATION = Duration.ofNanos(1);
 
     @Test
     public void shouldNormalizeNullToDefaultDuration() {

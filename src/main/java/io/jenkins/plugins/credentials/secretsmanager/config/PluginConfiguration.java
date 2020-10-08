@@ -21,7 +21,7 @@ public class PluginConfiguration extends GlobalConfiguration {
     private static final Logger LOG = Logger.getLogger(PluginConfiguration.class.getName());
 
     /** The Guava cache is never truly turned off, just made very short, as it needs a non-zero cache duration. */
-    private static final Duration NO_CACHE = Duration.ofMillis(1);
+    private static final Duration NO_CACHE = Duration.ofNanos(1);
     private static final Duration DEFAULT_CACHE = Duration.ofSeconds(300);
 
     private Beta beta;
