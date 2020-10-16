@@ -22,7 +22,7 @@ Access credentials from AWS Secrets Manager in your Jenkins jobs.
 
 - Read-only view of Secrets Manager.
 - `CredentialsProvider` and `SecretSource` API support.
-- Credential metadata caching (default: 5 minutes).
+- Credential metadata caching (duration: 5 minutes).
  
 ## Setup 
 
@@ -321,7 +321,6 @@ You can set plugin configuration using Jenkins [Configuration As Code](https://g
 ```yaml
 unclassified:
   awsCredentialsProvider:
-    cache: false
     endpointConfiguration:
       serviceEndpoint: http://localhost:4584
       signingRegion: us-east-1
