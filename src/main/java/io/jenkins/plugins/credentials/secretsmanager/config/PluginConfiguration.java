@@ -1,23 +1,35 @@
 package io.jenkins.plugins.credentials.secretsmanager.config;
 
 import com.amazonaws.services.secretsmanager.model.FilterNameStringType;
+import hudson.Extension;
+import jenkins.model.GlobalConfiguration;
 import net.sf.json.JSONObject;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.StaplerRequest;
 
-import hudson.Extension;
-import jenkins.model.GlobalConfiguration;
-
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Logger;
 
 @Extension
 @Symbol("awsCredentialsProvider")
 public class PluginConfiguration extends GlobalConfiguration {
 
+    private static final Logger LOG = Logger.getLogger(PluginConfiguration.class.getName());
+
+    /** The Guava cache is never truly turned off, just made very short, as it needs a non-zero cache duration. */
+    private static final Duration NO_CACHE = Duration.ofNanos(1);
+    private static final Duration DEFAULT_CACHE = Duration.ofSeconds(300);
+
     private Beta beta;
+
+    /**
+     * Whether to cache the credentials or not. By default, credentials are cached for 5 minutes. Caching can be turned off for development purposes.
+     */
+    private Boolean cache;
 
     /**
      * The AWS Secrets Manager endpoint configuration. If this is null, the default will be used. If
@@ -36,6 +48,16 @@ public class PluginConfiguration extends GlobalConfiguration {
 
     public static PluginConfiguration getInstance() {
         return all().get(PluginConfiguration.class);
+    }
+
+    public static Duration normalize(Boolean cache) {
+        if (cache == null || cache) {
+            LOG.config("CredentialsProvider cache enabled");
+            return DEFAULT_CACHE;
+        } else {
+            LOG.config("CredentialsProvider cache disabled");
+            return NO_CACHE;
+        }
     }
 
     protected Object readResolve() {
@@ -58,6 +80,17 @@ public class PluginConfiguration extends GlobalConfiguration {
     @SuppressWarnings("unused")
     public void setBeta(Beta beta) {
         this.beta = beta;
+        save();
+    }
+
+    public Boolean getCache() {
+        return cache;
+    }
+
+    @DataBoundSetter
+    @SuppressWarnings("unused")
+    public void setCache(Boolean cache) {
+        this.cache = cache;
         save();
     }
 
