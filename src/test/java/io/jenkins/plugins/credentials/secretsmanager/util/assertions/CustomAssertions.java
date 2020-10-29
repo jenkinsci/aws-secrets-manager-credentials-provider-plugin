@@ -10,8 +10,13 @@ import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 
 import java.security.KeyStore;
+import java.util.Optional;
 
 public class CustomAssertions {
+
+    public static <T> OptionalAssert<T> assertThat(Optional<T> actual) {
+        return new OptionalAssert<>(actual);
+    }
 
     public static StandardCredentialsAssert assertThat(StandardCredentials actual) {
         return new StandardCredentialsAssert(actual);

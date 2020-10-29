@@ -1,0 +1,81 @@
+# Client
+
+The plugin allows you to configure the Secrets Manager client that it uses to access secrets.
+
+**We recommend that you use the defaults whenever possible.** This will allow Jenkins to inherit AWS configuration from the environment. Only set these client options if you really need to (for example you have multiple Jenkins AWS plugins installed, and need the Secrets Manager plugin to behave differently to the others).
+
+## Credentials Provider
+
+The plugin supports the following `AWSCredentialsProvider` implementations to authenticate and authorize with Secrets Manager.
+
+*Note: This is not the same thing as a Jenkins `CredentialsProvider`.*
+
+Recommendations:
+
+- Use EC2 Instance Profiles when running Jenkins on EC2.
+- Only use the long-lived access key methods when there is no other choice. For example, when Jenkins is running outside of AWS.
+- If you see an error along the lines of "Unable to find a region via the region provider chain. Must provide an explicit region in the builder or setup environment to supply a region.", set the region manually.
+
+### Default
+
+This uses the standard AWS credentials lookup chain.
+
+The authentication methods in the chain are:
+
+- EC2 Instance Profiles.
+- EC2 Container Service credentials.
+- Environment variables (set `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and `AWS_REGION` before starting Jenkins).
+- Java properties (set `aws.accessKeyId`, `aws.secretKey`, and `aws.region` before starting Jenkins).
+- User profile (configure `~/.aws/credentials` before starting Jenkins).
+- Web Identity Token credentials.
+
+### Profile
+
+This allows you to use named AWS profiles from `~/.aws/config`.
+
+```yaml
+unclassified:
+  awsCredentialsProvider:
+    client:
+      credentialsProvider:
+        profile:
+          profileName: "foobar"
+```
+
+### STS AssumeRole
+
+This allows you to specify IAM roles inline within Jenkins.
+
+```yaml
+unclassified:
+  awsCredentialsProvider:
+    client:
+      credentialsProvider:
+        assumeRole:
+          roleArn: "arn:aws:iam::111111111111:role/foo"
+          roleSessionName: "jenkins"
+```
+
+## Endpoint Configuration
+
+You can set the AWS endpoint configuration for the client.
+
+```yaml
+unclassified:
+  awsCredentialsProvider:
+    client:
+      endpointConfiguration:
+        serviceEndpoint: "http://localhost:4584"
+        signingRegion: "us-east-1"
+```
+
+## Region
+
+You can set the AWS region for the client.
+
+```yaml
+unclassified:
+  awsCredentialsProvider:
+    client:
+      region: "us-east-1"
+```

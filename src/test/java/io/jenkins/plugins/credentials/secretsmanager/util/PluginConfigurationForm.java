@@ -1,11 +1,10 @@
 package io.jenkins.plugins.credentials.secretsmanager.util;
 
-import com.gargoylesoftware.htmlunit.html.DomNode;
 import com.gargoylesoftware.htmlunit.html.HtmlButton;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
+import com.gargoylesoftware.htmlunit.html.HtmlSelect;
 
 import java.util.List;
-import java.util.Optional;
 
 public class PluginConfigurationForm {
 
@@ -15,29 +14,18 @@ public class PluginConfigurationForm {
         this.form = form;
     }
 
-    public Optional<String> getValidateSuccessMessage() {
-        return form.getElementsByAttribute("div", "class", "ok")
-                .stream()
-                .map(DomNode::getTextContent)
-                .filter(msg -> !msg.equalsIgnoreCase("Without a resource root URL, resources will be served from the Jenkins URL with Content-Security-Policy set."))
-                .findFirst();
-    }
-
-    public String getValidateErrorMessage() {
-        return form.getOneHtmlElementByAttribute("div", "class", "error").getTextContent();
-    }
-
     public List<HtmlButton> getRepeatableAddButtons(String settingName) {
         return form.getByXPath(XPaths.repeatableAddButtons(settingName));
     }
 
-    public HtmlButton getValidateButton(String textContent) {
-        return form.getFirstByXPath(XPaths.validateButtons(textContent));
+    public HtmlSelect getDropdownList(String settingName) {
+        final String dropdownList = XPaths.dropdownList(settingName);
+        return form.getFirstByXPath(dropdownList);
     }
 
     private static class XPaths {
-        private static String validateButtons(String textContent) {
-            return String.format("//span[contains(string(@class),'validate-button')]//button[contains(text(), '%s')]", textContent);
+        private static String dropdownList(String settingName) {
+            return String.format("//div[contains(@class, 'setting-name') and normalize-space(text()) = '%s']/following-sibling::div[contains(@class, 'setting-main')]/select[contains(@class, 'dropdownList')]", settingName);
         }
 
         private static String repeatableAddButtons(String settingName) {
