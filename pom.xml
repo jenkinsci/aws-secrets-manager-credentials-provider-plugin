@@ -58,7 +58,7 @@
             <dependency>
                 <groupId>io.jenkins.tools.bom</groupId>
                 <artifactId>bom-2.222.x</artifactId>
-                <version>13</version>
+                <version>16</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
@@ -81,7 +81,7 @@
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>aws-java-sdk</artifactId>
-            <version>1.11.821</version>
+            <version>1.11.854</version>
         </dependency>
         <dependency>
             <groupId>io.jenkins</groupId>
@@ -108,13 +108,6 @@
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
             <version>3.18.0</version>
-            <scope>test</scope>
-        </dependency>
-        <!-- Workarounds -->
-        <dependency>
-            <groupId>org.jenkins-ci.plugins</groupId>
-            <artifactId>jackson2-api</artifactId>
-            <version>2.11.1</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
