@@ -302,10 +302,10 @@ You may need to deal with multi-field credentials or vendor-specific credential 
 
 In this situation you have a couple of choices:
 
-- Use the closest standard multi-field credential type (e.g. Username With Password) that fits your requirements.
-- Encode all the fields in a JSON blob within the Secrets Manager secret value, and parse them in the job script. Only use this as a last resort, such as when multiple fields change when the secret is rotated.
+- Use the closest standard multi-field credential (e.g. Username With Password) that fits your requirements.
+- Use a string credential, serialize all the fields into the secret value (e.g. as JSON or as a delimited string), and parse them in the job script. (This is a last resort when other methods don't work, e.g. when secret rotation would cause multiple fields to change.)
 
-Example: Jenkins authenticates to Secrets Manager using the primary AWS credential (from the environment). You have a job that performs a particular AWS operation in a different account, which uses a secondary AWS key pair.
+Example: Jenkins authenticates to Secrets Manager using the primary AWS credential (from the environment). You have a job that performs a particular AWS operation in a different account, which uses a secondary AWS credential. You choose to encode the secondary AWS credential as JSON in the string credential `foo`:
 
 ```groovy
 node {
