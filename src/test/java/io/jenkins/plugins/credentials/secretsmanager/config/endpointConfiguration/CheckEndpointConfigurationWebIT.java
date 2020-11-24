@@ -28,9 +28,11 @@ public class CheckEndpointConfigurationWebIT extends AbstractCheckEndpointConfig
         jenkins.configure(f -> {
             final PluginConfigurationForm form = new PluginConfigurationForm(f);
 
-            form.setEndpointConfiguration(serviceEndpoint, signingRegion);
+            f.getInputByName("_.endpointConfiguration").setChecked(true);
+            f.getInputByName("_.serviceEndpoint").setValueAttribute(serviceEndpoint);
+            f.getInputByName("_.signingRegion").setValueAttribute(signingRegion);
 
-            final HtmlButton validateButton = form.getValidateButtons("Test Endpoint Configuration").get(1);
+            final HtmlButton validateButton = form.getValidateButton("Test Endpoint Configuration");
             try {
                 validateButton.click();
             } catch (IOException e) {

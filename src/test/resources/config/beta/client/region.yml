@@ -1,5 +1,0 @@
-unclassified:
-  awsCredentialsProvider:
-    beta:
-      clients:
-        - region: "us-east-1"

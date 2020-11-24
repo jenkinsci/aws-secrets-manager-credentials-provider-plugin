@@ -1,7 +1,0 @@
-unclassified:
-  awsCredentialsProvider:
-    beta:
-      clients:
-        - credentialsProvider:
-            profile:
-              profileName: "foo"
