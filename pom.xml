@@ -26,11 +26,6 @@
         </developer>
     </developers>
 
-    <issueManagement>
-        <system>JIRA</system>
-        <url>https://issues.jenkins-ci.org/browse/JENKINS</url>
-    </issueManagement>
-
     <licenses>
         <license>
             <name>MIT License</name>
