@@ -1,0 +1,6 @@
+unclassified:
+  awsCredentialsProvider:
+    fields:
+      name:
+        removePrefix:
+          prefix: "foo-"

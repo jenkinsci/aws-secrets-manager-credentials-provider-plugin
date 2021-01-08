@@ -37,6 +37,8 @@ public class PluginConfiguration extends GlobalConfiguration {
      */
     private EndpointConfiguration endpointConfiguration;
 
+    private Fields fields;
+
     @Deprecated
     private transient Filters filters;
 
@@ -116,6 +118,17 @@ public class PluginConfiguration extends GlobalConfiguration {
         save();
     }
 
+    public Fields getFields() {
+        return fields;
+    }
+
+    @DataBoundSetter
+    @SuppressWarnings("unused")
+    public void setFields(Fields fields) {
+        this.fields = fields;
+        save();
+    }
+
     @Override
     public synchronized boolean configure(StaplerRequest req, JSONObject json) {
         // This method is unnecessary, except to apply the following workaround.
@@ -123,6 +136,7 @@ public class PluginConfiguration extends GlobalConfiguration {
         // https://groups.google.com/forum/#!msg/jenkinsci-dev/MuRJ-yPRRoo/AvoPZAgbAAAJ
         this.beta = null;
         this.endpointConfiguration = null;
+        this.fields = null;
         this.listSecrets = null;
 
         req.bindJSON(this, json);

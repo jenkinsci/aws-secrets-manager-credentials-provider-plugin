@@ -12,7 +12,10 @@ import com.amazonaws.services.secretsmanager.model.ResourceNotFoundException;
 import hudson.Extension;
 import io.jenkins.plugins.casc.SecretSource;
 import io.jenkins.plugins.credentials.secretsmanager.config.EndpointConfiguration;
+import io.jenkins.plugins.credentials.secretsmanager.config.Fields;
 import io.jenkins.plugins.credentials.secretsmanager.config.PluginConfiguration;
+import io.jenkins.plugins.credentials.secretsmanager.config.transformer.Default;
+import io.jenkins.plugins.credentials.secretsmanager.config.transformer.Transformer;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -30,9 +33,12 @@ public class AwsSecretSource extends SecretSource {
     private transient AWSSecretsManager client = null;
 
     @Override
-    public Optional<String> reveal(String id) throws IOException {
+    public Optional<String> reveal(String secret) throws IOException {
         try {
-            final GetSecretValueResult result = client.getSecretValue(new GetSecretValueRequest().withSecretId(id));
+            final GetSecretValueRequest request = new GetSecretValueRequest()
+                    .withSecretId(inverse(secret));
+
+            final GetSecretValueResult result = client.getSecretValue(request);
 
             if (result.getSecretBinary() != null) {
                 throw new IOException(String.format("The binary secret '%s' is not supported. Please change its value to a string, or alternatively delete it.", result.getName()));
@@ -94,5 +100,15 @@ public class AwsSecretSource extends SecretSource {
         } else {
             return Optional.ofNullable(System.getenv(AWS_SIGNING_REGION));
         }
+    }
+
+    private static String inverse(String str) {
+        // TODO fetch from a Java property if PluginConfiguration not set
+        final Transformer transformer = Optional.ofNullable(PluginConfiguration.getInstance())
+                .map(PluginConfiguration::getFields)
+                .map(Fields::getName)
+                .orElse(new Default());
+
+        return transformer.inverse(str);
     }
 }

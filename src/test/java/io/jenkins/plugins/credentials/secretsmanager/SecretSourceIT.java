@@ -133,6 +133,21 @@ public class SecretSourceIT {
         });
     }
 
+    @Test
+    @ConfiguredWithCode(value = "/rename.yml")
+    public void shouldSupportRenaming() {
+        // Given
+        final CreateSecretResult foo = createSecret(new CreateSecretRequest()
+                .withName("staging-foo")
+                .withSecretString(SECRET_STRING));
+
+        // When
+        final String secret = revealSecret("foo");
+
+        // Then
+        assertThat(secret).isEqualTo(SECRET_STRING);
+    }
+
     private <C extends StandardCredentials> C lookupCredential(Class<C> type, String id) {
         return jenkins.getCredentials().lookup(type, id);
     }
@@ -158,6 +173,10 @@ public class SecretSourceIT {
                 .withSecretString(secretString)
                 .withTags(tags);
 
+        return secretsManager.getClient().createSecret(request);
+    }
+
+    private CreateSecretResult createSecret(CreateSecretRequest request) {
         return secretsManager.getClient().createSecret(request);
     }
 

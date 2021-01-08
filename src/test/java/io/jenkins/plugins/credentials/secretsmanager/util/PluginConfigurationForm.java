@@ -3,6 +3,7 @@ package io.jenkins.plugins.credentials.secretsmanager.util;
 import com.gargoylesoftware.htmlunit.html.DomNode;
 import com.gargoylesoftware.htmlunit.html.HtmlButton;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
+import com.gargoylesoftware.htmlunit.html.HtmlSelect;
 
 import java.util.List;
 import java.util.Optional;
@@ -14,6 +15,12 @@ public class PluginConfigurationForm {
 
     public PluginConfigurationForm(HtmlForm form) {
         this.form = form;
+    }
+
+    public void setRemovePrefixTransformation(String prefix) {
+        final HtmlSelect select = getDropdownDescriptorSelectors("Name").get(0);
+        select.getOptionByText("Remove Prefix").setSelected(true);
+        form.getInputByName("_.prefix").setValueAttribute(prefix);
     }
 
     public void setEndpointConfiguration(String serviceEndpoint, String signingRegion) {
@@ -37,6 +44,10 @@ public class PluginConfigurationForm {
 
     public List<HtmlButton> getRepeatableAddButtons(String settingName) {
         return form.getByXPath(String.format("//td[contains(text(), '%s')]/following-sibling::td[@class='setting-main']//span[contains(string(@class),'repeatable-add')]//button[contains(text(), 'Add')]", settingName));
+    }
+
+    public List<HtmlSelect> getDropdownDescriptorSelectors(String settingName) {
+        return form.getByXPath(String.format("//td[contains(string(@class),'setting-name') and text()='%s']/following-sibling::td[contains(string(@class),'setting-main')]/select[contains(string(@class),'dropdownList')]", settingName));
     }
 
     public List<HtmlButton> getValidateButtons(String textContent) {

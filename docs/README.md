@@ -10,6 +10,7 @@ Access credentials from AWS Secrets Manager in your Jenkins jobs.
 - [Authentication](authentication/index.md)
 - [Beta Features](beta/index.md)
 - [Caching](caching/index.md)
+- [Fields](fields/index.md)
 - [Filters](filters/index.md)
 - [Networking](networking/index.md)
 - [Screenshots](screenshots/index.md)
@@ -322,14 +323,6 @@ node {
 
 ## Configuration
 
-Available settings:
-
-- Endpoint Configuration
-  - Service Endpoint
-  - Signing Region
-- ListSecrets configuration
-  - Filters (secret description, secret name, secret tags)
-
 The plugin's default behavior requires **no configuration**.
 
 ### Web UI
@@ -348,6 +341,11 @@ unclassified:
     endpointConfiguration:
       serviceEndpoint: http://localhost:4584
       signingRegion: us-east-1
+    fields:
+      description: false
+      name:
+        removePrefix:
+          prefix: "foo-"
     listSecrets:
       filters:
         - key: name
