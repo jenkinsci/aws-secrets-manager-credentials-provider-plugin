@@ -24,8 +24,6 @@ public class PluginConfiguration extends GlobalConfiguration {
     private static final Duration NO_CACHE = Duration.ofNanos(1);
     private static final Duration DEFAULT_CACHE = Duration.ofSeconds(300);
 
-    private Beta beta;
-
     /**
      * Whether to cache the credentials or not. By default, credentials are cached for 5 minutes. Caching can be turned off for development purposes.
      */
@@ -72,17 +70,6 @@ public class PluginConfiguration extends GlobalConfiguration {
         return this;
     }
 
-    public Beta getBeta() {
-        return beta;
-    }
-
-    @DataBoundSetter
-    @SuppressWarnings("unused")
-    public void setBeta(Beta beta) {
-        this.beta = beta;
-        save();
-    }
-
     public Boolean getCache() {
         return cache;
     }
@@ -121,7 +108,6 @@ public class PluginConfiguration extends GlobalConfiguration {
         // This method is unnecessary, except to apply the following workaround.
         // Workaround: Set any optional struct fields to null before binding configuration.
         // https://groups.google.com/forum/#!msg/jenkinsci-dev/MuRJ-yPRRoo/AvoPZAgbAAAJ
-        this.beta = null;
         this.endpointConfiguration = null;
         this.listSecrets = null;
 

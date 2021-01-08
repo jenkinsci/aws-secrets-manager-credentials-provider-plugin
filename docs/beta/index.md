@@ -1,8 +1,6 @@
 # Beta
 
-The plugin contains the following beta features:
-
-- [Client Configuration](clients/index.md)
+The plugin sometimes contains beta features, to get community feedback. When present they are listed here.
 
 ## Warnings
 

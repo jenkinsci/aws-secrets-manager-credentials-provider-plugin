@@ -6,7 +6,6 @@ import com.gargoylesoftware.htmlunit.html.HtmlForm;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 public class PluginConfigurationForm {
 
@@ -14,13 +13,6 @@ public class PluginConfigurationForm {
 
     public PluginConfigurationForm(HtmlForm form) {
         this.form = form;
-    }
-
-    public void setEndpointConfiguration(String serviceEndpoint, String signingRegion) {
-        // Due to ordering, the original EndpointConfiguration control is second on the page
-        form.getInputsByName("_.endpointConfiguration").get(1).setChecked(true);
-        form.getInputsByName("_.serviceEndpoint").get(1).setValueAttribute(serviceEndpoint);
-        form.getInputsByName("_.signingRegion").get(1).setValueAttribute(signingRegion);
     }
 
     public Optional<String> getValidateSuccessMessage() {
@@ -36,14 +28,20 @@ public class PluginConfigurationForm {
     }
 
     public List<HtmlButton> getRepeatableAddButtons(String settingName) {
-        return form.getByXPath(String.format("//td[contains(text(), '%s')]/following-sibling::td[@class='setting-main']//span[contains(string(@class),'repeatable-add')]//button[contains(text(), 'Add')]", settingName));
+        return form.getByXPath(XPaths.repeatableAddButtons(settingName));
     }
 
-    public List<HtmlButton> getValidateButtons(String textContent) {
-        return form.getByXPath("//span[contains(string(@class),'validate-button')]//button")
-                .stream()
-                .map(obj -> (HtmlButton) (obj))
-                .filter(button -> button.getTextContent().equals(textContent))
-                .collect(Collectors.toList());
+    public HtmlButton getValidateButton(String textContent) {
+        return form.getFirstByXPath(XPaths.validateButtons(textContent));
+    }
+
+    private static class XPaths {
+        private static String validateButtons(String textContent) {
+            return String.format("//span[contains(string(@class),'validate-button')]//button[contains(text(), '%s')]", textContent);
+        }
+
+        private static String repeatableAddButtons(String settingName) {
+            return String.format("//td[contains(text(), '%s')]/following-sibling::td[@class='setting-main']//span[contains(string(@class),'repeatable-add')]//button[contains(text(), 'Add')]", settingName);
+        }
     }
 }
