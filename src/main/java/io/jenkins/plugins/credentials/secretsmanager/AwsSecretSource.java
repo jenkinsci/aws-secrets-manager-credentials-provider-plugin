@@ -44,6 +44,7 @@ public class AwsSecretSource extends SecretSource {
             LOG.info(e.getMessage());
             return Optional.empty();
         } catch (AWSSecretsManagerException e) {
+            LOG.error(e.getMessage());
             // Unrecoverable errors
             throw new IOException(e);
         }
