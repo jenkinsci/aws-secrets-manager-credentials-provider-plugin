@@ -322,21 +322,21 @@ node {
 
 ## Configuration
 
-Available settings:
-
-- Endpoint Configuration
-  - Service Endpoint
-  - Signing Region
-- ListSecrets configuration
-  - Filters (secret description, secret name, secret tags)
-
-The plugin's default behavior requires **no configuration**.
+The plugin's default behavior requires **no configuration**. If you need to change the configuration, you can use the Web UI or CasC.
 
 ### Web UI
 
 You can set plugin configuration using the Web UI.
 
 Go to `Manage Jenkins` > `Configure System` > `AWS Secrets Manager Credentials Provider` and change the settings.
+
+Available settings:
+
+- Endpoint Configuration
+  - Service Endpoint
+  - Signing Region
+- ListSecrets configuration
+  - Filters
 
 ### Configuration As Code (CasC)
 
