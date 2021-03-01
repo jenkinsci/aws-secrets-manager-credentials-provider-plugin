@@ -105,6 +105,13 @@
             <version>3.19.0</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <!-- Workaround -->
+            <groupId>joda-time</groupId>
+            <artifactId>joda-time</artifactId>
+            <version>2.10.2</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
