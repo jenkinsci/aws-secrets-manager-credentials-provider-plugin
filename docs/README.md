@@ -13,6 +13,7 @@ Access credentials from AWS Secrets Manager in your Jenkins jobs.
 - [Filters](filters/index.md)
 - [Networking](networking/index.md)
 - [Screenshots](screenshots/index.md)
+- [Troubleshooting](troubleshooting/index.md)
 - Project
   - [Changelog](https://github.com/jenkinsci/aws-secrets-manager-credentials-provider-plugin/releases)
   - [CI Build](https://ci.jenkins.io/blue/organizations/jenkins/Plugins%2Faws-secrets-manager-credentials-provider-plugin/)
