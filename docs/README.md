@@ -36,7 +36,7 @@ Give Jenkins read access to Secrets Manager with an IAM policy.
 
 Required permissions:
 
-- `secretsmanager:GetSecretValue` (resource: `*`)
+- `secretsmanager:GetSecretValue` (Resource: `*`)
 - `secretsmanager:ListSecrets`
 
 Optional permissions:
@@ -56,7 +56,9 @@ Note: Any string secret is accessible through SecretSource, but only a secret wi
 
 The plugin allows secrets from Secrets Manager to be used as Jenkins credentials.
  
-A secret will act as one of the following Jenkins [credential types](https://jenkins.io/doc/pipeline/steps/credentials-binding/), based on the `jenkins:credentials:type` tag that you add to it.
+Jenkins must know which [credential type](https://jenkins.io/doc/pipeline/steps/credentials-binding/) a secret is meant to be (e.g. Secret Text, Username With Password), in order to present it as a credential. To do this, **you MUST annotate the secrets with the relevant tags** as shown in the sections below. If the credentials cache is enabled you must also wait for that to refresh before the newly annotated secrets appear in Jenkins.
+
+To restate the above, you MUST add these tags or the corresponding credentials will not appear in Jenkins.
 
 #### Secret Text
 
@@ -323,7 +325,12 @@ node {
 
 ## Configuration
 
-The plugin's default behavior requires **no configuration**. If you need to change the configuration, you can use the Web UI or CasC.
+Two sources of configuration drive how the plugin works:
+
+- *AWS Java SDK configuration* (outside of Jenkins). Consult the AWS SDK documentation to find where to put the SDK configuration.
+- *Plugin configuration* (inside Jenkins). You can use the Jenkins Web UI or CasC to customise it.
+
+The AWS SDK configuration does most of the work; the plugin configuration adds extras on the top. In most installations you do not need to change the plugin configuration.
 
 ### Web UI
 
@@ -333,6 +340,7 @@ Go to `Manage Jenkins` > `Configure System` > `AWS Secrets Manager Credentials P
 
 Available settings:
 
+- Cache (on/off)
 - Endpoint Configuration
   - Service Endpoint
   - Signing Region
@@ -346,6 +354,7 @@ You can set plugin configuration using Jenkins [Configuration As Code](https://g
 ```yaml
 unclassified:
   awsCredentialsProvider:
+    cache: true  # cache is on by default
     endpointConfiguration:
       serviceEndpoint: http://localhost:4584
       signingRegion: us-east-1
