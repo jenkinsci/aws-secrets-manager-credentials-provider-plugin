@@ -36,12 +36,33 @@ Give Jenkins read access to Secrets Manager with an IAM policy.
 
 Required permissions:
 
-- `secretsmanager:GetSecretValue` (Resource: `*`)
+- `secretsmanager:GetSecretValue`
 - `secretsmanager:ListSecrets`
 
 Optional permissions:
 
 - `kms:Decrypt` (if you use a customer-managed KMS key to encrypt the secret)
+
+Example:
+
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "AllowJenkinsToGetSecretValues",
+            "Effect": "Allow",
+            "Action": "secretsmanager:GetSecretValue",
+            "Resource": "*"
+        },
+        {
+            "Sid": "AllowJenkinsToListSecrets",
+            "Effect": "Allow",
+            "Action": "secretsmanager:ListSecrets"
+        }
+    ]
+}
+```
 
 ## Usage
 
@@ -56,9 +77,7 @@ Note: Any string secret is accessible through SecretSource, but only a secret wi
 
 The plugin allows secrets from Secrets Manager to be used as Jenkins credentials.
  
-Jenkins must know which [credential type](https://jenkins.io/doc/pipeline/steps/credentials-binding/) a secret is meant to be (e.g. Secret Text, Username With Password), in order to present it as a credential. To do this, **you MUST annotate the secrets with the relevant tags** as shown in the sections below. If the credentials cache is enabled you must also wait for that to refresh before the newly annotated secrets appear in Jenkins.
-
-To restate the above, you MUST add these tags or the corresponding credentials will not appear in Jenkins.
+Jenkins must know which [credential type](https://jenkins.io/doc/pipeline/steps/credentials-binding/) a secret is meant to be (e.g. Secret Text, Username With Password), in order to present it as a credential. To do this, **you MUST add the relevant AWS tags to the secrets in Secrets Manager**, as shown in the sections below. (If the credentials cache is enabled you must also wait for that to refresh before the newly annotated secrets appear in Jenkins.) Without these tags, the corresponding credentials will not appear in Jenkins.
 
 #### Secret Text
 
