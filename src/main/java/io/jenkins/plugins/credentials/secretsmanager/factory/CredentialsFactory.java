@@ -28,8 +28,6 @@ import java.util.logging.Logger;
 
 public abstract class CredentialsFactory {
 
-    private static final Logger LOG = Logger.getLogger(CredentialsFactory.class.getName());
-
     private CredentialsFactory() {
 
     }
@@ -61,21 +59,22 @@ public abstract class CredentialsFactory {
             case Type.file:
                 return Optional.of(new AwsFileCredentials(name, description, filename, new SecretBytesSupplier(client, name)));
             case Type.githubApp:
-                if (Jenkins.get().getPlugin("github-branch-source") != null) {
-                    return new GitHubCrendital().createCredential(name, description, appId, Secret.fromString(new StringSupplier(client, name).get()));
-                } else {
-                    LOG.log(Level.WARNING, "Plugin not installed: github-branch-source. Cannot create type: " + Type.githubApp);
-                }
+                return GitCredentialFactory.createCredential(name, description, appId, Secret.fromString(new StringSupplier(client, name).get()));
             default:
                 return Optional.empty();
         }
     }
 
-    public static class GitHubCrendital {
+    public static class GitCredentialFactory  {
 
-        private static final Logger LOG = Logger.getLogger(GitHubCrendital.class.getName());
+        private static final Logger LOG = Logger.getLogger(GitCredentialFactory.class.getName());
 
-        public Optional<StandardCredentials> createCredential(String name, String description, String appId, Secret secret) {
+        public static Optional<StandardCredentials> createCredential(String name, String description, String appId, Secret secret) {
+            if (Jenkins.get().getPlugin("github-branch-source") == null) {
+                LOG.log(Level.WARNING, "Plugin not installed: github-branch-source. Cannot create type: " + Type.githubApp);
+                return Optional.empty();
+            }
+
             try {
                 Class githubCredentials = Class.forName("org.jenkinsci.plugins.github_branch_source.GitHubAppCredentials");
                 Constructor<?> ctor = githubCredentials.getConstructor(CredentialsScope.class, String.class, String.class, String.class, Secret.class);
