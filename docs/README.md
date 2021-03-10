@@ -24,11 +24,7 @@ Access credentials from AWS Secrets Manager in your Jenkins jobs.
 - `CredentialsProvider` and `SecretSource` API support.
 - Credential metadata caching (duration: 5 minutes).
  
-## Setup 
-
-### Jenkins
-
-Install and configure the plugin.
+## Setup
 
 ### IAM
 
@@ -63,6 +59,12 @@ Example:
     ]
 }
 ```
+
+### Jenkins
+
+The plugin uses the AWS Java SDK to communicate with Secrets Manager. If you are running Jenkins outside EC2 or EKS you may need to manually configure the SDK to authenticate with AWS. See the [authentication](authentication/index.md) guide for more information.
+
+Then, install and [configure](#Configuration) the plugin.
 
 ## Usage
 
@@ -344,12 +346,7 @@ node {
 
 ## Configuration
 
-Two sources of configuration drive how the plugin works:
-
-- *AWS Java SDK configuration* (outside of Jenkins). Consult the AWS SDK documentation to find where to put the SDK configuration.
-- *Plugin configuration* (inside Jenkins). You can use the Jenkins Web UI or CasC to customise it.
-
-The AWS SDK configuration does most of the work; the plugin configuration adds extras on the top. In most installations you do not need to change the plugin configuration.
+The plugin has a couple of optional settings to fine-tune its behavior. In most installations you do not need to change these settings. If you need to change the configuration, you can use the Web UI or CasC.
 
 ### Web UI
 
@@ -359,7 +356,7 @@ Go to `Manage Jenkins` > `Configure System` > `AWS Secrets Manager Credentials P
 
 Available settings:
 
-- Cache (on/off)
+- Cache of credential names (on/off)
 - Endpoint Configuration
   - Service Endpoint
   - Signing Region
