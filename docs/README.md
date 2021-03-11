@@ -357,13 +357,13 @@ unclassified:
             - bar
         - key: tag-key
           values:
-            - foo
+            - Environment
         - key: tag-value
           values:
-            - bar
+            - production
         - key: description
           values:
-            - baz
+            - secret
 ```
 
 ## Development
