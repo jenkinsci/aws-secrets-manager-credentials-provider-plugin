@@ -360,10 +360,11 @@ unclassified:
             - Environment
         - key: tag-value
           values:
+            - staging
             - production
         - key: description
           values:
-            - secret
+            - "my API key"  # note: filtering by tags or name is usually a better approach
 ```
 
 ## Development
