@@ -355,6 +355,15 @@ unclassified:
           values:
             - foo
             - bar
+        - key: tag-key
+          values:
+            - foo
+        - key: tag-value
+          values:
+            - bar
+        - key: description
+          values:
+            - baz
 ```
 
 ## Development
