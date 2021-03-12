@@ -355,6 +355,16 @@ unclassified:
           values:
             - foo
             - bar
+        - key: tag-key
+          values:
+            - Environment
+        - key: tag-value
+          values:
+            - staging
+            - production
+        - key: description
+          values:
+            - "my API key"  # note: filtering by tags or name is usually a better approach
 ```
 
 ## Development
