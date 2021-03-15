@@ -356,7 +356,7 @@ Go to `Manage Jenkins` > `Configure System` > `AWS Secrets Manager Credentials P
 
 Available settings:
 
-- Cache of credential names (on/off)
+- [Cache](caching/index.md) (on/off)
 - Endpoint Configuration
   - Service Endpoint
   - Signing Region
