@@ -4,26 +4,22 @@ import com.amazonaws.AmazonClientException;
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.amazonaws.services.secretsmanager.model.GetSecretValueRequest;
 import com.amazonaws.services.secretsmanager.model.GetSecretValueResult;
-import com.cloudbees.plugins.credentials.CredentialsScope;
 import com.cloudbees.plugins.credentials.CredentialsUnavailableException;
 import com.cloudbees.plugins.credentials.SecretBytes;
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import edu.umd.cs.findbugs.annotations.NonNull;
-import hudson.Extension;
 import hudson.util.Secret;
 import io.jenkins.plugins.credentials.secretsmanager.Messages;
 import io.jenkins.plugins.credentials.secretsmanager.factory.certificate.AwsCertificateCredentials;
 import io.jenkins.plugins.credentials.secretsmanager.factory.file.AwsFileCredentials;
+import io.jenkins.plugins.credentials.secretsmanager.factory.git_app.GitCredentialFactory;
 import io.jenkins.plugins.credentials.secretsmanager.factory.ssh_user_private_key.AwsSshUserPrivateKey;
 import io.jenkins.plugins.credentials.secretsmanager.factory.string.AwsStringCredentials;
 import io.jenkins.plugins.credentials.secretsmanager.factory.username_password.AwsUsernamePasswordCredentials;
-import jenkins.model.Jenkins;
 
-import java.lang.reflect.Constructor;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public abstract class CredentialsFactory {
@@ -59,31 +55,9 @@ public abstract class CredentialsFactory {
             case Type.file:
                 return Optional.of(new AwsFileCredentials(name, description, filename, new SecretBytesSupplier(client, name)));
             case Type.githubApp:
-                return GitCredentialFactory.createCredential(name, description, appId, Secret.fromString(new StringSupplier(client, name).get()));
+                return new GitCredentialFactory().createCredential(name, description, appId, Secret.fromString(new StringSupplier(client, name).get()));
             default:
                 return Optional.empty();
-        }
-    }
-
-    public static class GitCredentialFactory  {
-
-        private static final Logger LOG = Logger.getLogger(GitCredentialFactory.class.getName());
-
-        public static Optional<StandardCredentials> createCredential(String name, String description, String appId, Secret secret) {
-            if (Jenkins.get().getPlugin("github-branch-source") == null) {
-                LOG.log(Level.WARNING, "Plugin not installed: github-branch-source. Cannot create type: " + Type.githubApp);
-                return Optional.empty();
-            }
-
-            try {
-                Class githubCredentials = Class.forName("org.jenkinsci.plugins.github_branch_source.GitHubAppCredentials");
-                Constructor<?> ctor = githubCredentials.getConstructor(CredentialsScope.class, String.class, String.class, String.class, Secret.class);
-                StandardCredentials credentials = (StandardCredentials) ctor.newInstance(new Object[] {CredentialsScope.GLOBAL, name, description, appId, secret });
-                return Optional.of(credentials);
-            } catch (Throwable ex) {
-                LOG.log(Level.WARNING, "Unable to create type: " + Type.githubApp);
-            }
-            return Optional.empty();
         }
     }
 
