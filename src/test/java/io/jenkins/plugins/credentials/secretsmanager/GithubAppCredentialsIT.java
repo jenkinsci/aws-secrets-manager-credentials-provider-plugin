@@ -9,19 +9,23 @@ import hudson.util.Secret;
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
 import io.jenkins.plugins.credentials.secretsmanager.factory.Type;
 import io.jenkins.plugins.credentials.secretsmanager.util.*;
+import mockit.Mock;
+import mockit.MockUp;
+import mockit.integration.junit4.JMockit;
 import org.jenkinsci.plugins.github_branch_source.GitHubAppCredentials;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
+import org.junit.runner.RunWith;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static io.jenkins.plugins.credentials.secretsmanager.util.assertions.CustomAssertions.assertThat;
 import static org.junit.Assume.assumeTrue;
 
+@RunWith(JMockit.class)
 public class GithubAppCredentialsIT implements CredentialsTests {
 
     private static final String APP_ID = "11111";
@@ -39,7 +43,7 @@ public class GithubAppCredentialsIT implements CredentialsTests {
             .around(secretsManager);
 
     @BeforeClass
-    public static void GitHubAppCredentialsExists() {
+    public static void checkClassExists() {
         Optional<Class> clazz = getGithubAppCredentialClass();
         assumeTrue(clazz.isPresent());
     }
@@ -70,13 +74,19 @@ public class GithubAppCredentialsIT implements CredentialsTests {
                 .hasSameDescriptorIconAs(theirs);
     }
 
-    //Cannot test binding because GitHubAppCredential requires connection to api.github.com
+    @Test
+    @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportWithCredentialsBinding() {
         // Given
         final CreateSecretResult foo = createGitHubAppCredentialSecret(APP_ID, PRIVATE_KEY);
 
-        ListSecretsRequest getSecretValueRequest = new ListSecretsRequest();
-        ListSecretsResult list = secretsManager.getClient().listSecrets(getSecretValueRequest);
+        new MockUp<GitHubAppCredentials>() {
+            @Mock
+            public Secret getPassword() {
+                return Secret.fromString("test-token");
+            }
+        };
+
         // When
         final WorkflowRun run = runPipeline("",
                 "withCredentials([usernamePassword(credentialsId: '" + foo.getName() + "', usernameVariable: 'USR', passwordVariable: 'PSW')]) {",
@@ -85,14 +95,22 @@ public class GithubAppCredentialsIT implements CredentialsTests {
 
         // Then
         assertThat(run)
-                .hasResult(hudson.model.Result.FAILURE)
-                .hasLogContaining("java.io.FileNotFoundException: https://api.github.com/app");
+                .hasResult(hudson.model.Result.SUCCESS)
+                .hasLogContaining("Credential: {username: ****, password: ****}");
     }
 
-    //Cannot test binding because GitHubAppCredential requires connection to api.github.com
-    public void shouldSupportEnvironmentBinding() {
+    @Test
+    @ConfiguredWithCode(value = "/integration.yml")
+    public void shouldSupportEnvironmentBinding(){
         // Given
         final CreateSecretResult foo = createGitHubAppCredentialSecret(APP_ID, PRIVATE_KEY);
+
+        new MockUp<GitHubAppCredentials>() {
+            @Mock
+            public Secret getPassword() {
+                return Secret.fromString("test-token");
+            }
+        };
 
         // When
         final WorkflowRun run = runPipeline("",
@@ -112,8 +130,8 @@ public class GithubAppCredentialsIT implements CredentialsTests {
 
         // Then
         assertThat(run)
-                .hasResult(hudson.model.Result.FAILURE)
-                .hasLogContaining("java.io.FileNotFoundException: https://api.github.com/app");
+                .hasResult(hudson.model.Result.SUCCESS)
+                .hasLogContaining("{variable: ****, username: ****, password: ****}");
     }
 
     @Test
@@ -127,7 +145,6 @@ public class GithubAppCredentialsIT implements CredentialsTests {
         final GitHubAppCredentials after = CredentialSnapshots.snapshot(before);
 
         // Then
-        //Cannot test password because GitHubAppCredential requires connection to api.github.com
         assertThat(after)
                 .hasUsername(before.getUsername())
                 .hasId(before.getId());
