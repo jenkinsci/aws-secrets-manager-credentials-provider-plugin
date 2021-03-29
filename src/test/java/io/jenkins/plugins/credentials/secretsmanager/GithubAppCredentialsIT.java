@@ -1,6 +1,7 @@
 package io.jenkins.plugins.credentials.secretsmanager;
 
 import com.amazonaws.services.secretsmanager.model.*;
+import com.cloudbees.jenkins.plugins.sshcredentials.SSHUserPrivateKey;
 import com.cloudbees.plugins.credentials.CredentialsScope;
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
@@ -137,6 +138,7 @@ public class GithubAppCredentialsIT implements CredentialsTests {
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportSnapshots() {
+
         // Given
         final CreateSecretResult foo = createGitHubAppCredentialSecret(APP_ID, PRIVATE_KEY);
         final GitHubAppCredentials before = jenkins.getCredentials().lookup(GitHubAppCredentials.class, foo.getName());
@@ -147,6 +149,7 @@ public class GithubAppCredentialsIT implements CredentialsTests {
         // Then
         assertThat(after)
                 .hasUsername(before.getUsername())
+                .hasPrivateKey(before.getPrivateKey())
                 .hasId(before.getId());
     }
 
@@ -178,6 +181,20 @@ public class GithubAppCredentialsIT implements CredentialsTests {
         // Then
         assertThat(credential)
                 .hasUsername(APP_ID);
+    }
+
+    @Test
+    @ConfiguredWithCode(value = "/integration.yml")
+    public void shouldHavePrivateKey() {
+        // Given
+        final CreateSecretResult foo = createGitHubAppCredentialSecret(APP_ID, PRIVATE_KEY);
+
+        // When
+        final GitHubAppCredentials credential = lookup(GitHubAppCredentials.class, foo.getName());
+
+        // Then
+        assertThat(credential)
+                .hasPrivateKey(PRIVATE_KEY);
     }
 
     private CreateSecretResult createGitHubAppCredentialSecret(String appId, String privateKey) {
