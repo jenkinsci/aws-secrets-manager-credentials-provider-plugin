@@ -24,11 +24,7 @@ Access credentials from AWS Secrets Manager in your Jenkins jobs.
 - `CredentialsProvider` and `SecretSource` API support.
 - Credential metadata caching (duration: 5 minutes).
  
-## Setup 
-
-### Jenkins
-
-Install and configure the plugin.
+## Setup
 
 ### IAM
 
@@ -36,12 +32,39 @@ Give Jenkins read access to Secrets Manager with an IAM policy.
 
 Required permissions:
 
-- `secretsmanager:GetSecretValue` (resource: `*`)
+- `secretsmanager:GetSecretValue`
 - `secretsmanager:ListSecrets`
 
 Optional permissions:
 
 - `kms:Decrypt` (if you use a customer-managed KMS key to encrypt the secret)
+
+Example:
+
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "AllowJenkinsToGetSecretValues",
+            "Effect": "Allow",
+            "Action": "secretsmanager:GetSecretValue",
+            "Resource": "*"
+        },
+        {
+            "Sid": "AllowJenkinsToListSecrets",
+            "Effect": "Allow",
+            "Action": "secretsmanager:ListSecrets"
+        }
+    ]
+}
+```
+
+### Jenkins
+
+The plugin uses the AWS Java SDK to communicate with Secrets Manager. If you are running Jenkins outside EC2 or EKS you may need to manually configure the SDK to authenticate with AWS. See the [authentication](authentication/index.md) guide for more information.
+
+Then, install and [configure](#Configuration) the plugin.
 
 ## Usage
 
@@ -56,7 +79,7 @@ Note: Any string secret is accessible through SecretSource, but only a secret wi
 
 The plugin allows secrets from Secrets Manager to be used as Jenkins credentials.
  
-A secret will act as one of the following Jenkins [credential types](https://jenkins.io/doc/pipeline/steps/credentials-binding/), based on the `jenkins:credentials:type` tag that you add to it.
+Jenkins must know which [credential type](https://jenkins.io/doc/pipeline/steps/credentials-binding/) a secret is meant to be (e.g. Secret Text, Username With Password), in order to present it as a credential. To do this, **you MUST add the relevant AWS tags to the secrets in Secrets Manager**, as shown in the sections below. (If the credentials cache is enabled you must also wait for that to refresh before the newly annotated secrets appear in Jenkins.) Without these tags, the corresponding credentials will not appear in Jenkins.
 
 #### Secret Text
 
@@ -373,7 +396,7 @@ node {
 
 ## Configuration
 
-The plugin's default behavior requires **no configuration**. If you need to change the configuration, you can use the Web UI or CasC.
+The plugin has a couple of optional settings to fine-tune its behavior. In most installations you do not need to change these settings. If you need to change the configuration, you can use the Web UI or CasC.
 
 ### Web UI
 
@@ -383,6 +406,7 @@ Go to `Manage Jenkins` > `Configure System` > `AWS Secrets Manager Credentials P
 
 Available settings:
 
+- [Cache](caching/index.md) (on/off)
 - Endpoint Configuration
   - Service Endpoint
   - Signing Region
@@ -396,6 +420,7 @@ You can set plugin configuration using Jenkins [Configuration As Code](https://g
 ```yaml
 unclassified:
   awsCredentialsProvider:
+    cache: true  # cache is on by default
     endpointConfiguration:
       serviceEndpoint: http://localhost:4584
       signingRegion: us-east-1
@@ -405,6 +430,16 @@ unclassified:
           values:
             - foo
             - bar
+        - key: tag-key
+          values:
+            - Environment
+        - key: tag-value
+          values:
+            - staging
+            - production
+        - key: description
+          values:
+            - "my API key"  # note: filtering by tags or name is usually a better approach
 ```
 
 ## Development
