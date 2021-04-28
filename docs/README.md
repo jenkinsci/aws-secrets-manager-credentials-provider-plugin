@@ -346,7 +346,7 @@ node {
 
 ## Configuration
 
-The plugin has a couple of optional settings to fine-tune its behavior. In most installations you do not need to change these settings. If you need to change the configuration, you can use the Web UI or CasC.
+The plugin has a couple of **optional** settings to fine-tune its behavior. **In most installations you do not need to change these settings.** If you need to change the configuration, you can use the Web UI or CasC.
 
 ### Web UI
 
@@ -361,35 +361,35 @@ Available settings:
   - Service Endpoint
   - Signing Region
 - ListSecrets configuration
-  - Filters
+  - [Filters](filters/index.md)
 
 ### Configuration As Code (CasC)
 
 You can set plugin configuration using Jenkins [Configuration As Code](https://github.com/jenkinsci/configuration-as-code-plugin).
 
+**Schema:**
+
 ```yaml
 unclassified:
   awsCredentialsProvider:
-    cache: true  # cache is on by default
-    endpointConfiguration:
-      serviceEndpoint: http://localhost:4584
-      signingRegion: us-east-1
-    listSecrets:
+    cache: (boolean)           # optional
+    endpointConfiguration:     # optional
+      serviceEndpoint: (URL)
+      signingRegion: (string)
+    listSecrets:               # optional
       filters:
         - key: name
           values:
-            - foo
-            - bar
+            - (string)
         - key: tag-key
           values:
-            - Environment
+            - (string)
         - key: tag-value
           values:
-            - staging
-            - production
+            - (string)
         - key: description
           values:
-            - "my API key"  # note: filtering by tags or name is usually a better approach
+            - (string)  # note: filtering by tags or name is usually a better approach
 ```
 
 ## Development
