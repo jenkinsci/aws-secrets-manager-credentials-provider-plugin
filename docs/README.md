@@ -173,7 +173,7 @@ node {
 
 #### SSH User Private Key
 
-An SSH *private key*, with a *username*.
+An SSH *Private Key*, with a *Username*.
 
 - Value: *private key*
 - Tags:
