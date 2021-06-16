@@ -84,6 +84,12 @@
             <optional>true</optional>
         </dependency>
         <dependency>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>github-branch-source</artifactId>
+            <version>2.9.3</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
             <groupId>org.jenkinsci.plugins</groupId>
             <artifactId>pipeline-model-definition</artifactId>
             <scope>test</scope>
@@ -106,6 +112,17 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>org.jmockit</groupId>
+            <artifactId>jmockit</artifactId>
+            <version>1.41</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- Workaround -->
+        <dependency>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>github-branch-source</artifactId>
+            <version>2.9.3</version>
+            <optional>true</optional>
             <!-- Workaround -->
             <groupId>joda-time</groupId>
             <artifactId>joda-time</artifactId>
@@ -200,6 +217,16 @@
                             </run>
                         </image>
                     </images>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.22.2</version>
+                <configuration>
+                    <argLine>
+                        -javaagent:"${settings.localRepository}"/org/jmockit/jmockit/1.41/jmockit-1.41.jar
+                    </argLine>
                 </configuration>
             </plugin>
         </plugins>

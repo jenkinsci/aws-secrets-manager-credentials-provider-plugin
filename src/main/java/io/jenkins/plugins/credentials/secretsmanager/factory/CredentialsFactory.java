@@ -12,6 +12,7 @@ import hudson.util.Secret;
 import io.jenkins.plugins.credentials.secretsmanager.Messages;
 import io.jenkins.plugins.credentials.secretsmanager.factory.certificate.AwsCertificateCredentials;
 import io.jenkins.plugins.credentials.secretsmanager.factory.file.AwsFileCredentials;
+import io.jenkins.plugins.credentials.secretsmanager.factory.git_app.GitCredentialFactory;
 import io.jenkins.plugins.credentials.secretsmanager.factory.ssh_user_private_key.AwsSshUserPrivateKey;
 import io.jenkins.plugins.credentials.secretsmanager.factory.string.AwsStringCredentials;
 import io.jenkins.plugins.credentials.secretsmanager.factory.username_password.AwsUsernamePasswordCredentials;
@@ -40,6 +41,7 @@ public abstract class CredentialsFactory {
         final String type = tags.getOrDefault(Tags.type, "");
         final String username = tags.getOrDefault(Tags.username, "");
         final String filename = tags.getOrDefault(Tags.filename, name);
+        final String appId = tags.getOrDefault(Tags.appid, "");
 
         switch (type) {
             case Type.string:
@@ -52,6 +54,8 @@ public abstract class CredentialsFactory {
                 return Optional.of(new AwsCertificateCredentials(name, description, new SecretBytesSupplier(client, name)));
             case Type.file:
                 return Optional.of(new AwsFileCredentials(name, description, filename, new SecretBytesSupplier(client, name)));
+            case Type.githubApp:
+                return new GitCredentialFactory().createCredential(name, description, appId, Secret.fromString(new StringSupplier(client, name).get()));
             default:
                 return Optional.empty();
         }
