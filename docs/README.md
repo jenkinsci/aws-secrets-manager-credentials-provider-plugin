@@ -5,6 +5,8 @@
 
 Access credentials from AWS Secrets Manager in your Jenkins jobs.
 
+This plugin is the high-level counterpart of the [AWS Secrets Manager Secret Source](https://github.com/jenkinsci/aws-secrets-manager-secret-source-plugin) plugin.
+
 ## Contents
 
 - [Authentication](authentication/index.md)
