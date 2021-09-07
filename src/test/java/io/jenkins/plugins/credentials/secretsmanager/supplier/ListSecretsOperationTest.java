@@ -117,6 +117,7 @@ public class ListSecretsOperationTest {
             throw new UnsupportedOperationException();
         }
 
+        
         @Override
         public ReplicateSecretToRegionsResult replicateSecretToRegions(ReplicateSecretToRegionsRequest replicateSecretToRegionsRequest) {
             throw new UnsupportedOperationException();
