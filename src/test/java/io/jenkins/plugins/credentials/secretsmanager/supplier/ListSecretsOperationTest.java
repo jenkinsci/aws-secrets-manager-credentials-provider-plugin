@@ -113,12 +113,28 @@ public class ListSecretsOperationTest {
         }
 
         @Override
+        public RemoveRegionsFromReplicationResult removeRegionsFromReplication(RemoveRegionsFromReplicationRequest removeRegionsFromReplicationRequest) {
+            throw new UnsupportedOperationException();
+        }
+
+        
+        @Override
+        public ReplicateSecretToRegionsResult replicateSecretToRegions(ReplicateSecretToRegionsRequest replicateSecretToRegionsRequest) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
         public RestoreSecretResult restoreSecret(RestoreSecretRequest restoreSecretRequest) {
             throw new UnsupportedOperationException();
         }
 
         @Override
         public RotateSecretResult rotateSecret(RotateSecretRequest rotateSecretRequest) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public StopReplicationToReplicaResult stopReplicationToReplica(StopReplicationToReplicaRequest stopReplicationToReplicaRequest) {
             throw new UnsupportedOperationException();
         }
 
