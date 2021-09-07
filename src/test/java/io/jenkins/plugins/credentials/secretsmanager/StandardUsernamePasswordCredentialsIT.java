@@ -46,7 +46,7 @@ public class StandardUsernamePasswordCredentialsIT implements CredentialsTests {
 
         // Then
         assertThat(list)
-                .containsOption(USERNAME + "/******", foo.getName());
+                .containsOption(foo.getName(), foo.getName());
     }
 
     @Test
