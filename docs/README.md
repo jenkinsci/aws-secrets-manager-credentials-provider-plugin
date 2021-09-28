@@ -182,6 +182,8 @@ An SSH *private key*, with a *username*.
 
 Common private key formats include PKCS#1 (starts with `-----BEGIN [ALGORITHM] PRIVATE KEY-----`) and PKCS#8 (starts with `-----BEGIN PRIVATE KEY-----`).
 
+**Note:** The passphrase field is not supported. (The `SSHUserPrivateKey#getPassphrase()` implementation returns an empty string if called.) This is because any passphrase would have to be stored as a tag on the AWS secret, but tags are non-secret metadata (visible in any `ListSecrets` API call), so the passphrase would offer no meaningful security benefit in this provider.
+
 ##### Example
 
 AWS CLI:
