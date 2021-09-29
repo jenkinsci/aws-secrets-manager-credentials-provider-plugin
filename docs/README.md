@@ -5,6 +5,8 @@
 
 Access credentials from AWS Secrets Manager in your Jenkins jobs.
 
+This plugin is the high-level counterpart of the [AWS Secrets Manager SecretSource](https://github.com/jenkinsci/aws-secrets-manager-secret-source-plugin) plugin. It pulls in that plugin as a dependency, so by installing the CredentialsProvider on Jenkins you get the SecretSource 'for free'. This dependency will be removed in future, at which point you will need to install the SecretSource plugin separately.
+
 ## Contents
 
 - [Authentication](authentication/index.md)
@@ -68,20 +70,13 @@ Then, install and [configure](#Configuration) the plugin.
 
 ## Usage
 
-The plugin supports the following secrets resolution APIs:
-
-- [CredentialsProvider](#CredentialsProvider) (high-level API)
-- [SecretSource](#SecretSource) (low-level API)
-
-Note: Any string secret is accessible through SecretSource, but only a secret with the `jenkins:credentials:type` tag is accessible through CredentialsProvider. This distinction allows you to share tagged secrets between both APIs, while untagged secrets are only accessible through SecretSource.
-
-### CredentialsProvider
-
 The plugin allows secrets from Secrets Manager to be used as Jenkins credentials.
  
 Jenkins must know which [credential type](https://jenkins.io/doc/pipeline/steps/credentials-binding/) a secret is meant to be (e.g. Secret Text, Username With Password), in order to present it as a credential. To do this, **you MUST add the relevant AWS tags to the secrets in Secrets Manager**, as shown in the sections below. (If the credentials cache is enabled you must also wait for that to refresh before the newly annotated secrets appear in Jenkins.) Without these tags, the corresponding credentials will not appear in Jenkins.
 
-#### Secret Text
+**Note:** If you use this plugin together with the AWS Secrets Manager SecretSource plugin, remember that any string secret is accessible through SecretSource, but only a secret with the `jenkins:credentials:type` tag is accessible through CredentialsProvider. This distinction allows you to share tagged secrets between both APIs, while untagged secrets are only accessible through SecretSource.
+
+### Secret Text
 
 A simple text *secret*.
 
@@ -89,7 +84,7 @@ A simple text *secret*.
 - Tags:
   - `jenkins:credentials:type` = `string`
 
-##### Example
+#### Example
 
 AWS CLI:
 
@@ -125,7 +120,7 @@ node {
 }
 ```
 
-#### Username with Password
+### Username with Password
 
 A *username* and *password* pair.
 
@@ -134,7 +129,7 @@ A *username* and *password* pair.
   - `jenkins:credentials:type` = `usernamePassword`
   - `jenkins:credentials:username` = *username*
 
-##### Example
+#### Example
 
 AWS CLI:
 
@@ -171,7 +166,7 @@ node {
 }
 ```
 
-#### SSH User Private Key
+### SSH User Private Key
 
 An SSH *private key*, with a *username*.
 
@@ -184,7 +179,7 @@ Common private key formats include PKCS#1 (starts with `-----BEGIN [ALGORITHM] P
 
 **Note:** The passphrase field is not supported. (The `SSHUserPrivateKey#getPassphrase()` implementation returns an empty string if called.) This is because any passphrase would have to be stored as a tag on the AWS secret, but tags are non-secret metadata (visible in any `ListSecrets` API call), so the passphrase would offer no meaningful security benefit in this provider.
 
-##### Example
+#### Example
 
 AWS CLI:
 
@@ -222,7 +217,7 @@ node {
 }
 ```
 
-#### Certificate
+### Certificate
 
 A client certificate *keystore* in PKCS#12 format, encrypted with a zero-length password.
 
@@ -230,7 +225,7 @@ A client certificate *keystore* in PKCS#12 format, encrypted with a zero-length 
 - Tags:
   - `jenkins:credentials:type` = `certificate`
 
-##### Example
+#### Example
 
 AWS CLI:
 
@@ -249,7 +244,7 @@ node {
 }
 ```
 
-#### Secret File
+### Secret File
 
 A secret file with binary *content* and an optional *filename*.
 
@@ -260,7 +255,7 @@ A secret file with binary *content* and an optional *filename*.
 
 The credential ID is used as the filename by default. In the rare cases when you need to override this (for example, if the credential ID would be an invalid filename on your filesystem), you can set the `jenkins:credentials:filename` tag.
 
-##### Example
+#### Example
 
 AWS CLI:
 
@@ -295,30 +290,6 @@ node {
         echo 'Hello world'
     }
 }
-```
-
-### SecretSource
-
-The plugin allows JCasC to interpolate string secrets from Secrets Manager.
-
-#### Example
-
-AWS CLI:
-
-```bash
-aws secretsmanager create-secret --name 'my-password' --secret-string 'abc123' --description 'Jenkins user password'
-```
-
-JCasC:
-
-```yaml
-jenkins:
-  securityRealm:
-    local:
-      allowsSignup: false
-      users:
-      - id: "foo"
-        password: "${my-password}"
 ```
 
 ## Advanced Usage
