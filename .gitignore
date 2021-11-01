@@ -30,3 +30,8 @@ target
 work
 *.releaseBackup
 release.properties
+
+.classpath
+.factorypath
+.project
+.settings/
