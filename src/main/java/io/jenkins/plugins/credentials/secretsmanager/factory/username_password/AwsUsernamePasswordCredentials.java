@@ -1,10 +1,12 @@
 package io.jenkins.plugins.credentials.secretsmanager.factory.username_password;
 
+import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import com.cloudbees.plugins.credentials.impl.BaseStandardCredentials;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.util.Secret;
+import io.jenkins.plugins.credentials.secretsmanager.AwsCredentialsProvider;
 import io.jenkins.plugins.credentials.secretsmanager.Messages;
 
 import javax.annotation.Nonnull;
@@ -45,6 +47,11 @@ public class AwsUsernamePasswordCredentials extends BaseStandardCredentials impl
         @Override
         public String getIconClassName() {
             return "icon-credentials-userpass";
+        }
+
+        @Override
+        public boolean isApplicable(CredentialsProvider provider) {
+            return provider instanceof AwsCredentialsProvider;
         }
     }
 }

@@ -1,5 +1,6 @@
 package io.jenkins.plugins.credentials.secretsmanager.factory.certificate;
 
+import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.CredentialsUnavailableException;
 import com.cloudbees.plugins.credentials.SecretBytes;
 import com.cloudbees.plugins.credentials.common.StandardCertificateCredentials;
@@ -7,6 +8,7 @@ import com.cloudbees.plugins.credentials.impl.BaseStandardCredentials;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.util.Secret;
+import io.jenkins.plugins.credentials.secretsmanager.AwsCredentialsProvider;
 import io.jenkins.plugins.credentials.secretsmanager.Messages;
 
 import javax.annotation.Nonnull;
@@ -67,6 +69,11 @@ public class AwsCertificateCredentials extends BaseStandardCredentials implement
         @Override
         public String getIconClassName() {
             return "icon-credentials-certificate";
+        }
+
+        @Override
+        public boolean isApplicable(CredentialsProvider provider) {
+            return provider instanceof AwsCredentialsProvider;
         }
     }
 }

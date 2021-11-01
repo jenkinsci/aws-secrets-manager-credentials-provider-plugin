@@ -1,14 +1,15 @@
 package io.jenkins.plugins.credentials.secretsmanager.factory.file;
 
+import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.SecretBytes;
 import com.cloudbees.plugins.credentials.impl.BaseStandardCredentials;
 import hudson.Extension;
+import io.jenkins.plugins.credentials.secretsmanager.AwsCredentialsProvider;
 import io.jenkins.plugins.credentials.secretsmanager.Messages;
 import org.jenkinsci.plugins.plaincredentials.FileCredentials;
 
 import javax.annotation.Nonnull;
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.function.Supplier;
 
@@ -51,6 +52,11 @@ public class AwsFileCredentials extends BaseStandardCredentials implements FileC
         @Nonnull
         public String getDisplayName() {
             return Messages.file();
+        }
+
+        @Override
+        public boolean isApplicable(CredentialsProvider provider) {
+            return provider instanceof AwsCredentialsProvider;
         }
     }
 }
