@@ -310,7 +310,7 @@ node {
             def creds = readJSON text: secret
             env.AWS_ACCESS_KEY_ID = creds['accessKeyId']
             env.AWS_SECRET_ACCESS_KEY = creds['secretAccessKey']
-            env.AWS_DEFAULT_REGION = 'us-east-1' // or whatever
+            env.AWS_REGION = 'us-east-1' // or whatever
         }
         sh "aws sts get-caller-identity" // or whatever
     }
