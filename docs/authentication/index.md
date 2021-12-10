@@ -9,7 +9,7 @@ Authentication methods:
 - EC2 Instance Profiles.
 - EC2 Container Service credentials.
 - Environment variables (set `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` before starting Jenkins).
-- Java properties (set `aws.accessKeyId` and `aws.secretKey` before starting Jenkins).
+- Java properties (set `aws.accessKeyId`, `aws.secretKey` and `aws.region` before starting Jenkins).
 - User profile (configure `~/.aws/credentials` before starting Jenkins).
 - Web Identity Token credentials.
 
