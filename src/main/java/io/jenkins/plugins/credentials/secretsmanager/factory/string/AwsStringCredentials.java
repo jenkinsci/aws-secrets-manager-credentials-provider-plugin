@@ -1,8 +1,10 @@
 package io.jenkins.plugins.credentials.secretsmanager.factory.string;
 
+import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.impl.BaseStandardCredentials;
 import hudson.Extension;
 import hudson.util.Secret;
+import io.jenkins.plugins.credentials.secretsmanager.AwsCredentialsProvider;
 import io.jenkins.plugins.credentials.secretsmanager.Messages;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 
@@ -31,6 +33,11 @@ public class AwsStringCredentials extends BaseStandardCredentials implements Str
         @Nonnull
         public String getDisplayName() {
             return Messages.secretText();
+        }
+
+        @Override
+        public boolean isApplicable(CredentialsProvider provider) {
+            return provider instanceof AwsCredentialsProvider;
         }
     }
 }

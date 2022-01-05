@@ -1,10 +1,12 @@
 package io.jenkins.plugins.credentials.secretsmanager.factory.ssh_user_private_key;
 
 import com.cloudbees.jenkins.plugins.sshcredentials.SSHUserPrivateKey;
+import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.impl.BaseStandardCredentials;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.util.Secret;
+import io.jenkins.plugins.credentials.secretsmanager.AwsCredentialsProvider;
 import io.jenkins.plugins.credentials.secretsmanager.Messages;
 
 import javax.annotation.Nonnull;
@@ -60,6 +62,11 @@ public class AwsSshUserPrivateKey extends BaseStandardCredentials implements SSH
         @Override
         public String getIconClassName() {
             return "icon-ssh-credentials-ssh-key";
+        }
+
+        @Override
+        public boolean isApplicable(CredentialsProvider provider) {
+            return provider instanceof AwsCredentialsProvider;
         }
     }
 }
