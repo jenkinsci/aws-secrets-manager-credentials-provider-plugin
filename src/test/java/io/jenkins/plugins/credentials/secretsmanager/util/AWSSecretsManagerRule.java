@@ -47,9 +47,7 @@ public class AWSSecretsManagerRule extends ExternalResource {
     public void before() {
         secretsManager.start();
 
-        final String host = secretsManager.getHost();
-        final int port = secretsManager.getFirstMappedPort();
-        final String serviceEndpoint = String.format("http://%s:%d", host, port);
+        final String serviceEndpoint = getServiceEndpoint();
 
         client = AWSSecretsManagerClientBuilder.standard()
                 .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(serviceEndpoint, SIGNING_REGION))
