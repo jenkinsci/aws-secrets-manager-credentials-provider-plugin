@@ -8,8 +8,8 @@ import com.cloudbees.plugins.credentials.SecretBytes;
 import com.cloudbees.plugins.credentials.common.StandardCertificateCredentials;
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import com.cloudbees.plugins.credentials.impl.CertificateCredentialsImpl;
-import hudson.util.ListBoxModel;
 import hudson.model.Result;
+import hudson.util.ListBoxModel;
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
 import io.jenkins.plugins.credentials.secretsmanager.factory.Type;
 import io.jenkins.plugins.credentials.secretsmanager.util.*;
@@ -18,7 +18,7 @@ import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.rules.TestRule;
 
 import java.nio.ByteBuffer;
 import java.security.KeyPair;
@@ -42,13 +42,10 @@ public class StandardCertificateCredentialsIT implements CredentialsTests {
     private static final Certificate[] CERTIFICATE_CHAIN = { Crypto.newSelfSignedCertificate(CN, KEY_PAIR) };
 
     public final MyJenkinsConfiguredWithCodeRule jenkins = new MyJenkinsConfiguredWithCodeRule();
-    public final AWSSecretsManagerRule secretsManager = new AutoErasingAWSSecretsManagerRule();
+    public final AWSSecretsManagerRule secretsManager = new AWSSecretsManagerRule();
 
     @Rule
-    public final RuleChain chain = RuleChain
-            .outerRule(Rules.awsAccessKey("fake", "fake"))
-            .around(jenkins)
-            .around(secretsManager);
+    public final TestRule chain = Rules.jenkinsWithSecretsManager(jenkins, secretsManager);
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")

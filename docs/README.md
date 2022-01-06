@@ -383,8 +383,6 @@ mvn clean verify
 
 In your IDE:
 
-1. Generate translations: `mvn localizer:generate`. (This is a one-off task. You only need to re-run this if you change the translations, or if you clean the Maven `target` directory.)
+1. Generate translations: `mvn localizer:generate`. (This is a one-off task. You only need to re-run this if you change the translations, or if you clean the Maven `target` directory. If the IDE still cannot find the translation symbols after running `mvn localizer:generate`, use a one-off `mvn compile` instead.)
 2. Compile.
-3. Start Moto: `mvn docker:build docker:start`.
-4. Run tests.
-5. Stop Moto: `mvn docker:stop`.
+3. Run tests.

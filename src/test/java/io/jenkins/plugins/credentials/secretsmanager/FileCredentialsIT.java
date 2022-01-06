@@ -14,7 +14,7 @@ import org.jenkinsci.plugins.plaincredentials.impl.FileCredentialsImpl;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.rules.TestRule;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,13 +32,10 @@ public class FileCredentialsIT implements CredentialsTests {
     private static final byte[] CONTENT = {0x01, 0x02, 0x03};
 
     public MyJenkinsConfiguredWithCodeRule jenkins = new MyJenkinsConfiguredWithCodeRule();
-    public final AWSSecretsManagerRule secretsManager = new AutoErasingAWSSecretsManagerRule();
+    public final AWSSecretsManagerRule secretsManager = new AWSSecretsManagerRule();
 
     @Rule
-    public final RuleChain chain = RuleChain
-            .outerRule(Rules.awsAccessKey("fake", "fake"))
-            .around(jenkins)
-            .around(secretsManager);
+    public final TestRule chain = Rules.jenkinsWithSecretsManager(jenkins, secretsManager);
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
