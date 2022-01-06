@@ -13,7 +13,7 @@ import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.RuleChain;
+import org.junit.rules.TestRule;
 
 import java.util.List;
 
@@ -28,13 +28,10 @@ public class StringCredentialsIT implements CredentialsTests {
     private static final String SECRET = "supersecret";
 
     public final MyJenkinsConfiguredWithCodeRule jenkins = new MyJenkinsConfiguredWithCodeRule();
-    public final AWSSecretsManagerRule secretsManager = new AutoErasingAWSSecretsManagerRule();
+    public final AWSSecretsManagerRule secretsManager = new AWSSecretsManagerRule();
 
     @Rule
-    public final RuleChain chain = RuleChain
-            .outerRule(Rules.awsAccessKey("fake", "fake"))
-            .around(jenkins)
-            .around(secretsManager);
+    public final TestRule chain = Rules.jenkinsWithSecretsManager(jenkins, secretsManager);
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")

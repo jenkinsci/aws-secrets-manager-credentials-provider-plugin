@@ -1,28 +1,52 @@
 package io.jenkins.plugins.credentials.secretsmanager.config.endpointConfiguration;
 
 import com.gargoylesoftware.htmlunit.html.HtmlButton;
-import io.jenkins.plugins.credentials.secretsmanager.util.FormValidationResult;
-import io.jenkins.plugins.credentials.secretsmanager.util.JenkinsConfiguredWithWebRule;
-import io.jenkins.plugins.credentials.secretsmanager.util.PluginConfigurationForm;
-import io.jenkins.plugins.credentials.secretsmanager.util.Rules;
+import io.jenkins.plugins.credentials.secretsmanager.util.*;
 import org.junit.Rule;
-import org.junit.rules.RuleChain;
+import org.junit.Test;
+import org.junit.rules.TestRule;
 
 import java.io.IOException;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class CheckEndpointConfigurationWebIT extends AbstractCheckEndpointConfigurationIT {
+import static org.assertj.core.api.SoftAssertions.assertSoftly;
+
+public class CheckEndpointConfigurationIT {
 
     public final JenkinsConfiguredWithWebRule jenkins = new JenkinsConfiguredWithWebRule();
 
-    @Rule
-    public final RuleChain chain = RuleChain
-            .outerRule(Rules.awsAccessKey("fake", "fake"))
-            .around(jenkins);
+    public final AWSSecretsManagerRule secretsManager = new AWSSecretsManagerRule();
 
-    @Override
-    protected FormValidationResult validate(String serviceEndpoint, String signingRegion) {
+    @Rule
+    public final TestRule chain = Rules.jenkinsWithSecretsManager(jenkins, secretsManager);
+
+    @Test
+    public void shouldAllowGoodEndpointConfiguration() {
+        // When
+        final FormValidationResult result = validate(secretsManager.getServiceEndpoint(), secretsManager.getSigningRegion());
+
+        // Then
+        assertSoftly(s -> {
+            s.assertThat(result.isSuccess()).as("Success").isTrue();
+            s.assertThat(result.getMessage()).as("Message").isEqualTo("Success");
+        });
+    }
+
+    @Test
+    public void shouldRejectBadEndpointConfiguration() {
+        // When
+        final String badServiceEndpoint = String.format("http://%s:0", secretsManager.getHost());
+        final FormValidationResult result = validate(badServiceEndpoint, secretsManager.getSigningRegion());
+
+        // Then
+        assertSoftly(s -> {
+            s.assertThat(result.isSuccess()).as("Success").isFalse();
+            s.assertThat(result.getMessage()).as("Message").startsWith("AWS client error");
+        });
+    }
+
+    private FormValidationResult validate(String serviceEndpoint, String signingRegion) {
         final AtomicReference<FormValidationResult> result = new AtomicReference<>();
 
         jenkins.configure(f -> {
