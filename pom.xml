@@ -44,15 +44,15 @@
         <revision>0.5.7</revision>
         <changelist>-SNAPSHOT</changelist>
         <java.level>8</java.level>
-        <jenkins.version>2.263.4</jenkins.version>
+        <jenkins.version>2.289.3</jenkins.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
             <dependency>
                 <groupId>io.jenkins.tools.bom</groupId>
-                <artifactId>bom-2.263.x</artifactId>
-                <version>961.vf0c9f6f59827</version>
+                <artifactId>bom-2.289.x</artifactId>
+                <version>1085.vc4c268262299</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
@@ -119,12 +119,6 @@
             <groupId>joda-time</groupId>
             <artifactId>joda-time</artifactId>
             <version>2.10.13</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <!-- Workaround -->
-            <groupId>org.jenkins-ci.plugins</groupId>
-            <artifactId>jackson2-api</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
