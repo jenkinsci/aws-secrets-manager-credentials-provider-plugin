@@ -19,7 +19,7 @@ public class PluginConfigurationForm {
         return form.getElementsByAttribute("div", "class", "ok")
                 .stream()
                 .map(DomNode::getTextContent)
-                .filter(msg -> !msg.equalsIgnoreCase("Without a resource root URL, resources will be served from the main domain with Content-Security-Policy set."))
+                .filter(msg -> !msg.equalsIgnoreCase("Without a resource root URL, resources will be served from the Jenkins URL with Content-Security-Policy set."))
                 .findFirst();
     }
 
