@@ -19,7 +19,7 @@ public class PluginConfigurationForm {
         return form.getElementsByAttribute("div", "class", "ok")
                 .stream()
                 .map(DomNode::getTextContent)
-                .filter(msg -> !msg.equalsIgnoreCase("Without a resource root URL, resources will be served from the main domain with Content-Security-Policy set."))
+                .filter(msg -> !msg.equalsIgnoreCase("Without a resource root URL, resources will be served from the Jenkins URL with Content-Security-Policy set."))
                 .findFirst();
     }
 
@@ -41,7 +41,7 @@ public class PluginConfigurationForm {
         }
 
         private static String repeatableAddButtons(String settingName) {
-            return String.format("//td[contains(text(), '%s')]/following-sibling::td[@class='setting-main']//span[contains(string(@class),'repeatable-add')]//button[contains(text(), 'Add')]", settingName);
+            return String.format("//div[contains(@class, 'setting-name') and text()='%s']/following-sibling::div[@class='setting-main']//span[contains(string(@class),'repeatable-add')]//button[contains(text(), 'Add')]", settingName);
         }
     }
 }
