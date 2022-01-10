@@ -41,7 +41,7 @@ public class PluginConfigurationForm {
         }
 
         private static String repeatableAddButtons(String settingName) {
-            return String.format("//td[contains(text(), '%s')]/following-sibling::td[@class='setting-main']//span[contains(string(@class),'repeatable-add')]//button[contains(text(), 'Add')]", settingName);
+            return String.format("//div[contains(@class, 'setting-name') and text()='%s']/following-sibling::div[@class='setting-main']//span[contains(string(@class),'repeatable-add')]//button[contains(text(), 'Add')]", settingName);
         }
     }
 }
