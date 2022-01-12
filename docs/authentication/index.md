@@ -8,7 +8,7 @@ Authentication methods:
 
 - EC2 Instance Profiles.
 - EC2 Container Service credentials.
-- Environment variables (set `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` before starting Jenkins).
+- Environment variables (set `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` and `AWS_REGION` before starting Jenkins).
 - Java properties (set `aws.accessKeyId`, `aws.secretKey` and `aws.region` before starting Jenkins).
 - User profile (configure `~/.aws/credentials` before starting Jenkins).
 - Web Identity Token credentials.
@@ -16,4 +16,5 @@ Authentication methods:
 Recommendations:
 
 - Use EC2 Instance Profiles when running Jenkins on EC2.
-- Only use the long-lived access key methods (environment variables, Java properties, user profile) when there is no other choice. For example, when Jenkins is outside of AWS.
+- Only use the long-lived access key methods (environment variables, Java properties, user profile) when there is no other choice. For example, when Jenkins is outside of AWS
+- If you see an error along the lines of "Unable to find a region via the region provider chain. Must provide an explicit region in the builder or setup environment to supply a region.", set the region manually with the `AWS_REGION` environment variable.
