@@ -57,7 +57,7 @@ public class GithubAppCredentialsIT implements CredentialsTests {
 
         // Then
         assertThat(list)
-                .containsOption(APP_ID + "/******", foo.getName());
+                .containsOption(foo.getName(), foo.getName());
     }
 
     @Test
