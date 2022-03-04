@@ -55,7 +55,7 @@ public abstract class CredentialsFactory {
             case Type.file:
                 return Optional.of(new AwsFileCredentials(name, description, filename, new SecretBytesSupplier(client, name)));
             case Type.githubApp:
-                return new GitCredentialFactory().createCredential(name, description, appId, Secret.fromString(new StringSupplier(client, name).get()));
+                return GitCredentialFactory.createCredential(name, description, appId, new StringSupplier(client, name));
             default:
                 return Optional.empty();
         }
