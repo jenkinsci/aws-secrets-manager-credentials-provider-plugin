@@ -5,7 +5,7 @@
 
 Access credentials from AWS Secrets Manager in your Jenkins jobs.
 
-This plugin is the high-level counterpart of the [AWS Secrets Manager SecretSource](https://github.com/jenkinsci/aws-secrets-manager-secret-source-plugin) plugin. It pulls in that plugin as a dependency, so by installing the CredentialsProvider on Jenkins you get the SecretSource 'for free'. This dependency will be removed in future, at which point you will need to install the SecretSource plugin separately.
+This plugin is the high-level counterpart of the [AWS Secrets Manager SecretSource](https://github.com/jenkinsci/aws-secrets-manager-secret-source-plugin) plugin. You can use either plugin individually, or use both of them.
 
 ## Contents
 
@@ -23,7 +23,7 @@ This plugin is the high-level counterpart of the [AWS Secrets Manager SecretSour
 ## Features
 
 - Read-only view of Secrets Manager.
-- `CredentialsProvider` and `SecretSource` API support.
+- `CredentialsProvider` API support.
 - Credential metadata caching (duration: 5 minutes).
  
 ## Setup

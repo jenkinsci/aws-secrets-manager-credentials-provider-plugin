@@ -14,8 +14,6 @@ Multiple filters combine with an **implicit AND** operator. Multiple values for 
 
 Filters are applied server-side by Secrets Manager, and use the Amazon syntax. For full instructions on constructing filters, read the [ListSecrets API documentation](https://docs.aws.amazon.com/secretsmanager/latest/apireference/API_ListSecrets.html).
 
-Note: The `SecretSource` implementation does not use the filters, as they are not relevant to it.
-
 ## Examples
 
 Show credentials with the tag `foo` = [any value]:
