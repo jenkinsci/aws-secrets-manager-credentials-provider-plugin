@@ -78,11 +78,6 @@
             <version>1.12.131-302.vbef9650c6521</version>
         </dependency>
         <dependency>
-            <groupId>io.jenkins.plugins</groupId>
-            <artifactId>aws-secrets-manager-secret-source</artifactId>
-            <version>0.0.2</version>
-        </dependency>
-        <dependency>
             <groupId>io.jenkins</groupId>
             <artifactId>configuration-as-code</artifactId>
             <optional>true</optional>
