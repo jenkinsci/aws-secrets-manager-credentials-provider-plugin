@@ -83,6 +83,26 @@ public class CredentialsProviderIT {
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
+    public void shouldTolerateSlashesInSecretName() {
+        // Given
+        final CreateSecretRequest request = new CreateSecretRequest()
+                .withName("production/mysecret")
+                .withSecretString(SECRET)
+                .withTags(Lists.of(AwsTags.type(Type.string)));
+
+        final CreateSecretResult foo = secretsManager.getClient().createSecret(request);
+
+        // When
+        final ListBoxModel credentialNames = jenkins.getCredentials().list(StringCredentials.class);
+
+        // Then
+        assertThat(credentialNames)
+                .extracting("name")
+                .containsOnly(foo.getName());
+    }
+
+    @Test
+    @ConfiguredWithCode(value = "/integration.yml")
     public void shouldTolerateDeletedCredentials() {
         // Given
         final CreateSecretResult foo = createStringSecret(SECRET);
