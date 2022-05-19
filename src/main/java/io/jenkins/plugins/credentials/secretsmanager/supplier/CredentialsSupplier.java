@@ -1,14 +1,12 @@
 package io.jenkins.plugins.credentials.secretsmanager.supplier;
 
-import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
-import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder;
 import com.amazonaws.services.secretsmanager.model.Filter;
 import com.amazonaws.services.secretsmanager.model.SecretListEntry;
 import com.amazonaws.services.secretsmanager.model.Tag;
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import io.jenkins.plugins.credentials.secretsmanager.FiltersFactory;
-import io.jenkins.plugins.credentials.secretsmanager.config.EndpointConfiguration;
+import io.jenkins.plugins.credentials.secretsmanager.config.Client;
 import io.jenkins.plugins.credentials.secretsmanager.config.ListSecrets;
 import io.jenkins.plugins.credentials.secretsmanager.config.PluginConfiguration;
 import io.jenkins.plugins.credentials.secretsmanager.factory.CredentialsFactory;
@@ -65,12 +63,9 @@ public class CredentialsSupplier implements Supplier<Collection<StandardCredenti
     }
 
     private static AWSSecretsManager createClient(PluginConfiguration config) {
-        final AWSSecretsManagerClientBuilder builder = AWSSecretsManagerClientBuilder.standard();
+        final Client clientConfig = Optional.ofNullable(config.getClient())
+                .orElse(new Client(null, null, null));
 
-        final Optional<AwsClientBuilder.EndpointConfiguration> endpointConfig = Optional.ofNullable(config.getEndpointConfiguration())
-                .map(EndpointConfiguration::build);
-        endpointConfig.ifPresent(builder::setEndpointConfiguration);
-
-        return builder.build();
+        return clientConfig.build();
     }
 }

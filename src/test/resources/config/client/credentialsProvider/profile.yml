@@ -1,0 +1,6 @@
+unclassified:
+  awsCredentialsProvider:
+    client:
+      credentialsProvider:
+        profile:
+          profileName: "foo"

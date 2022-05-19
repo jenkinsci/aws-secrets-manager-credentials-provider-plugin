@@ -20,7 +20,7 @@ public class PluginConfigurationIT {
         final PluginConfiguration config = getPluginConfiguration();
 
         assertSoftly(s -> {
-            s.assertThat(config.getEndpointConfiguration()).as("Endpoint Configuration").isNull();
+            s.assertThat(config.getClient()).as("Client").isNull();
             s.assertThat(config.getListSecrets()).as("ListSecrets").isNull();
         });
     }

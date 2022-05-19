@@ -1,4 +1,4 @@
-package io.jenkins.plugins.credentials.secretsmanager.config.endpointConfiguration;
+package io.jenkins.plugins.credentials.secretsmanager.config.client.endpointConfiguration;
 
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
 import io.jenkins.plugins.casc.misc.JenkinsConfiguredWithCodeRule;
@@ -10,7 +10,7 @@ import org.jvnet.hudson.test.JenkinsRule;
 public class CasCEndpointConfigurationIT extends AbstractEndpointConfigurationIT {
 
     @Rule
-    public JenkinsRule r = new JenkinsConfiguredWithCodeRule();
+    public final JenkinsRule r = new JenkinsConfiguredWithCodeRule();
 
     @Override
     protected PluginConfiguration getPluginConfiguration() {
@@ -24,7 +24,7 @@ public class CasCEndpointConfigurationIT extends AbstractEndpointConfigurationIT
 
     @Override
     @Test
-    @ConfiguredWithCode("/config/endpointConfiguration.yml")
+    @ConfiguredWithCode("/config/client/endpointConfiguration.yml")
     public void shouldHaveEndpointConfiguration() {
         super.shouldHaveEndpointConfiguration();
     }
