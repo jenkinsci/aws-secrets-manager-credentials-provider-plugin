@@ -9,9 +9,11 @@ import io.jenkins.plugins.credentials.secretsmanager.FiltersFactory;
 import io.jenkins.plugins.credentials.secretsmanager.config.Client;
 import io.jenkins.plugins.credentials.secretsmanager.config.ListSecrets;
 import io.jenkins.plugins.credentials.secretsmanager.config.PluginConfiguration;
+import io.jenkins.plugins.credentials.secretsmanager.config.*;
 import io.jenkins.plugins.credentials.secretsmanager.factory.CredentialsFactory;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -35,6 +37,9 @@ public class CredentialsSupplier implements Supplier<Collection<StandardCredenti
 
         final PluginConfiguration config = PluginConfiguration.getInstance();
 
+        final Function<String, String> nameFormatter = createNameFormatter(config);
+        final Function<String, String> descriptionFormatter = createDescriptionFormatter(config);
+
         final Collection<Filter> filters = createListSecretsFilters(config);
 
         final AWSSecretsManager client = createClient(config);
@@ -44,11 +49,20 @@ public class CredentialsSupplier implements Supplier<Collection<StandardCredenti
         final Collection<SecretListEntry> secretList = listSecretsOperation.get();
 
         return secretList.stream()
-                .flatMap(secretListEntry -> {
+                .map(secretListEntry -> {
                     final String name = secretListEntry.getName();
                     final String description = Optional.ofNullable(secretListEntry.getDescription()).orElse("");
+
+                    return secretListEntry
+                            .withName(nameFormatter.apply(name))
+                            .withDescription(descriptionFormatter.apply(description));
+                })
+                .flatMap(secretListEntry -> {
+                    final String arn = secretListEntry.getARN();
+                    final String name = secretListEntry.getName();
+                    final String description = secretListEntry.getDescription();
                     final Map<String, String> tags = Lists.toMap(secretListEntry.getTags(), Tag::getKey, Tag::getValue);
-                    final Optional<StandardCredentials> cred = CredentialsFactory.create(name, description, tags, client);
+                    final Optional<StandardCredentials> cred = CredentialsFactory.create(arn, name, description, tags, client);
                     return Optionals.stream(cred);
                 })
                 .collect(Collectors.toList());
@@ -60,6 +74,18 @@ public class CredentialsSupplier implements Supplier<Collection<StandardCredenti
                 .orElse(Collections.emptyList());
 
         return FiltersFactory.create(filtersConfig);
+    }
+
+    private static Function<String, String> createNameFormatter(PluginConfiguration config) {
+        return Optional.ofNullable(config.getTransformations())
+                .map(Transformations::getName)
+                .orElse(new io.jenkins.plugins.credentials.secretsmanager.config.transformer.name.Default())::transform;
+    }
+
+    private static Function<String, String> createDescriptionFormatter(PluginConfiguration config) {
+        return Optional.ofNullable(config.getTransformations())
+                .map(Transformations::getDescription)
+                .orElse(new io.jenkins.plugins.credentials.secretsmanager.config.transformer.description.Default())::transform;
     }
 
     private static AWSSecretsManager createClient(PluginConfiguration config) {
