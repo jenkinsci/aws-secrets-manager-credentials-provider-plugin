@@ -17,14 +17,14 @@ public abstract class CredentialsProvider extends AbstractDescribableImpl<Creden
 
     public abstract static class DescriptorImpl extends Descriptor<CredentialsProvider> {
         /**
-         * {@inheritDoc}
+         * See {@link Descriptor#Descriptor()}
          */
         protected DescriptorImpl() {
             super();
         }
 
         /**
-         * {@inheritDoc}
+         * See {@link Descriptor#Descriptor(Class)}
          */
         protected DescriptorImpl(Class<? extends CredentialsProvider> clazz) {
             super(clazz);
