@@ -16,6 +16,8 @@ Recommendations:
 - Only use the long-lived access key methods when there is no other choice. For example, when Jenkins is running outside of AWS.
 - If you see an error along the lines of "Unable to find a region via the region provider chain. Must provide an explicit region in the builder or setup environment to supply a region.", set the region manually.
 
+**Authorization note:** IAM is always present, no matter which authentication mechanism you use. This is because, even if Jenkins is running outside AWS and you use an AWS keypair, the keypair belongs to an IAM user, and AWS must still check that the IAM user is allowed to access Secrets Manager.
+
 ### Default
 
 This uses the standard AWS credentials lookup chain.
