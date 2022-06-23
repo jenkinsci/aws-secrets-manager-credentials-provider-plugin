@@ -5,24 +5,17 @@ import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.CredentialsStore;
 import com.cloudbees.plugins.credentials.CredentialsStoreAction;
 import com.cloudbees.plugins.credentials.domains.Domain;
-
-import org.acegisecurity.Authentication;
-import org.jenkins.ui.icon.Icon;
-import org.jenkins.ui.icon.IconSet;
-import org.jenkins.ui.icon.IconType;
-import org.kohsuke.stapler.export.ExportedBean;
-
-import java.util.Collections;
-import java.util.List;
-
-import javax.annotation.Nonnull;
-
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import hudson.model.ModelObject;
 import hudson.security.ACL;
 import hudson.security.Permission;
 import jenkins.model.Jenkins;
+import org.acegisecurity.Authentication;
+
+import javax.annotation.Nonnull;
+import java.util.Collections;
+import java.util.List;
 
 public class AwsCredentialsStore extends CredentialsStore {
 
@@ -84,59 +77,4 @@ public class AwsCredentialsStore extends CredentialsStore {
         return action;
     }
 
-    /**
-     * Expose the store.
-     */
-    @ExportedBean
-    public static class AwsCredentialsStoreAction extends CredentialsStoreAction {
-
-        private static final String ICON_CLASS = "icon-aws-secrets-manager-credentials-store";
-
-        private final AwsCredentialsStore store;
-
-        private AwsCredentialsStoreAction(AwsCredentialsStore store) {
-            this.store = store;
-            addIcons();
-        }
-
-        private void addIcons() {
-            IconSet.icons.addIcon(new Icon(ICON_CLASS + " icon-sm",
-                    "aws-secrets-manager-credentials-provider/images/16x16/icon.png",
-                    Icon.ICON_SMALL_STYLE, IconType.PLUGIN));
-            IconSet.icons.addIcon(new Icon(ICON_CLASS + " icon-md",
-                    "aws-secrets-manager-credentials-provider/images/24x24/icon.png",
-                    Icon.ICON_MEDIUM_STYLE, IconType.PLUGIN));
-            IconSet.icons.addIcon(new Icon(ICON_CLASS + " icon-lg",
-                    "aws-secrets-manager-credentials-provider/images/32x32/icon.png",
-                    Icon.ICON_LARGE_STYLE, IconType.PLUGIN));
-            IconSet.icons.addIcon(new Icon(ICON_CLASS + " icon-xlg",
-                    "aws-secrets-manager-credentials-provider/images/48x48/icon.png",
-                    Icon.ICON_XLARGE_STYLE, IconType.PLUGIN));
-        }
-
-        @Override
-        @NonNull
-        public CredentialsStore getStore() {
-            return store;
-        }
-
-        @Override
-        public String getIconFileName() {
-            return isVisible()
-                    ? "/plugin/aws-secrets-manager-credentials-provider/images/32x32/icon.png"
-                    : null;
-        }
-
-        @Override
-        public String getIconClassName() {
-            return isVisible()
-                    ? ICON_CLASS
-                    : null;
-        }
-
-        @Override
-        public String getDisplayName() {
-            return Messages.awsSecretsManager();
-        }
-    }
 }
