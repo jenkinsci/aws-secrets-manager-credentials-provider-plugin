@@ -1,7 +1,6 @@
 package io.jenkins.plugins.credentials.secretsmanager.util.assertions;
 
 import org.assertj.core.api.AbstractAssert;
-import org.jenkinsci.plugins.plaincredentials.FileCredentials;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import hudson.model.Result;
 

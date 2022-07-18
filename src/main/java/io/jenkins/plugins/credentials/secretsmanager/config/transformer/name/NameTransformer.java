@@ -18,16 +18,11 @@ public abstract class NameTransformer extends AbstractDescribableImpl<NameTransf
     public abstract String transform(String str);
 
     public abstract static class DescriptorImpl extends Descriptor<NameTransformer> {
-        /**
-         * {@inheritDoc}
-         */
+
         protected DescriptorImpl() {
             super();
         }
 
-        /**
-         * {@inheritDoc}
-         */
         protected DescriptorImpl(Class<? extends NameTransformer> clazz) {
             super(clazz);
         }
