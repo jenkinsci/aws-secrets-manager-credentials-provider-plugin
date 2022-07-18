@@ -18,16 +18,11 @@ public abstract class DescriptionTransformer extends AbstractDescribableImpl<Des
     public abstract String transform(String str);
 
     public abstract static class DescriptorImpl extends Descriptor<DescriptionTransformer> {
-        /**
-         * See {@link Descriptor#Descriptor()}
-         */
+
         protected DescriptorImpl() {
             super();
         }
 
-        /**
-         * See {@link Descriptor#Descriptor(Class)}
-         */
         protected DescriptorImpl(Class<? extends DescriptionTransformer> clazz) {
             super(clazz);
         }

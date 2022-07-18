@@ -22,9 +22,9 @@
 hs_err_pid*
 
 # Eclipse IDE files
-/.classpath
-/.project
-/.settings
+.classpath
+.project
+.settings
 
 # Others
 

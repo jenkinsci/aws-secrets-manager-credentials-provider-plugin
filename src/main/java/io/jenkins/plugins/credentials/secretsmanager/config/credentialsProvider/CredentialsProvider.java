@@ -16,16 +16,11 @@ public abstract class CredentialsProvider extends AbstractDescribableImpl<Creden
     public abstract AWSCredentialsProvider build();
 
     public abstract static class DescriptorImpl extends Descriptor<CredentialsProvider> {
-        /**
-         * See {@link Descriptor#Descriptor()}
-         */
+
         protected DescriptorImpl() {
             super();
         }
 
-        /**
-         * See {@link Descriptor#Descriptor(Class)}
-         */
         protected DescriptorImpl(Class<? extends CredentialsProvider> clazz) {
             super(clazz);
         }
