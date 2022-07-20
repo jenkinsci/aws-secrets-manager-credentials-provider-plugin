@@ -12,6 +12,7 @@ This plugin is the high-level counterpart of the [AWS Secrets Manager SecretSour
 - [Beta Features](beta/index.md)
 - [Caching](caching/index.md)
 - [Client](client/index.md)
+- [Cross-Account Access](cross-account/index.md)
 - [Filters](filters/index.md)
 - [Networking](networking/index.md)
 - [Screenshots](screenshots/index.md)
