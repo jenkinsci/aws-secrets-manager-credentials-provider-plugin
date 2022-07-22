@@ -379,6 +379,12 @@ unclassified:
 
 ## Development
 
+### Git
+
+Start by cloning the project.
+
+**Note for Windows users:** some of the file paths in this project may exceed the legacy Win32 path length limit. This may cause an error when cloning the project on Windows. If you see this error, enable Git's Windows longpaths support with `git config --system core.longpaths true` (you might need to run Git as Administrator for this to work). Then try to clone the project again.
+
 ### Dependencies
 
 - Docker
