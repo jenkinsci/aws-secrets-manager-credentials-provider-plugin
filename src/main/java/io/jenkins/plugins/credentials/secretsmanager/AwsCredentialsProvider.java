@@ -61,7 +61,7 @@ public class AwsCredentialsProvider extends CredentialsProvider {
 
     @Override
     public CredentialsStore getStore(ModelObject object) {
-        return object == Jenkins.getInstance() ? store : null;
+        return object == Jenkins.get() ? store : null;
     }
 
     @Override

@@ -1,29 +1,19 @@
 package io.jenkins.plugins.credentials.secretsmanager.config;
 
-import com.amazonaws.AmazonClientException;
 import com.amazonaws.client.builder.AwsClientBuilder;
-import com.amazonaws.services.secretsmanager.AWSSecretsManager;
-import com.amazonaws.services.secretsmanager.AWSSecretsManagerClient;
-import com.amazonaws.services.secretsmanager.model.ListSecretsRequest;
-
-import hudson.util.FormValidation;
-
+import com.amazonaws.regions.Regions;
+import hudson.Extension;
+import hudson.model.AbstractDescribableImpl;
+import hudson.model.Descriptor;
+import hudson.util.ListBoxModel;
 import io.jenkins.plugins.credentials.secretsmanager.Messages;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
-import org.kohsuke.stapler.QueryParameter;
-import org.kohsuke.stapler.verb.POST;
-
-import java.io.Serializable;
-import java.util.Objects;
 
 import javax.annotation.Nonnull;
-
-import hudson.Extension;
-import hudson.model.AbstractDescribableImpl;
-import hudson.model.Descriptor;
-import jenkins.model.Jenkins;
+import java.io.Serializable;
+import java.util.Objects;
 
 public class EndpointConfiguration extends AbstractDescribableImpl<EndpointConfiguration>
         implements Serializable {
@@ -95,40 +85,14 @@ public class EndpointConfiguration extends AbstractDescribableImpl<EndpointConfi
             return Messages.endpointConfiguration();
         }
 
-        /**
-         * Test the endpoint configuration.
-         *
-         * @param serviceEndpoint the AWS service endpoint e.g. http://localhost:4584
-         * @param signingRegion the AWS signing region e.g. us-east-1
-         * @return a success or failure indicator
-         */
-        @POST
-        @SuppressWarnings("unused")
-        public FormValidation doTestEndpointConfiguration(
-                @QueryParameter("serviceEndpoint") final String serviceEndpoint,
-                @QueryParameter("signingRegion") final String signingRegion) {
-            Jenkins.getInstance().checkPermission(Jenkins.ADMINISTER);
-
-            final AwsClientBuilder.EndpointConfiguration ec =
-                    new AwsClientBuilder.EndpointConfiguration(serviceEndpoint, signingRegion);
-            final AWSSecretsManager client =
-                    AWSSecretsManagerClient.builder().withEndpointConfiguration(ec).build();
-
-            final int statusCode;
-            try {
-                statusCode = client.listSecrets(new ListSecretsRequest())
-                        .getSdkHttpMetadata()
-                        .getHttpStatusCode();
-            } catch (AmazonClientException ex) {
-                final String msg = Messages.awsClientError() + ": '" + ex.getMessage() + "'";
-                return FormValidation.error(msg);
+        public ListBoxModel doFillSigningRegionItems() {
+            final ListBoxModel regions = new ListBoxModel();
+            regions.add("", "");
+            for (Regions s : Regions.values()) {
+                regions.add(s.getDescription(), s.getName());
             }
-
-            if ((statusCode >= 200) && (statusCode <= 399)) {
-                return FormValidation.ok(Messages.success());
-            } else {
-                return FormValidation.error(Messages.awsServerError() + ": HTTP " + statusCode);
-            }
+            return regions;
         }
+
     }
 }

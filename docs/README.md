@@ -9,12 +9,13 @@ This plugin is the high-level counterpart of the [AWS Secrets Manager SecretSour
 
 ## Contents
 
-- [Authentication](authentication/index.md)
 - [Beta Features](beta/index.md)
 - [Caching](caching/index.md)
+- [Client](client/index.md)
 - [Filters](filters/index.md)
 - [Networking](networking/index.md)
 - [Screenshots](screenshots/index.md)
+- [Transformations](transformations/index.md)
 - [Troubleshooting](troubleshooting/index.md)
 - Project
   - [Changelog](https://github.com/jenkinsci/aws-secrets-manager-credentials-provider-plugin/releases)
@@ -64,7 +65,7 @@ Example:
 
 ### Jenkins
 
-The plugin uses the AWS Java SDK to communicate with Secrets Manager. If you are running Jenkins outside EC2 or EKS you may need to manually configure the SDK to authenticate with AWS. See the [authentication](authentication/index.md) guide for more information.
+The plugin uses the AWS Java SDK to communicate with Secrets Manager. If you are running Jenkins outside EC2 or EKS you may need to manually configure the SDK to authenticate with AWS. See the [client](client/index.md) configuration guide for more information.
 
 Then, install and [configure](#Configuration) the plugin.
 
@@ -403,12 +404,14 @@ Go to `Manage Jenkins` > `Configure System` > `AWS Secrets Manager Credentials P
 
 Available settings:
 
-- [Cache](caching/index.md) (on/off)
-- Endpoint Configuration
-  - Service Endpoint
-  - Signing Region
+- [Cache](caching/index.md)
+- [Client](client/index.md)
+  - CredentialsProvider
+  - Endpoint Configuration
+  - Region
 - ListSecrets configuration
   - [Filters](filters/index.md)
+- [Transformations](transformations/index.md)
 
 ### Configuration As Code (CasC)
 
@@ -419,11 +422,14 @@ You can set plugin configuration using Jenkins [Configuration As Code](https://g
 ```yaml
 unclassified:
   awsCredentialsProvider:
-    cache: (boolean)           # optional
-    endpointConfiguration:     # optional
-      serviceEndpoint: (URL)
-      signingRegion: (string)
-    listSecrets:               # optional
+    cache: (boolean)                 # optional
+    client:                          # optional
+      credentialsProvider: (object)  # optional
+      endpointConfiguration:         # optional
+        serviceEndpoint: (URL)
+        signingRegion: (string)
+      region: (string)               # optional
+    listSecrets:                     # optional
       filters:
         - key: name
           values:
@@ -436,10 +442,22 @@ unclassified:
             - (string)
         - key: description
           values:
-            - (string)  # note: filtering by tags or name is usually a better approach
+            - (string)
+    transformations:           # optional
+      description:
+        hide: {}
+      name:
+        removePrefix:
+          prefix: (string)
 ```
 
 ## Development
+
+### Git
+
+Start by cloning the project.
+
+**Note for Windows users:** some of the file paths in this project may exceed the legacy Win32 path length limit. This may cause an error when cloning the project on Windows. If you see this error, enable Git's Windows longpaths support with `git config --system core.longpaths true` (you might need to run Git as Administrator for this to work). Then try to clone the project again.
 
 ### Dependencies
 

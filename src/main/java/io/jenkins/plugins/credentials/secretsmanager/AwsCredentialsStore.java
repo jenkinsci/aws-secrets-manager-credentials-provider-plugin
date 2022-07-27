@@ -37,14 +37,14 @@ public class AwsCredentialsStore extends CredentialsStore {
     @Nonnull
     @Override
     public ModelObject getContext() {
-        return Jenkins.getInstance();
+        return Jenkins.get();
     }
 
     @Override
     public boolean hasPermission(@NonNull Authentication authentication,
                                  @NonNull Permission permission) {
         return CredentialsProvider.VIEW.equals(permission)
-                && Jenkins.getInstance().getACL().hasPermission(authentication, permission);
+                && Jenkins.get().getACL().hasPermission(authentication, permission);
     }
 
     @Nonnull
@@ -52,8 +52,8 @@ public class AwsCredentialsStore extends CredentialsStore {
     public List<Credentials> getCredentials(@NonNull Domain domain) {
         // Only the global domain is supported
         if (Domain.global().equals(domain)
-                && Jenkins.getInstance().hasPermission(CredentialsProvider.VIEW)) {
-            return provider.getCredentials(Credentials.class, Jenkins.getInstance(), ACL.SYSTEM);
+                && Jenkins.get().hasPermission(CredentialsProvider.VIEW)) {
+            return provider.getCredentials(Credentials.class, Jenkins.get(), ACL.SYSTEM);
         } else {
             return Collections.emptyList();
         }
