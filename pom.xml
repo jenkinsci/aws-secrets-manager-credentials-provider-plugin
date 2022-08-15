@@ -11,7 +11,7 @@
 
     <groupId>io.jenkins.plugins</groupId>
     <artifactId>aws-secrets-manager-credentials-provider</artifactId>
-    <version>${revision}${changelist}</version>
+    <version>${revision}.${changelist}</version>
     <packaging>hpi</packaging>
 
     <name>AWS Secrets Manager Credentials Provider</name>
@@ -41,8 +41,8 @@
     </scm>
 
     <properties>
-        <revision>1.2.1</revision>
-        <changelist>-SNAPSHOT</changelist>
+        <revision>1</revision>
+        <changelist>999999-SNAPSHOT</changelist>
         <java.level>8</java.level>
         <jenkins.version>2.289.3</jenkins.version>
     </properties>
