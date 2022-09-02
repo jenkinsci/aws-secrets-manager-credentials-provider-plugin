@@ -1,12 +1,15 @@
 package io.jenkins.plugins.credentials.secretsmanager.config.transformer.name;
 
 import hudson.Util;
+import org.kohsuke.accmod.Restricted;
+import org.kohsuke.accmod.restrictions.NoExternalUse;
 
 import java.util.Collections;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-class PrefixRemover {
+@Restricted(NoExternalUse.class)
+public class PrefixRemover {
 
     private final Set<String> prefixes;
 
@@ -18,16 +21,16 @@ class PrefixRemover {
      * Specify multiple possible prefixes that should be removed if seen in the string. Takes a set to ensure that the
      * prefixes are unique (this avoids duplication of effort when checking).
      */
-    static PrefixRemover removePrefixes(Set<String> prefixes) {
+    public static PrefixRemover removePrefixes(Set<String> prefixes) {
         return new PrefixRemover(prefixes);
     }
 
-    static PrefixRemover removePrefix(String prefix) {
+    public static PrefixRemover removePrefix(String prefix) {
         final Set<String> prefixes = Collections.singleton(prefix);
         return new PrefixRemover(prefixes);
     }
 
-    String from(String str) {
+    public String from(String str) {
         if (prefixes == null) {
             return str;
         }

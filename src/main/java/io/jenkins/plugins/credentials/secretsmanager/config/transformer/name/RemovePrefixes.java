@@ -2,7 +2,7 @@ package io.jenkins.plugins.credentials.secretsmanager.config.transformer.name;
 
 import hudson.Extension;
 import io.jenkins.plugins.credentials.secretsmanager.Messages;
-import io.jenkins.plugins.credentials.secretsmanager.config.Value;
+import io.jenkins.plugins.credentials.secretsmanager.config.transformer.name.removePrefixes.Prefix;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
@@ -14,26 +14,26 @@ import java.util.stream.Collectors;
 
 public class RemovePrefixes extends NameTransformer {
 
-    private Set<Value> prefixes;
+    private Set<Prefix> prefixes;
 
     @DataBoundConstructor
-    public RemovePrefixes(Set<Value> prefixes) {
+    public RemovePrefixes(Set<Prefix> prefixes) {
         this.prefixes = prefixes;
     }
 
-    public Set<Value> getPrefixes() {
+    public Set<Prefix> getPrefixes() {
         return prefixes;
     }
 
     @DataBoundSetter
-    public void setPrefixes(Set<Value> prefixes) {
+    public void setPrefixes(Set<Prefix> prefixes) {
         this.prefixes = prefixes;
     }
 
     @Override
     public String transform(String str) {
         final Set<String> p = prefixes.stream()
-                .map(Value::getValue)
+                .map(Prefix::getValue)
                 .collect(Collectors.toSet());
 
         return PrefixRemover.removePrefixes(p).from(str);

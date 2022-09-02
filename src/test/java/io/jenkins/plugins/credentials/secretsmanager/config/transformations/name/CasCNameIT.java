@@ -3,7 +3,7 @@ package io.jenkins.plugins.credentials.secretsmanager.config.transformations.nam
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
 import io.jenkins.plugins.casc.misc.JenkinsConfiguredWithCodeRule;
 import io.jenkins.plugins.credentials.secretsmanager.config.PluginConfiguration;
-import io.jenkins.plugins.credentials.secretsmanager.config.Value;
+import io.jenkins.plugins.credentials.secretsmanager.config.transformer.name.removePrefixes.Prefix;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
@@ -26,7 +26,7 @@ public class CasCNameIT extends AbstractNameIT {
     }
 
     @Override
-    protected void setRemovePrefixes(Set<Value> prefixes) {
+    protected void setRemovePrefixes(Set<Prefix> prefixes) {
         // no-op (configured by annotations)
     }
 

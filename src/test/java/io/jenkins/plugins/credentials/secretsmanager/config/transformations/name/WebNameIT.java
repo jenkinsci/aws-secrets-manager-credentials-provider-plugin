@@ -2,7 +2,7 @@ package io.jenkins.plugins.credentials.secretsmanager.config.transformations.nam
 
 import com.gargoylesoftware.htmlunit.html.HtmlSelect;
 import io.jenkins.plugins.credentials.secretsmanager.config.PluginConfiguration;
-import io.jenkins.plugins.credentials.secretsmanager.config.Value;
+import io.jenkins.plugins.credentials.secretsmanager.config.transformer.name.removePrefixes.Prefix;
 import io.jenkins.plugins.credentials.secretsmanager.util.JenkinsConfiguredWithWebRule;
 import io.jenkins.plugins.credentials.secretsmanager.util.PluginConfigurationForm;
 import org.junit.Rule;
@@ -31,7 +31,7 @@ public class WebNameIT extends AbstractNameIT {
     }
 
     @Override
-    protected void setRemovePrefixes(Set<Value> prefixes) {
+    protected void setRemovePrefixes(Set<Prefix> prefixes) {
         r.configure(form -> {
             final PluginConfigurationForm f = new PluginConfigurationForm(form);
 
@@ -39,10 +39,8 @@ public class WebNameIT extends AbstractNameIT {
             select.getOptionByText("Remove Prefixes").setSelected(true);
 
             // TODO support multiple prefix values
-            // this is a hack that skips the 'other' _.value input in the form
             final String firstPrefix = prefixes.stream().findFirst().get().getValue();
             form.getInputsByName("_.value").get(0).setValueAttribute(firstPrefix);
-            // FIXME address form.getInputByName("_.prefixes").setValueAttribute(prefix);
         });
     }
 }

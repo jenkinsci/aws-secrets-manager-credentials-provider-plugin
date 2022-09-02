@@ -10,7 +10,7 @@ import io.jenkins.plugins.casc.Configurator;
 import io.jenkins.plugins.casc.impl.attributes.MultivaluedAttribute;
 import io.jenkins.plugins.casc.model.CNode;
 import io.jenkins.plugins.casc.model.Mapping;
-import io.jenkins.plugins.credentials.secretsmanager.config.Value;
+import io.jenkins.plugins.credentials.secretsmanager.config.transformer.name.removePrefixes.Prefix;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 
@@ -46,8 +46,8 @@ public class RemovePrefixesConfigurator extends BaseConfigurator<RemovePrefixes>
     public Set<Attribute<RemovePrefixes, ?>> describe() {
         return Sets.newHashSet(
                 new MultivaluedAttribute<RemovePrefixes, String>("prefixes", String.class)
-                        .setter((target, values) -> {
-                            final Set<Value> mappedValues = values.stream().map(Value::new).collect(Collectors.toSet());
+                        .setter((target, prefixes) -> {
+                            final Set<Prefix> mappedValues = prefixes.stream().map(Prefix::new).collect(Collectors.toSet());
                             target.setPrefixes(mappedValues);
                         }));
     }

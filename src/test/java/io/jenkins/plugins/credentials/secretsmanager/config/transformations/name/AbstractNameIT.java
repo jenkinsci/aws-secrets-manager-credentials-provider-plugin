@@ -2,8 +2,8 @@ package io.jenkins.plugins.credentials.secretsmanager.config.transformations.nam
 
 import io.jenkins.plugins.credentials.secretsmanager.config.PluginConfiguration;
 import io.jenkins.plugins.credentials.secretsmanager.config.Transformations;
-import io.jenkins.plugins.credentials.secretsmanager.config.Value;
 import io.jenkins.plugins.credentials.secretsmanager.config.transformer.name.RemovePrefix;
+import io.jenkins.plugins.credentials.secretsmanager.config.transformer.name.removePrefixes.Prefix;
 import io.jenkins.plugins.credentials.secretsmanager.config.transformer.name.RemovePrefixes;
 import org.junit.Test;
 
@@ -19,7 +19,7 @@ public abstract class AbstractNameIT {
 
     protected abstract void setRemovePrefix(String prefix);
 
-    protected abstract void setRemovePrefixes(Set<Value> prefixes);
+    protected abstract void setRemovePrefixes(Set<Prefix> prefixes);
 
     @Test
     public void shouldSupportDefault() {
@@ -48,7 +48,7 @@ public abstract class AbstractNameIT {
     @Test
     public void shouldSupportRemovePrefixes() {
         // Given
-        final Set<Value> prefixes = Collections.singleton(new Value("foo-"));
+        final Set<Prefix> prefixes = Collections.singleton(new Prefix("foo-"));
         setRemovePrefixes(prefixes);
 
         // When

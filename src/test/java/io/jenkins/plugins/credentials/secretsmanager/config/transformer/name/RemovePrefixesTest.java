@@ -1,7 +1,7 @@
 package io.jenkins.plugins.credentials.secretsmanager.config.transformer.name;
 
-import io.jenkins.plugins.credentials.secretsmanager.config.Value;
 import io.jenkins.plugins.credentials.secretsmanager.config.transformer.TransformerTest;
+import io.jenkins.plugins.credentials.secretsmanager.config.transformer.name.removePrefixes.Prefix;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -32,8 +32,8 @@ public class RemovePrefixesTest implements TransformerTest {
     }
 
     private static NameTransformer removePrefixes(String... prefixes) {
-        final Set<Value> prefixSet = Arrays.stream(prefixes)
-                .map(Value::new)
+        final Set<Prefix> prefixSet = Arrays.stream(prefixes)
+                .map(Prefix::new)
                 .collect(Collectors.toSet());
 
         return new RemovePrefixes(prefixSet);
