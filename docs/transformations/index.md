@@ -31,6 +31,32 @@ Effects:
 
 - the Secrets Manager secret "foo-artifactory" is presented as the credential "artifactory".
 
+## Remove Prefixes
+
+If the secret name starts with one of the specified prefixes, that prefix will be *removed* from the secret name.
+
+This is a more powerful version of the "Remove Prefix" transformation.
+
+:warning: **This feature can break the credentials provider.** If a transformation causes multiple credentials to end up with the same ID, an error occurs. Test your configuration before applying it, and after modifying secrets in Secrets Manager.
+
+#### Example
+
+```yaml
+unclassified:
+  awsCredentialsProvider:
+    transformations:
+      name:
+        removePrefixes:
+          prefixes:
+            - "foo-"
+            - "bar-"
+```
+
+Effects:
+
+- the secret "foo-artifactory" is presented as the credential "artifactory".
+- the secret "bar-artifactory" is presented as the credential "artifactory".
+
 ## Description
 
 Choose how to transform the secret description.

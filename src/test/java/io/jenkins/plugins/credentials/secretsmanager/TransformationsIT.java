@@ -34,7 +34,7 @@ public class TransformationsIT {
         public final TestRule chain = Rules.jenkinsWithSecretsManager(jenkins, secretsManager);
 
         @Test
-        @ConfiguredWithCode(value = "/transformations.yml")
+        @ConfiguredWithCode(value = "/transformations/removePrefix.yml")
         public void shouldRemovePrefix() {
             // Given
             final CreateSecretResult foo = createSecretWithName("staging-foo", SECRET_STRING);
@@ -51,7 +51,24 @@ public class TransformationsIT {
         }
 
         @Test
-        @ConfiguredWithCode(value = "/transformations.yml")
+        @ConfiguredWithCode(value = "/transformations/removePrefixes.yml")
+        public void shouldRemovePrefixes() {
+            // Given
+            final CreateSecretResult foo = createSecretWithName("staging-foo", SECRET_STRING);
+            final CreateSecretResult bar = createSecretWithName("production-bar", SECRET_STRING);
+            final CreateSecretResult baz = createSecretWithName("baz", SECRET_STRING);
+
+            // When
+            final List<StringCredentials> credentials = jenkins.getCredentials().lookup(StringCredentials.class);
+
+            // Then
+            assertThat(credentials)
+                    .extracting("id")
+                    .contains("foo", "bar", "baz");
+        }
+
+        @Test
+        @ConfiguredWithCode(value = "/transformations/removePrefix.yml")
         public void shouldStillResolveAfterTransformation() {
             // Given
             final CreateSecretResult stagingFoo = createSecretWithName("staging-foo", SECRET_STRING);
@@ -103,7 +120,7 @@ public class TransformationsIT {
         }
 
         @Test
-        @ConfiguredWithCode(value = "/no-description.yml")
+        @ConfiguredWithCode(value = "/transformations/no-description.yml")
         public void shouldHideDescription() {
             // Given
             final CreateSecretResult secret = createSecretWithDescription(DESCRIPTION);

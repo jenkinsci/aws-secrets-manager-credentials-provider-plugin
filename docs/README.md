@@ -372,9 +372,7 @@ unclassified:
     transformations:           # optional
       description:
         hide: {}
-      name:
-        removePrefix:
-          prefix: (string)
+      name: (object)
 ```
 
 ## Versioning
