@@ -2,13 +2,13 @@ package io.jenkins.plugins.credentials.secretsmanager.config.transformer.name;
 
 import io.jenkins.plugins.credentials.secretsmanager.config.transformer.TransformerTest;
 import io.jenkins.plugins.credentials.secretsmanager.config.transformer.name.removePrefixes.Prefix;
+import io.jenkins.plugins.credentials.secretsmanager.config.transformer.name.removePrefixes.RemovePrefixes;
 import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
 
 public class RemovePrefixesTest implements TransformerTest {
@@ -17,8 +17,10 @@ public class RemovePrefixesTest implements TransformerTest {
     public void shouldTransform() {
         final NameTransformer transformer = removePrefixes("foo-", "bar-");
 
-        assertThat(transformer.transform("foo-secret"))
-                .isEqualTo("secret");
+        assertSoftly(s -> {
+            s.assertThat(transformer.transform("foo-secret")).isEqualTo("secret");
+            s.assertThat(transformer.transform("bar-secret")).isEqualTo("secret");
+        });
     }
 
     @Test

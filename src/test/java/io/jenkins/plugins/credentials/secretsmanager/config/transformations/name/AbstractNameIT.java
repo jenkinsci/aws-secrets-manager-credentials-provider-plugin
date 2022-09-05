@@ -4,7 +4,7 @@ import io.jenkins.plugins.credentials.secretsmanager.config.PluginConfiguration;
 import io.jenkins.plugins.credentials.secretsmanager.config.Transformations;
 import io.jenkins.plugins.credentials.secretsmanager.config.transformer.name.RemovePrefix;
 import io.jenkins.plugins.credentials.secretsmanager.config.transformer.name.removePrefixes.Prefix;
-import io.jenkins.plugins.credentials.secretsmanager.config.transformer.name.RemovePrefixes;
+import io.jenkins.plugins.credentials.secretsmanager.config.transformer.name.removePrefixes.RemovePrefixes;
 import org.junit.Test;
 
 import java.util.Collections;

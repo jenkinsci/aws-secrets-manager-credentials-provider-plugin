@@ -1,8 +1,9 @@
-package io.jenkins.plugins.credentials.secretsmanager.config.transformer.name;
+package io.jenkins.plugins.credentials.secretsmanager.config.transformer.name.removePrefixes;
 
 import hudson.Extension;
 import io.jenkins.plugins.credentials.secretsmanager.Messages;
-import io.jenkins.plugins.credentials.secretsmanager.config.transformer.name.removePrefixes.Prefix;
+import io.jenkins.plugins.credentials.secretsmanager.config.transformer.name.NameTransformer;
+import io.jenkins.plugins.credentials.secretsmanager.config.transformer.name.PrefixRemover;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;

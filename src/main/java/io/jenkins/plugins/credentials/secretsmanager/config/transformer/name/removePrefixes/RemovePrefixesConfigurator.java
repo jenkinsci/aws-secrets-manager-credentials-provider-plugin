@@ -1,4 +1,4 @@
-package io.jenkins.plugins.credentials.secretsmanager.config.transformer.name;
+package io.jenkins.plugins.credentials.secretsmanager.config.transformer.name.removePrefixes;
 
 import com.google.common.collect.Sets;
 import edu.umd.cs.findbugs.annotations.NonNull;
@@ -10,7 +10,6 @@ import io.jenkins.plugins.casc.Configurator;
 import io.jenkins.plugins.casc.impl.attributes.MultivaluedAttribute;
 import io.jenkins.plugins.casc.model.CNode;
 import io.jenkins.plugins.casc.model.Mapping;
-import io.jenkins.plugins.credentials.secretsmanager.config.transformer.name.removePrefixes.Prefix;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 
