@@ -68,4 +68,10 @@ public class PrefixRemoverTest {
         assertThat(removePrefixes("staging-", "production-").from("staging-production-secret"))
                 .isEqualTo("production-secret");
     }
+
+    @Test
+    public void shouldMatchTheMostSpecificPrefix() {
+        assertThat(removePrefixes("aa", "aab").from("aab-secret"))
+                .isEqualTo("secret");
+    }
 }
