@@ -6,6 +6,10 @@ Specify how to transform fields from the underlying Secrets Manager secret when 
 
 Choose how to transform the secret name.
 
+To ensure that your Jenkins configuration is easy to read in the future, You should use the simplest transformer strategy that fits your needs.
+
+:warning: **This feature can break the credentials provider.** If a transformation causes multiple credentials to end up with the same ID, an error occurs. Test your configuration before applying it, and after modifying secrets in Secrets Manager.
+
 ### Default
 
 The name is shown unmodified.
@@ -14,7 +18,7 @@ The name is shown unmodified.
 
 The specified prefix is *removed* from the secret name *if present*.
 
-:warning: **This feature can break the credentials provider.** If a transformation causes multiple credentials to end up with the same ID, an error occurs. Test your configuration before applying it, and after modifying secrets in Secrets Manager.
+Regex patterns are not supported.
 
 #### Example
 
@@ -35,9 +39,11 @@ Effects:
 
 If the secret name starts with one of the specified prefixes, that prefix will be *removed* from the secret name.
 
-This is a more powerful version of the "Remove Prefix" transformation.
+If multiple prefixes match the secret name, the most specific (longest) one will be removed. For example, if the prefixes are `foo` and `foo-`, and the secret name is `foo-secret`, then `foo-` will be removed.
 
-:warning: **This feature can break the credentials provider.** If a transformation causes multiple credentials to end up with the same ID, an error occurs. Test your configuration before applying it, and after modifying secrets in Secrets Manager.
+Regex patterns are not supported.
+
+This is essentially a more powerful version of the "Remove Prefix" transformation.
 
 #### Example
 

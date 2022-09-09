@@ -69,9 +69,20 @@ public class PrefixRemoverTest {
                 .isEqualTo("production-secret");
     }
 
+    /**
+     * The PrefixRemover is simple and deliberately does not support regex patterns.
+     *
+     * (If we wanted to support regex, we would use the Pattern class directly.)
+     */
+    @Test
+    public void shouldNotSupportRegexPatterns() {
+        assertThat(removePrefix("fo+-").from("foo-secret"))
+                .isEqualTo("foo-secret");
+    }
+
     @Test
     public void shouldMatchTheMostSpecificPrefix() {
-        assertThat(removePrefixes("aa", "aab").from("aab-secret"))
+        assertThat(removePrefixes("foo", "foo-").from("foo-secret"))
                 .isEqualTo("secret");
     }
 }

@@ -6,8 +6,10 @@ import org.kohsuke.accmod.restrictions.NoExternalUse;
 
 import java.util.Collections;
 import java.util.Set;
-import java.util.regex.Pattern;
 
+/**
+ * A non-regex based remover of string prefixes
+ */
 @Restricted(NoExternalUse.class)
 public class PrefixRemover {
 
@@ -35,17 +37,29 @@ public class PrefixRemover {
             return str;
         }
 
+        final int longestMatchingPrefix = longestMatchingPrefix(str, prefixes);
+
+        return str.substring(longestMatchingPrefix);
+    }
+
+    /**
+     * return the length of the longest matching prefix, or zero if the string did not contain any of the prefixes
+     */
+    private static int longestMatchingPrefix(String str, Set<String> prefixes) {
+        int longestMatch = 0;
+
         for (String prefix: prefixes) {
             final String canonicalPrefix = fixNullAndTrim(prefix);
 
             if (str.startsWith(canonicalPrefix)) {
-                return Pattern.compile(canonicalPrefix, Pattern.LITERAL)
-                        .matcher(str)
-                        .replaceFirst("");
+                final int prefixLength = canonicalPrefix.length();
+                if (prefixLength > longestMatch) {
+                    longestMatch = prefixLength;
+                }
             }
         }
 
-        return str;
+        return longestMatch;
     }
 
     /**
