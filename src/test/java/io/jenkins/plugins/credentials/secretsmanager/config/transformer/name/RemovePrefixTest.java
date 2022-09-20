@@ -8,54 +8,21 @@ import static org.assertj.core.api.SoftAssertions.assertSoftly;
 
 public class RemovePrefixTest implements TransformerTest {
 
-    private static NameTransformer removePrefix(String prefix) {
-        return new RemovePrefix(prefix);
-    }
-
     @Test
-    public void shouldAllowNullPrefix() {
-        assertThat(removePrefix(null).transform("foo-secret"))
-                .isEqualTo("foo-secret");
-    }
+    public void shouldTransform() {
+        final NameTransformer transformer = new RemovePrefix("foo-");
 
-    @Test
-    public void shouldAllowEmptyPrefix() {
-        assertThat(removePrefix("").transform("foo-secret"))
-                .isEqualTo("foo-secret");
-    }
-
-    @Test
-    public void shouldTrimWhitespaceFromPrefix() {
-        assertThat(removePrefix(" foo- ").transform("foo-secret"))
+        assertThat(transformer.transform("foo-secret"))
                 .isEqualTo("secret");
-    }
-
-    @Test
-    public void shouldOnlyRemovePrefixFromStartOfString() {
-        assertThat(removePrefix("-secret").transform("foo-secret"))
-                .isEqualTo("foo-secret");
-    }
-
-    @Test
-    public void shouldOnlyRemoveFirstOccurrenceOfPrefix() {
-        assertThat(removePrefix("foo-").transform("foo-secret-foo-bar"))
-                .isEqualTo("secret-foo-bar");
     }
 
     @Test
     public void shouldBeEqualWhenPrefixIsEqual() {
-        final String prefix = "foo-";
-        final NameTransformer a = removePrefix(prefix);
+        final NameTransformer a = new RemovePrefix("foo-");
 
         assertSoftly(s -> {
-            s.assertThat(a).as("Equal").isEqualTo(removePrefix(prefix));
-            s.assertThat(a).as("Not Equal").isNotEqualTo(removePrefix(null));
+            s.assertThat(a).as("Equal").isEqualTo(new RemovePrefix("foo-"));
+            s.assertThat(a).as("Not Equal").isNotEqualTo(new RemovePrefix("bar-"));
         });
-    }
-
-    @Test
-    public void shouldTransform() {
-        assertThat(removePrefix("foo-").transform("foo-secret"))
-                .isEqualTo("secret");
     }
 }
