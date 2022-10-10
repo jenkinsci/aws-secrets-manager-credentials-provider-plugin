@@ -14,6 +14,7 @@ Recommendations:
 
 - Use EC2 Instance Profiles when running Jenkins on EC2.
 - Only use the long-lived access key methods when there is no other choice. For example, when Jenkins is running outside of AWS.
+- If you use the AWS Secrets Manager CredentialsProvider and SecretSource plugins together, you SHOULD use the Default strategy. This allows both plugins to transparently pick up the same authentication information.
 - If you see an error along the lines of "Unable to find a region via the region provider chain. Must provide an explicit region in the builder or setup environment to supply a region.", set the region manually.
 
 **Authorization note:** IAM is always present, no matter which authentication mechanism you use. This is because, even if Jenkins is running outside AWS and you use an AWS keypair, the keypair belongs to an IAM user, and AWS must still check that the IAM user is allowed to access Secrets Manager.
@@ -56,6 +57,24 @@ unclassified:
         assumeRole:
           roleArn: "arn:aws:iam::111111111111:role/foo"
           roleSessionName: "jenkins"
+```
+
+### Static Key Pair
+
+This allows you to specify a static long-lived AWS keypair within Jenkins.
+
+The `secretKey` value will be stored in Jenkins' plugin XML configuration, encrypted using `hudson.util.Secret`. This provides a modicum of security, but not much.
+
+If you use this authentication strategy together with Jenkins CasC, you SHOULD inject the keypair (or at least the `secretKey`) via CasC secret interpolation. This is to avoid hardcoding the secret key in plain text within your casc.yaml.
+
+```yaml
+unclassified:
+  awsCredentialsProvider:
+    client:
+      credentialsProvider:
+        static:
+          accessKey: "${aws-access-key}"    # e.g. AKIAIOSFODNN7EXAMPLE
+          secretKey: "${aws-secret-key}"    # e.g. wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
 ```
 
 ## Endpoint Configuration
