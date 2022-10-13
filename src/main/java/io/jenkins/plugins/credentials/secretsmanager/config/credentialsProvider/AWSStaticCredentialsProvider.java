@@ -4,11 +4,14 @@ import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import hudson.Extension;
+import hudson.Util;
+import hudson.util.FormValidation;
 import hudson.util.Secret;
 import io.jenkins.plugins.credentials.secretsmanager.Messages;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
+import org.kohsuke.stapler.QueryParameter;
 
 import javax.annotation.Nonnull;
 import java.util.Objects;
@@ -17,15 +20,11 @@ public class AWSStaticCredentialsProvider extends CredentialsProvider {
 
     /**
      * The AWS access key (ID).
-     *
-     * This is the public component and therefore does not need protecting.
      */
     private String accessKey;
 
     /**
      * The AWS secret access key.
-     *
-     * This is the private component and therefore must be protected.
      */
     private Secret secretKey;
 
@@ -81,6 +80,20 @@ public class AWSStaticCredentialsProvider extends CredentialsProvider {
         @Nonnull
         public String getDisplayName() {
             return Messages.statik();
+        }
+
+        public FormValidation doCheckAccessKey(@QueryParameter String accessKey) {
+            if (Util.fixEmptyAndTrim(accessKey) == null) {
+                return FormValidation.error("AWS Access Key must not be empty");
+            }
+            return FormValidation.ok();
+        }
+
+        public FormValidation doCheckSecretKey(@QueryParameter Secret secretKey) {
+            if (Util.fixEmptyAndTrim(secretKey.getPlainText()) == null) {
+                return FormValidation.error("AWS Secret Key must not be empty");
+            }
+            return FormValidation.ok();
         }
     }
 }

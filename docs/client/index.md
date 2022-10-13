@@ -65,7 +65,7 @@ This allows you to specify a static long-lived AWS keypair within Jenkins.
 
 The `secretKey` value will be stored in Jenkins' plugin XML configuration, encrypted using `hudson.util.Secret`. This provides a modicum of security, but not much.
 
-If you use this authentication strategy together with Jenkins CasC, you SHOULD inject the keypair (or at least the `secretKey`) via CasC secret interpolation. This is to avoid hardcoding the secret key in plain text within your casc.yaml.
+If you use this authentication strategy together with Jenkins CasC, you SHOULD inject the keypair values via CasC secret interpolation. This is to avoid hardcoding the keypair in plain text within your casc.yaml.
 
 ```yaml
 unclassified:
