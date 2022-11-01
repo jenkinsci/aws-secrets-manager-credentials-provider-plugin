@@ -25,11 +25,11 @@ public class PluginConfigurationForm {
 
     private static class XPaths {
         private static String dropdownList(String settingName) {
-            return String.format("//div[contains(@class, 'setting-name') and normalize-space(text()) = '%s']/following-sibling::div[contains(@class, 'setting-main')]/select[contains(@class, 'dropdownList')]", settingName);
+            return String.format("//div[contains(@class, 'jenkins-form-label') and normalize-space(text()) = '%s']/following-sibling::div[contains(@class, 'jenkins-select')]/select", settingName);
         }
 
         private static String repeatableAddButtons(String settingName) {
-            return String.format("//div[contains(@class, 'setting-name') and text()='%s']/following-sibling::div[@class='setting-main']//span[contains(string(@class),'repeatable-add')]//button[contains(text(), 'Add')]", settingName);
+            return String.format("//div[contains(@class, 'jenkins-form-label') and text()='%s']/following-sibling::div[@class='setting-main']//span[contains(string(@class),'repeatable-add')]//button[contains(text(), 'Add')]", settingName);
         }
     }
 }
