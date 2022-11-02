@@ -44,15 +44,15 @@
         <revision>1</revision>
         <changelist>999999-SNAPSHOT</changelist>
         <java.level>8</java.level>
-        <jenkins.version>2.289.3</jenkins.version>
+        <jenkins.version>2.346.3</jenkins.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
             <dependency>
                 <groupId>io.jenkins.tools.bom</groupId>
-                <artifactId>bom-2.289.x</artifactId>
-                <version>1500.ve4d05cd32975</version>
+                <artifactId>bom-2.346.x</artifactId>
+                <version>1654.vcb_69d035fa_20</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>

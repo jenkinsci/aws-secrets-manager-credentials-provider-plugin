@@ -68,7 +68,7 @@ public class AwsCertificateCredentials extends BaseStandardCredentials implement
 
         @Override
         public String getIconClassName() {
-            return "icon-credentials-certificate";
+            return "icon-application-certificate";
         }
 
         @Override
