@@ -124,7 +124,7 @@ public class CredentialsProviderIT {
     public void shouldIgnoreUntaggedSecrets() {
         // Given
         final CreateSecretResult foo = createStringSecret(SECRET);
-        final CreateSecretResult bar = createSecret(SECRET, Lists.of());
+        final CreateSecretResult bar = createSecret(SECRET, List.of());
 
         // When
         final List<StringCredentials> credentials = lookup(StringCredentials.class);
@@ -139,7 +139,7 @@ public class CredentialsProviderIT {
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldTolerateUnrelatedTags() {
         // Given
-        final List<Tag> tags = Lists.of(
+        final List<Tag> tags = List.of(
                 AwsTags.type(Type.string),
                 AwsTags.tag("foo", "bar"),
                 AwsTags.tag(null, "baz"),
@@ -192,7 +192,7 @@ public class CredentialsProviderIT {
     }
 
     private CreateSecretResult createStringSecret(String secretString) {
-        final List<Tag> tags = Lists.of(AwsTags.type(Type.string));
+        final List<Tag> tags = List.of(AwsTags.type(Type.string));
 
         return createSecret(secretString, tags);
     }

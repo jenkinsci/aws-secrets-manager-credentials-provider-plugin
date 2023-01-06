@@ -91,14 +91,14 @@ public class CacheIT {
     }
 
     private void setFilter(String key, String value) {
-        final List<Filter> filters = Lists.of(new Filter(key, Lists.of(new Value(value))));
+        final List<Filter> filters = List.of(new Filter(key, List.of(new Value(value))));
         final ListSecrets listSecrets = new ListSecrets(filters);
         final PluginConfiguration config = (PluginConfiguration) jenkins.getInstance().getDescriptor(PluginConfiguration.class);
         config.setListSecrets(listSecrets);
     }
 
     private CreateSecretResult createSecretWithTag(String key, String value) {
-        return createSecret("supersecret", Lists.of(AwsTags.type(Type.string), AwsTags.tag(key, value)));
+        return createSecret("supersecret", List.of(AwsTags.type(Type.string), AwsTags.tag(key, value)));
     }
 
     private CreateSecretResult createSecret(String secretString, List<Tag> tags) {

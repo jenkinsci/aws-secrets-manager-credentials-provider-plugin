@@ -168,7 +168,7 @@ public class StandardUsernamePasswordCredentialsIT implements CredentialsTests {
     }
 
     private CreateSecretResult createUsernamePasswordSecret(String username, String password) {
-        final List<Tag> tags = Lists.of(
+        final List<Tag> tags = List.of(
                 AwsTags.type(Type.usernamePassword),
                 AwsTags.username(username));
 

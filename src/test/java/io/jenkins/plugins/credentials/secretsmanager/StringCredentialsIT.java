@@ -151,7 +151,7 @@ public class StringCredentialsIT implements CredentialsTests {
     }
 
     private CreateSecretResult createStringSecret(String secretString) {
-        final List<Tag> tags = Lists.of(AwsTags.type(Type.string));
+        final List<Tag> tags = List.of(AwsTags.type(Type.string));
 
         final CreateSecretRequest request = new CreateSecretRequest()
                 .withName(CredentialNames.random())

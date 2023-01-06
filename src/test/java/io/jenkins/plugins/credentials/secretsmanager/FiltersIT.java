@@ -41,7 +41,7 @@ public class FiltersIT {
     }
 
     private CreateSecretResult createSecretWithTag(String key, String value) {
-        return createSecret("supersecret", Lists.of(AwsTags.type(Type.string), AwsTags.tag(key, value)));
+        return createSecret("supersecret", List.of(AwsTags.type(Type.string), AwsTags.tag(key, value)));
     }
 
     private CreateSecretResult createSecret(String secretString, List<Tag> tags) {

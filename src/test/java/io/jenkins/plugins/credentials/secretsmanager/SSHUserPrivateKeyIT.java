@@ -86,7 +86,7 @@ public class SSHUserPrivateKeyIT implements CredentialsTests {
 
         // Then
         assertThat(credential)
-                .hasPrivateKeys(Lists.of(PRIVATE_KEY));
+                .hasPrivateKeys(List.of(PRIVATE_KEY));
     }
 
     @Test
@@ -182,7 +182,7 @@ public class SSHUserPrivateKeyIT implements CredentialsTests {
     }
 
     private CreateSecretResult createSshUserPrivateKeySecret(String username, String privateKey) {
-        final List<Tag> tags = Lists.of(
+        final List<Tag> tags = List.of(
                 AwsTags.type(Type.sshUserPrivateKey),
                 AwsTags.username(username));
 

@@ -193,13 +193,13 @@ public class FileCredentialsIT implements CredentialsTests {
     }
 
     private CreateSecretResult createFileSecret(byte[] content) {
-        final List<Tag> tags = Lists.of(AwsTags.type(Type.file));
+        final List<Tag> tags = List.of(AwsTags.type(Type.file));
 
         return createSecret(content,tags);
     }
 
     private CreateSecretResult createFileSecret(byte[] content, String filename) {
-        final List<Tag> tags = Lists.of(AwsTags.type(Type.file), AwsTags.filename(filename));
+        final List<Tag> tags = List.of(AwsTags.type(Type.file), AwsTags.filename(filename));
 
         return createSecret(content, tags);
     }
