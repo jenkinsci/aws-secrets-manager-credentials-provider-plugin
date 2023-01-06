@@ -14,11 +14,11 @@ public abstract class AbstractRegionIT {
     @Test
     public void shouldHaveRegion() {
         // Given
-        final String region = "us-east-1";
+        final var region = "us-east-1";
         setRegion(region);
 
         // When
-        final PluginConfiguration config = getPluginConfiguration();
+        final var config = getPluginConfiguration();
 
         // Then
         assertThat(config.getClient().getRegion())

@@ -6,7 +6,6 @@ import io.jenkins.plugins.credentials.secretsmanager.config.transformer.name.rem
 import org.junit.Test;
 
 import java.util.Arrays;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
@@ -15,7 +14,7 @@ public class RemovePrefixesTest implements TransformerTest {
 
     @Test
     public void shouldTransform() {
-        final NameTransformer transformer = removePrefixes("foo-", "bar-");
+        final var transformer = removePrefixes("foo-", "bar-");
 
         assertSoftly(s -> {
             s.assertThat(transformer.transform("foo-secret")).isEqualTo("secret");
@@ -25,7 +24,7 @@ public class RemovePrefixesTest implements TransformerTest {
 
     @Test
     public void shouldBeEqualWhenPrefixesAreEqual() {
-        final NameTransformer a = removePrefixes("foo-", "bar-");
+        final var a = removePrefixes("foo-", "bar-");
 
         assertSoftly(s -> {
             s.assertThat(a).as("Equal").isEqualTo(removePrefixes("foo-", "bar-"));
@@ -34,7 +33,7 @@ public class RemovePrefixesTest implements TransformerTest {
     }
 
     private static NameTransformer removePrefixes(String... prefixes) {
-        final Set<Prefix> prefixSet = Arrays.stream(prefixes)
+        final var prefixSet = Arrays.stream(prefixes)
                 .map(Prefix::new)
                 .collect(Collectors.toSet());
 

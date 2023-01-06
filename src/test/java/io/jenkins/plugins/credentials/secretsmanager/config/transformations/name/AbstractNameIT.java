@@ -7,7 +7,6 @@ import io.jenkins.plugins.credentials.secretsmanager.config.transformer.name.rem
 import io.jenkins.plugins.credentials.secretsmanager.config.transformer.name.removePrefixes.RemovePrefixes;
 import org.junit.Test;
 
-import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
 
@@ -24,7 +23,7 @@ public abstract class AbstractNameIT {
     @Test
     public void shouldSupportDefault() {
         // When
-        final PluginConfiguration config = getPluginConfiguration();
+        final var config = getPluginConfiguration();
 
         // Then
         assertThat(Optional.ofNullable(config.getTransformations()).map(Transformations::getName)).isEmpty();
@@ -33,11 +32,11 @@ public abstract class AbstractNameIT {
     @Test
     public void shouldSupportRemovePrefix() {
         // Given
-        final String prefix = "foo-";
+        final var prefix = "foo-";
         setRemovePrefix(prefix);
 
         // When
-        final PluginConfiguration config = getPluginConfiguration();
+        final var config = getPluginConfiguration();
 
         // Then
         assertThat(config.getTransformations())
@@ -48,11 +47,11 @@ public abstract class AbstractNameIT {
     @Test
     public void shouldSupportRemovePrefixes() {
         // Given
-        final Set<Prefix> prefixes = Collections.singleton(new Prefix("foo-"));
+        final var prefixes = Set.of(new Prefix("foo-"));
         setRemovePrefixes(prefixes);
 
         // When
-        final PluginConfiguration config = getPluginConfiguration();
+        final var config = getPluginConfiguration();
 
         // Then
         assertThat(config.getTransformations())

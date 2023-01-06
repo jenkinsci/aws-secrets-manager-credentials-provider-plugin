@@ -27,11 +27,11 @@ public class FiltersIT {
     @ConfiguredWithCode(value = "/filters.yml")
     public void shouldFilterCredentials() {
         // Given
-        final CreateSecretResult foo = createSecretWithTag("product", "foo");
-        final CreateSecretResult bar = createSecretWithTag("product", "bar");
+        final var foo = createSecretWithTag("product", "foo");
+        final var bar = createSecretWithTag("product", "bar");
 
         // When
-        final List<StringCredentials> credentials = jenkins.getCredentials().lookup(StringCredentials.class);
+        final var credentials = jenkins.getCredentials().lookup(StringCredentials.class);
 
         // Then
         assertThat(credentials)
@@ -45,7 +45,7 @@ public class FiltersIT {
     }
 
     private CreateSecretResult createSecret(String secretString, List<Tag> tags) {
-        final CreateSecretRequest request = new CreateSecretRequest()
+        final var request = new CreateSecretRequest()
                 .withName(CredentialNames.random())
                 .withSecretString(secretString)
                 .withTags(tags);

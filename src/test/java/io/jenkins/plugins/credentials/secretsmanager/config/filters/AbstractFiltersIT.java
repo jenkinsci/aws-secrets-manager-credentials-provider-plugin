@@ -22,7 +22,7 @@ public abstract class AbstractFiltersIT {
         setFilters(new Filter("name", List.of(new Value("foo"))));
 
         // When
-        final PluginConfiguration config = getPluginConfiguration();
+        final var config = getPluginConfiguration();
 
         // Then
         assertThat(config.getListSecrets().getFilters())

@@ -28,7 +28,7 @@ public class ListsTest {
 
     @Test
     public void shouldTransformListToMap() {
-        final List<Tag> tags = com.google.common.collect.Lists.newArrayList(
+        final var tags = List.of(
                 newTag("foo", "1"),
                 newTag("bar", "2"));
 
@@ -38,7 +38,7 @@ public class ListsTest {
 
     @Test
     public void shouldNotTransformListWithDuplicateKeysToMap() {
-        final List<Tag> tags = com.google.common.collect.Lists.newArrayList(
+        final var tags = List.of(
                 newTag("foo", "3"),
                 newTag("foo", "2"));
 

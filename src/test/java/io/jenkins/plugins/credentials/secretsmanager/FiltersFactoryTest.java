@@ -5,7 +5,6 @@ import io.jenkins.plugins.credentials.secretsmanager.config.Value;
 import org.junit.Test;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,7 +24,7 @@ public class FiltersFactoryTest {
 
     @Test
     public void shouldCreateFilter() {
-        final Collection<Filter> config = List.of(filter("name", "foo", "bar"));
+        final var config = List.of(filter("name", "foo", "bar"));
 
         assertThat(FiltersFactory.create(config))
                 .extracting("key", "values")
@@ -34,7 +33,7 @@ public class FiltersFactoryTest {
 
     @Test
     public void shouldCreateFilters() {
-        final Collection<Filter> config = List.of(
+        final var config = List.of(
                 filter("tag-key", "foo"),
                 filter("tag-value", "bar"));
 

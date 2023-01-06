@@ -2,8 +2,6 @@ package io.jenkins.plugins.credentials.secretsmanager;
 
 import com.amazonaws.services.secretsmanager.model.CreateSecretRequest;
 import com.amazonaws.services.secretsmanager.model.CreateSecretResult;
-import com.amazonaws.services.secretsmanager.model.Tag;
-import hudson.util.ListBoxModel;
 import hudson.util.Secret;
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
 import io.jenkins.plugins.credentials.secretsmanager.factory.Type;
@@ -37,38 +35,38 @@ public class StringCredentialsIT implements CredentialsTests {
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportListView() {
         // Given
-        final CreateSecretResult foo = createStringSecret(SECRET);
+        final var secret = createStringSecret(SECRET);
 
         // When
-        final ListBoxModel list = jenkins.getCredentials().list(StringCredentials.class);
+        final var credentialList = jenkins.getCredentials().list(StringCredentials.class);
 
         // Then
-        assertThat(list)
-                .containsOption(foo.getName(), foo.getName());
+        assertThat(credentialList)
+                .containsOption(secret.getName(), secret.getName());
     }
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldHaveId() {
         // Given
-        final CreateSecretResult foo = createStringSecret(SECRET);
+        final var secret = createStringSecret(SECRET);
 
         // When
-        final StringCredentials credential = jenkins.getCredentials().lookup(StringCredentials.class, foo.getName());
+        final var credential = jenkins.getCredentials().lookup(StringCredentials.class, secret.getName());
 
         // Then
         assertThat(credential)
-                .hasId(foo.getName());
+                .hasId(secret.getName());
     }
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldHaveSecret() {
         // Given
-        final CreateSecretResult foo = createStringSecret(SECRET);
+        final var secret = createStringSecret(SECRET);
 
         // When
-        final StringCredentials credential = jenkins.getCredentials().lookup(StringCredentials.class, foo.getName());
+        final var credential = jenkins.getCredentials().lookup(StringCredentials.class, secret.getName());
 
         // Then
         assertThat(credential)
@@ -78,10 +76,11 @@ public class StringCredentialsIT implements CredentialsTests {
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldHaveDescriptorIcon() {
-        final CreateSecretResult foo = createStringSecret(SECRET);
-        final StringCredentials ours = jenkins.getCredentials().lookup(StringCredentials.class, foo.getName());
+        final var secret = createStringSecret(SECRET);
 
-        final StringCredentials theirs = new StringCredentialsImpl(null, "id", "description", Secret.fromString("secret"));
+        final var ours = jenkins.getCredentials().lookup(StringCredentials.class, secret.getName());
+
+        final var theirs = new StringCredentialsImpl(null, "id", "description", Secret.fromString("secret"));
 
         assertThat(ours)
                 .hasSameDescriptorIconAs(theirs);
@@ -91,11 +90,11 @@ public class StringCredentialsIT implements CredentialsTests {
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportWithCredentialsBinding() {
         // Given
-        final CreateSecretResult foo = createStringSecret(SECRET);
+        final var secret = createStringSecret(SECRET);
 
         // When
-        final WorkflowRun run = runPipeline("",
-                "withCredentials([string(credentialsId: '" + foo.getName() + "', variable: 'VAR')]) {",
+        final var run = runPipeline("",
+                "withCredentials([string(credentialsId: '" + secret.getName() + "', variable: 'VAR')]) {",
                 "  echo \"Credential: $VAR\"",
                 "}");
 
@@ -109,16 +108,16 @@ public class StringCredentialsIT implements CredentialsTests {
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportEnvironmentBinding() {
         // Given
-        final CreateSecretResult foo = createStringSecret(SECRET);
+        final var secret = createStringSecret(SECRET);
 
         // When
-        final WorkflowRun run = runPipeline("",
+        final var run = runPipeline("",
                 "pipeline {",
                 "  agent none",
                 "  stages {",
                 "    stage('Example') {",
                 "      environment {",
-                "        VAR = credentials('" + foo.getName() + "')",
+                "        VAR = credentials('" + secret.getName() + "')",
                 "      }",
                 "      steps {",
                 "        echo \"{variable: $VAR}\"",
@@ -151,9 +150,9 @@ public class StringCredentialsIT implements CredentialsTests {
     }
 
     private CreateSecretResult createStringSecret(String secretString) {
-        final List<Tag> tags = List.of(AwsTags.type(Type.string));
+        final var tags = List.of(AwsTags.type(Type.string));
 
-        final CreateSecretRequest request = new CreateSecretRequest()
+        final var request = new CreateSecretRequest()
                 .withName(CredentialNames.random())
                 .withSecretString(secretString)
                 .withTags(tags);
