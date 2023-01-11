@@ -5,10 +5,11 @@ import io.jenkins.plugins.casc.misc.JenkinsConfiguredWithCodeRule;
 import io.jenkins.plugins.credentials.secretsmanager.config.Filter;
 import io.jenkins.plugins.credentials.secretsmanager.config.PluginConfiguration;
 import io.jenkins.plugins.credentials.secretsmanager.config.Value;
-import io.jenkins.plugins.credentials.secretsmanager.util.Lists;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
+
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
@@ -45,7 +46,7 @@ public class CasCFiltersIT extends AbstractFiltersIT {
         assertThat(config.getListSecrets().getFilters())
                 .extracting("key", "values")
                 .contains(
-                        tuple("tag-key", Lists.of(new Value("foo"))),
-                        tuple("tag-value", Lists.of(new Value("bar"))));
+                        tuple("tag-key", List.of(new Value("foo"))),
+                        tuple("tag-value", List.of(new Value("bar"))));
     }
 }

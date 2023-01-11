@@ -3,27 +3,12 @@ package io.jenkins.plugins.credentials.secretsmanager.supplier;
 import com.amazonaws.services.secretsmanager.model.Tag;
 import org.junit.Test;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
 
 public class ListsTest {
-
-    // Concat //
-
-    @Test
-    public void shouldConcat() {
-        assertThat(Lists.concat("foo", Arrays.asList("bar", "baz")))
-                .containsExactly("foo", "bar", "baz");
-    }
-
-    @Test
-    public void shouldConcatToEmptyList() {
-        assertThat(Lists.concat("foo", Collections.emptyList()))
-                .containsExactly("foo");
-    }
 
     // toMap //
 
@@ -43,7 +28,7 @@ public class ListsTest {
 
     @Test
     public void shouldTransformListToMap() {
-        final List<Tag> tags = com.google.common.collect.Lists.newArrayList(
+        final var tags = List.of(
                 newTag("foo", "1"),
                 newTag("bar", "2"));
 
@@ -53,7 +38,7 @@ public class ListsTest {
 
     @Test
     public void shouldNotTransformListWithDuplicateKeysToMap() {
-        final List<Tag> tags = com.google.common.collect.Lists.newArrayList(
+        final var tags = List.of(
                 newTag("foo", "3"),
                 newTag("foo", "2"));
 

@@ -2,7 +2,8 @@ package io.jenkins.plugins.credentials.secretsmanager.config.migrations;
 
 import io.jenkins.plugins.credentials.secretsmanager.config.PluginConfiguration;
 import io.jenkins.plugins.credentials.secretsmanager.config.Value;
-import io.jenkins.plugins.credentials.secretsmanager.util.Lists;
+
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
@@ -14,7 +15,7 @@ public class ChangeFiltersToListSecretsFiltersTest extends MigrationTest {
         assertThat(config.getListSecrets().getFilters())
                 .extracting("key", "values")
                 .contains(
-                        tuple("tag-key", Lists.of(new Value("foo"))),
-                        tuple("tag-value", Lists.of(new Value("bar"))));
+                        tuple("tag-key", List.of(new Value("foo"))),
+                        tuple("tag-value", List.of(new Value("bar"))));
     }
 }

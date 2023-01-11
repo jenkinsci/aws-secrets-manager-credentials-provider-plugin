@@ -1,6 +1,5 @@
 package io.jenkins.plugins.credentials.secretsmanager.config.filters;
 
-import com.gargoylesoftware.htmlunit.html.HtmlButton;
 import io.jenkins.plugins.credentials.secretsmanager.config.Filter;
 import io.jenkins.plugins.credentials.secretsmanager.config.PluginConfiguration;
 import io.jenkins.plugins.credentials.secretsmanager.util.JenkinsConfiguredWithWebRule;
@@ -24,9 +23,9 @@ public class WebFiltersIT extends AbstractFiltersIT {
             final Filter filter = filters[0];
 
             // TODO support multiple filters
-            final PluginConfigurationForm f = new PluginConfigurationForm(form);
+            final var f = new PluginConfigurationForm(form);
 
-            final HtmlButton addFilterButton = f.getRepeatableAddButtons("Filters")
+            final var addFilterButton = f.getRepeatableAddButtons("Filters")
                     .stream()
                     .findFirst()
                     .orElseThrow(() -> new RuntimeException("The 'Add' button for the Filters element was not found"));

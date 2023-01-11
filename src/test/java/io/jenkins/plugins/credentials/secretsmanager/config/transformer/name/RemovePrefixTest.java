@@ -10,7 +10,7 @@ public class RemovePrefixTest implements TransformerTest {
 
     @Test
     public void shouldTransform() {
-        final NameTransformer transformer = new RemovePrefix("foo-");
+        final var transformer = new RemovePrefix("foo-");
 
         assertThat(transformer.transform("foo-secret"))
                 .isEqualTo("secret");
@@ -18,7 +18,7 @@ public class RemovePrefixTest implements TransformerTest {
 
     @Test
     public void shouldBeEqualWhenPrefixIsEqual() {
-        final NameTransformer a = new RemovePrefix("foo-");
+        final var a = new RemovePrefix("foo-");
 
         assertSoftly(s -> {
             s.assertThat(a).as("Equal").isEqualTo(new RemovePrefix("foo-"));

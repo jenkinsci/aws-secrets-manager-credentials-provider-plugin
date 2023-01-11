@@ -28,7 +28,7 @@ public abstract class AbstractCredentialsProviderIT {
         setCredentialsProvider();
 
         // When
-        final PluginConfiguration config = getPluginConfiguration();
+        final var config = getPluginConfiguration();
 
         // Then (it's allowed to be null or an instance of the default type)
         CustomAssertions.assertThat(Optional.ofNullable(config).map(PluginConfiguration::getClient).map(Client::getCredentialsProvider))
@@ -38,12 +38,12 @@ public abstract class AbstractCredentialsProviderIT {
     @Test
     public void shouldSupportAssumeRole() {
         // Given
-        final String roleArn = "arn:aws:iam::111111111111:role/foo-role";
-        final String roleSessionName = "foo";
+        final var roleArn = "arn:aws:iam::111111111111:role/foo-role";
+        final var roleSessionName = "foo";
         setCredentialsProvider(roleArn, roleSessionName);
 
         // When
-        final PluginConfiguration config = getPluginConfiguration();
+        final var config = getPluginConfiguration();
 
         // Then
         assertThat(config.getClient().getCredentialsProvider())
@@ -53,11 +53,11 @@ public abstract class AbstractCredentialsProviderIT {
     @Test
     public void shouldSupportProfile() {
         // Given
-        final String profileName = "foo";
+        final var profileName = "foo";
         setCredentialsProvider(profileName);
 
         // When
-        final PluginConfiguration config = getPluginConfiguration();
+        final var config = getPluginConfiguration();
 
         // Then
         assertThat(config.getClient().getCredentialsProvider())

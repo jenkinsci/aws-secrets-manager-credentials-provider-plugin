@@ -17,7 +17,7 @@ public class PluginConfigurationIT {
 
     @Test
     public void shouldHaveDefaultConfiguration() {
-        final PluginConfiguration config = getPluginConfiguration();
+        final var config = getPluginConfiguration();
 
         assertSoftly(s -> {
             s.assertThat(config.getClient()).as("Client").isNull();
