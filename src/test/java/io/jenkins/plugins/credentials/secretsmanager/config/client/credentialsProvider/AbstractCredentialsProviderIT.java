@@ -44,7 +44,7 @@ public abstract class AbstractCredentialsProviderIT {
         // Given
         final var roleArn = "arn:aws:iam::111111111111:role/foo-role";
         final var roleSessionName = "foo";
-        setCredentialsProvider(roleArn, roleSessionName);
+        setSTSAssumeRoleCredentialsProvider(roleArn, roleSessionName);
 
         // When
         final var config = getPluginConfiguration();
@@ -58,7 +58,7 @@ public abstract class AbstractCredentialsProviderIT {
     public void shouldSupportProfile() {
         // Given
         final var profileName = "foo";
-        setCredentialsProvider(profileName);
+        setProfileCredentialsProvider(profileName);
 
         // When
         final var config = getPluginConfiguration();
