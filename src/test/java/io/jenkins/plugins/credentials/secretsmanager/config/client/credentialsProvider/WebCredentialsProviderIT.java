@@ -1,7 +1,6 @@
 package io.jenkins.plugins.credentials.secretsmanager.config.client.credentialsProvider;
 
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
-import com.gargoylesoftware.htmlunit.html.HtmlSelect;
 import io.jenkins.plugins.credentials.secretsmanager.config.PluginConfiguration;
 import io.jenkins.plugins.credentials.secretsmanager.util.JenkinsConfiguredWithWebRule;
 import io.jenkins.plugins.credentials.secretsmanager.util.PluginConfigurationForm;
@@ -51,8 +50,8 @@ public class WebCredentialsProviderIT extends AbstractCredentialsProviderIT {
     }
 
     private void setClientCredentialsProviderSelect(HtmlForm form, String optionText) {
-        final PluginConfigurationForm pluginConfigurationForm = new PluginConfigurationForm(form);
-        final HtmlSelect select = pluginConfigurationForm.getDropdownList("Credentials Provider");
+        final var pluginConfigurationForm = new PluginConfigurationForm(form);
+        final var select = pluginConfigurationForm.getDropdownList("Credentials Provider");
         select.getOptionByText(optionText).setSelected(true);
     }
 }

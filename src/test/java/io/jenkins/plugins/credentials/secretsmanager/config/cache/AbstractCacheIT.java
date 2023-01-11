@@ -13,7 +13,7 @@ public abstract class AbstractCacheIT {
 
     @Test
     public void shouldHaveDefault() {
-        final PluginConfiguration config = getPluginConfiguration();
+        final var config = getPluginConfiguration();
 
         assertThat(config.getCache()).isNull();
     }
@@ -24,7 +24,7 @@ public abstract class AbstractCacheIT {
         setCache(true);
 
         // When
-        final PluginConfiguration config = getPluginConfiguration();
+        final var config = getPluginConfiguration();
 
         // Then
         assertThat(config.getCache()).isTrue();
@@ -36,7 +36,7 @@ public abstract class AbstractCacheIT {
         setCache(false);
 
         // When
-        final PluginConfiguration config = getPluginConfiguration();
+        final var config = getPluginConfiguration();
 
         // Then
         assertThat(config.getCache()).isFalse();

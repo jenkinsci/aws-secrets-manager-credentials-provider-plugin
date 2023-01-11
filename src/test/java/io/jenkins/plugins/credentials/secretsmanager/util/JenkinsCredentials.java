@@ -26,7 +26,7 @@ public class JenkinsCredentials {
     }
 
     public <C extends Credentials> List<C> lookup(Class<C> type) {
-        return CredentialsProvider.lookupCredentials(type, jenkins, ACL.SYSTEM, Lists.of());
+        return CredentialsProvider.lookupCredentials(type, jenkins, ACL.SYSTEM, List.of());
     }
 
     public <C extends StandardCredentials> ListBoxModel list(Class<C> type) {

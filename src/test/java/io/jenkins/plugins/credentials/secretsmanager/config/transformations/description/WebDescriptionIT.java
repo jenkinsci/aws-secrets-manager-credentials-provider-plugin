@@ -1,6 +1,5 @@
 package io.jenkins.plugins.credentials.secretsmanager.config.transformations.description;
 
-import com.gargoylesoftware.htmlunit.html.HtmlSelect;
 import io.jenkins.plugins.credentials.secretsmanager.config.PluginConfiguration;
 import io.jenkins.plugins.credentials.secretsmanager.util.JenkinsConfiguredWithWebRule;
 import io.jenkins.plugins.credentials.secretsmanager.util.PluginConfigurationForm;
@@ -19,9 +18,9 @@ public class WebDescriptionIT extends AbstractDescriptionIT {
     @Override
     protected void setHide() {
         r.configure(form -> {
-            final PluginConfigurationForm f = new PluginConfigurationForm(form);
+            final var f = new PluginConfigurationForm(form);
 
-            final HtmlSelect select = f.getDropdownList("Description");
+            final var select = f.getDropdownList("Description");
             select.getOptionByText("Hide").setSelected(true);
         });
     }
