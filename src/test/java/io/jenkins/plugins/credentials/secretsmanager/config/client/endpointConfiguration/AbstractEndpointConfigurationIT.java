@@ -15,12 +15,12 @@ public abstract class AbstractEndpointConfigurationIT {
     @Test
     public void shouldHaveEndpointConfiguration() {
         // Given
-        final String serviceEndpoint = "http://localhost:4584";
-        final String signingRegion = "us-east-1";
+        final var serviceEndpoint = "http://localhost:4584";
+        final var signingRegion = "us-east-1";
         setEndpointConfiguration(serviceEndpoint, signingRegion);
 
         // When
-        final PluginConfiguration config = getPluginConfiguration();
+        final var config = getPluginConfiguration();
 
         // Then
         assertThat(config.getClient().getEndpointConfiguration())

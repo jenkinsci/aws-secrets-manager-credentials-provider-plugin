@@ -31,8 +31,8 @@ public class CacheIT {
     @ConfiguredWithCode("/integration.yml")
     public void shouldCacheCredentialsByDefault() {
         // Given
-        final CreateSecretResult foo = createSecretWithTag("product", "foo");
-        final CreateSecretResult bar = createSecretWithTag("product", "bar");
+        final var foo = createSecretWithTag("product", "foo");
+        final var bar = createSecretWithTag("product", "bar");
 
         // When
         final List<StringCredentials> first = jenkins.getCredentials().lookup(StringCredentials.class);
@@ -52,8 +52,8 @@ public class CacheIT {
     @ConfiguredWithCode("/cache.yml")
     public void shouldCacheCredentialsWhenEnabled() {
         // Given
-        final CreateSecretResult foo = createSecretWithTag("product", "foo");
-        final CreateSecretResult bar = createSecretWithTag("product", "bar");
+        final var foo = createSecretWithTag("product", "foo");
+        final var bar = createSecretWithTag("product", "bar");
 
         // When
         final List<StringCredentials> first = jenkins.getCredentials().lookup(StringCredentials.class);
@@ -73,8 +73,8 @@ public class CacheIT {
     @ConfiguredWithCode("/no-cache.yml")
     public void shouldNotCacheCredentialsWhenDisabled() {
         // Given
-        final CreateSecretResult foo = createSecretWithTag("product", "foo");
-        final CreateSecretResult bar = createSecretWithTag("product", "bar");
+        final var foo = createSecretWithTag("product", "foo");
+        final var bar = createSecretWithTag("product", "bar");
 
         // When
         final List<StringCredentials> first = jenkins.getCredentials().lookup(StringCredentials.class);
@@ -91,18 +91,18 @@ public class CacheIT {
     }
 
     private void setFilter(String key, String value) {
-        final List<Filter> filters = Lists.of(new Filter(key, Lists.of(new Value(value))));
-        final ListSecrets listSecrets = new ListSecrets(filters);
-        final PluginConfiguration config = (PluginConfiguration) jenkins.getInstance().getDescriptor(PluginConfiguration.class);
+        final var filters = List.of(new Filter(key, List.of(new Value(value))));
+        final var listSecrets = new ListSecrets(filters);
+        final var config = (PluginConfiguration) jenkins.getInstance().getDescriptor(PluginConfiguration.class);
         config.setListSecrets(listSecrets);
     }
 
     private CreateSecretResult createSecretWithTag(String key, String value) {
-        return createSecret("supersecret", Lists.of(AwsTags.type(Type.string), AwsTags.tag(key, value)));
+        return createSecret("supersecret", List.of(AwsTags.type(Type.string), AwsTags.tag(key, value)));
     }
 
     private CreateSecretResult createSecret(String secretString, List<Tag> tags) {
-        final CreateSecretRequest request = new CreateSecretRequest()
+        final var request = new CreateSecretRequest()
                 .withName(CredentialNames.random())
                 .withSecretString(secretString)
                 .withTags(tags);

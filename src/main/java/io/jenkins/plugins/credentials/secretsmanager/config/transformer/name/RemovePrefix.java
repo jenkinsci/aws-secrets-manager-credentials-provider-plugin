@@ -11,7 +11,6 @@ import org.kohsuke.stapler.QueryParameter;
 
 import javax.annotation.Nonnull;
 import java.util.Objects;
-import java.util.regex.Pattern;
 
 public class RemovePrefix extends NameTransformer {
 
@@ -33,26 +32,7 @@ public class RemovePrefix extends NameTransformer {
 
     @Override
     public String transform(String str) {
-        return theTransform(str, prefix);
-    }
-
-    private static String theTransform(String str, String prefix) {
-        final String canonicalPrefix = fixNullAndTrim(prefix);
-
-        if (str.startsWith(canonicalPrefix)) {
-            return Pattern.compile(canonicalPrefix, Pattern.LITERAL)
-                    .matcher(str)
-                    .replaceFirst("");
-        } else {
-            return str;
-        }
-    }
-
-    /**
-     * Convert null to empty string, and trim whitespace.
-     */
-    private static String fixNullAndTrim(String s) {
-        return Util.fixNull(s).trim();
+        return PrefixRemover.removePrefix(prefix).from(str);
     }
 
     @Override
