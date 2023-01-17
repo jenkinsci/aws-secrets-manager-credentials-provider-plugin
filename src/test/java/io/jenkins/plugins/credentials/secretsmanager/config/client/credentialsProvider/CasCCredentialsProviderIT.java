@@ -18,17 +18,22 @@ public class CasCCredentialsProviderIT extends AbstractCredentialsProviderIT {
     }
 
     @Override
-    protected void setCredentialsProvider() {
+    protected void setDefaultCredentialsProvider() {
         // no-op (configured by annotations)
     }
 
     @Override
-    protected void setCredentialsProvider(String roleArn, String roleSessionName) {
+    protected void setSTSAssumeRoleCredentialsProvider(String roleArn, String roleSessionName) {
         // no-op (configured by annotations)
     }
 
     @Override
-    protected void setCredentialsProvider(String profileName) {
+    protected void setProfileCredentialsProvider(String profileName) {
+        // no-op (configured by annotations)
+    }
+
+    @Override
+    protected void setStaticCredentialsProvider(String accessKey, String secretKey) {
         // no-op (configured by annotations)
     }
 
@@ -51,5 +56,12 @@ public class CasCCredentialsProviderIT extends AbstractCredentialsProviderIT {
     @ConfiguredWithCode("/config/client/credentialsProvider/profile.yml")
     public void shouldSupportProfile() {
         super.shouldSupportProfile();
+    }
+
+    @Override
+    @Test
+    @ConfiguredWithCode("/config/client/credentialsProvider/static.yml")
+    public void shouldSupportStatic() {
+        super.shouldSupportStatic();
     }
 }

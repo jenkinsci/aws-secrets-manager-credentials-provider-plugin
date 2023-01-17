@@ -1,0 +1,7 @@
+unclassified:
+  awsCredentialsProvider:
+    client:
+      credentialsProvider:
+        static:
+          accessKey: "AKIAIOSFODNN7EXAMPLE"
+          secretKey: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"

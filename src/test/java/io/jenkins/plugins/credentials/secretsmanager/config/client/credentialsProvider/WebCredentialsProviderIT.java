@@ -17,14 +17,14 @@ public class WebCredentialsProviderIT extends AbstractCredentialsProviderIT {
     }
 
     @Override
-    protected void setCredentialsProvider() {
+    protected void setDefaultCredentialsProvider() {
         r.configure(form -> {
             setClientCredentialsProviderSelect(form,"Default");
         });
     }
 
     @Override
-    protected void setCredentialsProvider(String roleArn, String roleSessionName) {
+    protected void setSTSAssumeRoleCredentialsProvider(String roleArn, String roleSessionName) {
         r.configure(form -> {
             setClientCredentialsProviderSelect(form,"STS AssumeRole");
             form.getInputByName("_.roleArn").setValueAttribute(roleArn);
@@ -33,10 +33,19 @@ public class WebCredentialsProviderIT extends AbstractCredentialsProviderIT {
     }
 
     @Override
-    protected void setCredentialsProvider(String profileName) {
+    protected void setProfileCredentialsProvider(String profileName) {
         r.configure(form -> {
             setClientCredentialsProviderSelect(form, "Profile");
             form.getInputByName("_.profileName").setValueAttribute(profileName);
+        });
+    }
+
+    @Override
+    protected void setStaticCredentialsProvider(String accessKey, String secretKey) {
+        r.configure(form -> {
+            setClientCredentialsProviderSelect(form, "Static");
+            form.getInputByName("_.accessKey").setValueAttribute(accessKey);
+            form.getInputByName("_.secretKey").setValueAttribute(secretKey);
         });
     }
 

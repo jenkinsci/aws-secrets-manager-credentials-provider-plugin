@@ -1,7 +1,9 @@
 package io.jenkins.plugins.credentials.secretsmanager.config.client.credentialsProvider;
 
+import hudson.util.Secret;
 import io.jenkins.plugins.credentials.secretsmanager.config.Client;
 import io.jenkins.plugins.credentials.secretsmanager.config.PluginConfiguration;
+import io.jenkins.plugins.credentials.secretsmanager.config.credentialsProvider.AWSStaticCredentialsProvider;
 import io.jenkins.plugins.credentials.secretsmanager.config.credentialsProvider.DefaultAWSCredentialsProviderChain;
 import io.jenkins.plugins.credentials.secretsmanager.config.credentialsProvider.ProfileCredentialsProvider;
 import io.jenkins.plugins.credentials.secretsmanager.config.credentialsProvider.STSAssumeRoleSessionCredentialsProvider;
@@ -16,16 +18,18 @@ public abstract class AbstractCredentialsProviderIT {
 
     protected abstract PluginConfiguration getPluginConfiguration();
 
-    protected abstract void setCredentialsProvider();
+    protected abstract void setDefaultCredentialsProvider();
 
-    protected abstract void setCredentialsProvider(String roleArn, String roleSessionName);
+    protected abstract void setSTSAssumeRoleCredentialsProvider(String roleArn, String roleSessionName);
 
-    protected abstract void setCredentialsProvider(String profileName);
+    protected abstract void setProfileCredentialsProvider(String profileName);
+
+    protected abstract void setStaticCredentialsProvider(String accessKey, String secretKey);
 
     @Test
     public void shouldSupportDefault() {
         // Given
-        setCredentialsProvider();
+        setDefaultCredentialsProvider();
 
         // When
         final var config = getPluginConfiguration();
@@ -40,7 +44,7 @@ public abstract class AbstractCredentialsProviderIT {
         // Given
         final var roleArn = "arn:aws:iam::111111111111:role/foo-role";
         final var roleSessionName = "foo";
-        setCredentialsProvider(roleArn, roleSessionName);
+        setSTSAssumeRoleCredentialsProvider(roleArn, roleSessionName);
 
         // When
         final var config = getPluginConfiguration();
@@ -54,7 +58,7 @@ public abstract class AbstractCredentialsProviderIT {
     public void shouldSupportProfile() {
         // Given
         final var profileName = "foo";
-        setCredentialsProvider(profileName);
+        setProfileCredentialsProvider(profileName);
 
         // When
         final var config = getPluginConfiguration();
@@ -62,5 +66,20 @@ public abstract class AbstractCredentialsProviderIT {
         // Then
         assertThat(config.getClient().getCredentialsProvider())
                 .isEqualTo(new ProfileCredentialsProvider(profileName));
+    }
+
+    @Test
+    public void shouldSupportStatic() {
+        // Given
+        final String accessKey = "AKIAIOSFODNN7EXAMPLE";
+        final String secretKey = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY";
+        setStaticCredentialsProvider(accessKey, secretKey);
+
+        // When
+        final PluginConfiguration config = getPluginConfiguration();
+
+        // Then
+        assertThat(config.getClient().getCredentialsProvider())
+                .isEqualTo(new AWSStaticCredentialsProvider(accessKey, Secret.fromString(secretKey)));
     }
 }
