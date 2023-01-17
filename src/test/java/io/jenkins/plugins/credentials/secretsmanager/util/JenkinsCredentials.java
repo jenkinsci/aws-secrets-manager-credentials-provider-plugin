@@ -9,6 +9,7 @@ import hudson.util.ListBoxModel;
 import jenkins.model.Jenkins;
 
 import java.util.List;
+import java.util.stream.StreamSupport;
 
 /**
  * Convenience methods for using credentials.
@@ -21,8 +22,13 @@ public class JenkinsCredentials {
         this.jenkins = jenkins;
     }
 
-    public Iterable<CredentialsStore> lookupStores() {
-        return CredentialsProvider.lookupStores(jenkins);
+    public <C extends CredentialsStore> CredentialsStore lookupStore(Class<C> type) {
+        final var itStores = CredentialsProvider.lookupStores(jenkins);
+
+        return StreamSupport.stream(itStores.spliterator(), false)
+                .filter(store -> store.getClass().equals(type))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Could not find the specified CredentialsStore"));
     }
 
     public <C extends Credentials> List<C> lookup(Class<C> type) {
