@@ -5,7 +5,6 @@ import com.amazonaws.services.secretsmanager.model.CreateSecretResult;
 import com.amazonaws.services.secretsmanager.model.DeleteSecretRequest;
 import com.amazonaws.services.secretsmanager.model.Tag;
 import com.cloudbees.plugins.credentials.CredentialsScope;
-import com.cloudbees.plugins.credentials.CredentialsStore;
 import com.cloudbees.plugins.credentials.CredentialsUnavailableException;
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import com.cloudbees.plugins.credentials.domains.Domain;
@@ -15,7 +14,6 @@ import io.jenkins.plugins.credentials.secretsmanager.factory.Type;
 import io.jenkins.plugins.credentials.secretsmanager.util.*;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
@@ -37,13 +35,6 @@ public class CredentialsProviderIT {
 
     @Rule
     public final TestRule chain = Rules.jenkinsWithSecretsManager(jenkins, secretsManager);
-
-    private CredentialsStore store;
-
-    @Before
-    public void setupStore() {
-        store = jenkins.getCredentials().lookupStores().iterator().next();
-    }
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
@@ -160,6 +151,8 @@ public class CredentialsProviderIT {
     public void shouldNotSupportUpdates() {
         final var credential = new StringCredentialsImpl(CredentialsScope.GLOBAL,"foo", "desc", Secret.fromString(SECRET));
 
+        final var store = jenkins.getCredentials().lookupStore(AwsCredentialsStore.class);
+
         assertThatExceptionOfType(UnsupportedOperationException.class)
                 .isThrownBy(() -> store.updateCredentials(Domain.global(), credential, credential))
                 .withMessage("Jenkins may not update credentials in AWS Secrets Manager");
@@ -168,6 +161,8 @@ public class CredentialsProviderIT {
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldNotSupportInserts() {
+        final var store = jenkins.getCredentials().lookupStore(AwsCredentialsStore.class);
+
         assertThatExceptionOfType(UnsupportedOperationException.class)
                 .isThrownBy(() -> store.addCredentials(Domain.global(), new StringCredentialsImpl(CredentialsScope.GLOBAL, "foo", "desc", Secret.fromString(SECRET))))
                 .withMessage("Jenkins may not add credentials to AWS Secrets Manager");
@@ -176,6 +171,8 @@ public class CredentialsProviderIT {
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldNotSupportDeletes() {
+        final var store = jenkins.getCredentials().lookupStore(AwsCredentialsStore.class);
+
         assertThatExceptionOfType(UnsupportedOperationException.class)
                 .isThrownBy(() -> store.removeCredentials(Domain.global(), new StringCredentialsImpl(CredentialsScope.GLOBAL, "foo", "desc", Secret.fromString(SECRET))))
                 .withMessage("Jenkins may not remove credentials from AWS Secrets Manager");

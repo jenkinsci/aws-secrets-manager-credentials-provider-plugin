@@ -417,3 +417,33 @@ In your IDE:
 1. Generate translations: `mvn localizer:generate`. (This is a one-off task. You only need to re-run this if you change the translations, or if you clean the Maven `target` directory. If the IDE still cannot find the translation symbols after running `mvn localizer:generate`, use a one-off `mvn compile` instead.)
 2. Compile.
 3. Run tests.
+
+### Run
+
+You can explore how the plugin works by running it locally with [Moto](https://github.com/getmoto/moto) (the AWS mock)...
+
+Start Moto:
+
+```shell
+docker run -it -p 5000:5000 motoserver/moto:3.1.18
+```
+
+Upload some fake secrets to Moto (like these):
+
+```shell
+aws --endpoint-url http://localhost:5000 secretsmanager create-secret --name 'example-api-key' --secret-string '123456' --tags 'Key=jenkins:credentials:type,Value=string' --description 'Example API key'
+```
+
+Start Jenkins with the plugin:
+
+```shell
+mvn hpi:run
+```
+
+Edit the plugin configuration at http://localhost:8080/jenkins/configure to use Moto:
+
+1. Enable the `Endpoint Configuration` option
+2. Set `Service Endpoint` to `http://localhost:5000
+3. Set `Signing Region` to `us-east-1`
+4. Click `Save`
+5. Try loading the Jenkins credentials that have come from Moto, or using them in Jenkins jobs.
