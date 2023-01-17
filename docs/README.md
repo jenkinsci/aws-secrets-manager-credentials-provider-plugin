@@ -294,16 +294,21 @@ node {
 }
 ```
 
-## Advanced Usage
+## Custom Credential Types
 
-You may need to deal with multi-field credentials or vendor-specific credential types that the plugin does not (yet) support.
+You may need to deal with multi-field credentials, or vendor-specific credential types that the plugin does not support.
 
 In this situation you have a couple of choices:
 
-- Use the closest standard multi-field credential (e.g. Username With Password) that fits your requirements.
-- Use a string credential, serialize all the fields into the secret value (e.g. as JSON or as a delimited string), and parse them in the job script. (This is a last resort when other methods don't work, e.g. when secret rotation would cause multiple fields to change.)
+### Use the closest standard credential type
 
-Example: Jenkins authenticates to Secrets Manager using the primary AWS credential (from the environment). You have a job that performs a particular AWS operation in a different account, which uses a secondary AWS credential. You choose to encode the secondary AWS credential as JSON in the string credential `foo`:
+Use the closest standard multi-field credential type that fits your requirements. For example, Username With Password.
+
+### Serialize all fields as JSON
+
+Use a string credential, serialize all the fields into the secret value (e.g. as JSON or as a delimited string), and parse them in the job script.
+
+Example:
 
 ```groovy
 node {
@@ -317,6 +322,40 @@ node {
         sh "aws sts get-caller-identity" // or whatever
     }
 }
+```
+
+### Use the SecretSource plugin
+
+If you are able to use Jenkins Configuration as Code, you can leverage the [AWS Secrets Manager SecretSource plugin](https://github.com/jenkinsci/aws-secrets-manager-secret-source-plugin) to get considerably more flexibility over credentials.
+
+The SecretSource plugin simply interpolates values from Secrets Manager anywhere you tell it to. As such, you can use it to construct **any** credential type that you have installed in Jenkins (even custom proprietary types).
+
+Example:
+
+```yaml
+credentials:
+  system:
+    domainCredentials:
+      - credentials:
+          - gitHubApp:
+              id: "github"
+              description: "Jenkins GitHub app"
+              appID: "${jenkins-github-app-id}"
+              privateKey: "${jenkins-github-app-key}"
+```
+
+Example (using a multi-field secret and the CasC [`json` helper](https://github.com/jenkinsci/configuration-as-code-plugin/blob/master/docs/features/secrets.adoc#json)):
+
+```yaml
+credentials:
+  system:
+    domainCredentials:
+      - credentials:
+          - gitHubApp:
+              id: "github"
+              description: "Jenkins GitHub app"
+              appID: "${json:appId:${jenkins-github-app}}"
+              privateKey: "${json:privateKey:${jenkins-github-app}}"
 ```
 
 ## Configuration
