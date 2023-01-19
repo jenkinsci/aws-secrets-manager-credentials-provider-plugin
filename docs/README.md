@@ -73,10 +73,13 @@ Then, install and [configure](#Configuration) the plugin.
 ## Usage
 
 The plugin allows secrets from Secrets Manager to be used as Jenkins credentials.
- 
-Jenkins must know which [credential type](https://jenkins.io/doc/pipeline/steps/credentials-binding/) a secret is meant to be (e.g. Secret Text, Username With Password), in order to present it as a credential. To do this, **you MUST add the relevant AWS tags to the secrets in Secrets Manager**, as shown in the sections below. (If the credentials cache is enabled you must also wait for that to refresh before the newly annotated secrets appear in Jenkins.) Without these tags, the corresponding credentials will not appear in Jenkins.
 
-**Note:** If you use this plugin together with the AWS Secrets Manager SecretSource plugin, remember that any string secret is accessible through SecretSource, but only a secret with the `jenkins:credentials:type` tag is accessible through CredentialsProvider. This distinction allows you to share tagged secrets between both APIs, while untagged secrets are only accessible through SecretSource.
+Secrets must conform to the following rules to be usable in Jenkins:
+
+- A secret must have the relevant AWS tags (shown in the sections below) to indicate which Jenkins [credential type](https://jenkins.io/doc/pipeline/steps/credentials-binding/) it is meant to be (e.g. Secret Text, Username With Password). You must add these tags to the secrets. Without these tags, the corresponding credentials will not appear in Jenkins.
+- The secret name should conform to Jenkins credential naming rules, as defined in the [credentials-plugin](https://github.com/jenkinsci/credentials-plugin). That is, it should only contain the following characters: `[a-zA-Z0-9_.-]+`. If it contains other characters, you may see undefined behaviour within Jenkins (e.g. URLs containing the credential's ID may not work).
+
+Note: if you have credentials caching enabled, you must wait for the cache to reset before changes to the secrets appear.
 
 ### Secret Text
 
