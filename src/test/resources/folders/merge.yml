@@ -1,0 +1,15 @@
+jobs:
+  - script: >
+      folder('foo') {
+        description('This Folder is configured as code')
+        configure {
+          it / 'properties' / 'io.jenkins.plugins.credentials.secretsmanager.config.FolderPluginConfiguration' / 'configuration' / 'client' / 'endpointConfiguration' / serviceEndpoint << 'https://example.com'
+        }
+      }
+
+unclassified:
+  awsCredentialsProvider:
+    client:
+      endpointConfiguration:
+        serviceEndpoint: 'http://localhost:5000'
+        signingRegion: 'us-east-1'
