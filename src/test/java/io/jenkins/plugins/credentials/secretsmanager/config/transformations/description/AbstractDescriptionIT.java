@@ -17,7 +17,7 @@ public abstract class AbstractDescriptionIT {
 
     @Test
     public void shouldHaveDefault() {
-        final PluginConfiguration config = getPluginConfiguration();
+        final var config = getPluginConfiguration();
 
         assertThat(Optional.ofNullable(config.getTransformations()).map(Transformations::getDescription)).isEmpty();
     }
@@ -28,7 +28,7 @@ public abstract class AbstractDescriptionIT {
         setHide();
 
         // When
-        final PluginConfiguration config = getPluginConfiguration();
+        final var config = getPluginConfiguration();
 
         // Then
         assertThat(config.getTransformations())

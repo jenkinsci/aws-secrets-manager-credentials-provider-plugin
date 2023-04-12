@@ -43,7 +43,7 @@ public abstract class MigrationTest {
 
     @Test
     public void shouldMigrate() {
-        final PluginConfiguration config = getPluginConfiguration();
+        final var config = getPluginConfiguration();
         change(config);
     }
 

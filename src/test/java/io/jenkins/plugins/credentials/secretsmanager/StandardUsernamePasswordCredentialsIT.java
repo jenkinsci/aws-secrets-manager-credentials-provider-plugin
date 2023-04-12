@@ -2,10 +2,8 @@ package io.jenkins.plugins.credentials.secretsmanager;
 
 import com.amazonaws.services.secretsmanager.model.CreateSecretRequest;
 import com.amazonaws.services.secretsmanager.model.CreateSecretResult;
-import com.amazonaws.services.secretsmanager.model.Tag;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl;
-import hudson.util.ListBoxModel;
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
 import io.jenkins.plugins.credentials.secretsmanager.factory.Type;
 import io.jenkins.plugins.credentials.secretsmanager.util.*;
@@ -36,25 +34,25 @@ public class StandardUsernamePasswordCredentialsIT implements CredentialsTests {
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportListView() {
         // Given
-        final CreateSecretResult foo = createUsernamePasswordSecret(USERNAME, PASSWORD);
+        final var secret = createUsernamePasswordSecret(USERNAME, PASSWORD);
 
         // When
-        final ListBoxModel list = jenkins.getCredentials().list(StandardUsernamePasswordCredentials.class);
+        final var credentialList = jenkins.getCredentials().list(StandardUsernamePasswordCredentials.class);
 
         // Then
-        assertThat(list)
-                .containsOption(foo.getName(), foo.getName());
+        assertThat(credentialList)
+                .containsOption(secret.getName(), secret.getName());
     }
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldHavePassword() {
         // Given
-        final CreateSecretResult foo = createUsernamePasswordSecret(USERNAME, PASSWORD);
+        final var secret = createUsernamePasswordSecret(USERNAME, PASSWORD);
 
         // When
-        final StandardUsernamePasswordCredentials credential =
-                jenkins.getCredentials().lookup(StandardUsernamePasswordCredentials.class, foo.getName());
+        final var credential =
+                jenkins.getCredentials().lookup(StandardUsernamePasswordCredentials.class, secret.getName());
 
         // Then
         assertThat(credential)
@@ -65,11 +63,11 @@ public class StandardUsernamePasswordCredentialsIT implements CredentialsTests {
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldHaveUsername() {
         // Given
-        final CreateSecretResult foo = createUsernamePasswordSecret(USERNAME, PASSWORD);
+        final var secret = createUsernamePasswordSecret(USERNAME, PASSWORD);
 
         // When
-        final StandardUsernamePasswordCredentials credential =
-                jenkins.getCredentials().lookup(StandardUsernamePasswordCredentials.class, foo.getName());
+        final var credential =
+                jenkins.getCredentials().lookup(StandardUsernamePasswordCredentials.class, secret.getName());
 
         // Then
         assertThat(credential)
@@ -80,26 +78,26 @@ public class StandardUsernamePasswordCredentialsIT implements CredentialsTests {
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldHaveId() {
         // Given
-        final CreateSecretResult foo = createUsernamePasswordSecret(USERNAME, PASSWORD);
+        final var secret = createUsernamePasswordSecret(USERNAME, PASSWORD);
 
         // When
-        final StandardUsernamePasswordCredentials credential =
-                jenkins.getCredentials().lookup(StandardUsernamePasswordCredentials.class, foo.getName());
+        final var credential =
+                jenkins.getCredentials().lookup(StandardUsernamePasswordCredentials.class, secret.getName());
 
         // Then
         assertThat(credential)
-                .hasId(foo.getName());
+                .hasId(secret.getName());
     }
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportWithCredentialsBinding() {
         // Given
-        final CreateSecretResult foo = createUsernamePasswordSecret(USERNAME, PASSWORD);
+        final var secret = createUsernamePasswordSecret(USERNAME, PASSWORD);
 
         // When
-        final WorkflowRun run = runPipeline("",
-                "withCredentials([usernamePassword(credentialsId: '" + foo.getName() + "', usernameVariable: 'USR', passwordVariable: 'PSW')]) {",
+        final var run = runPipeline("",
+                "withCredentials([usernamePassword(credentialsId: '" + secret.getName() + "', usernameVariable: 'USR', passwordVariable: 'PSW')]) {",
                 "  echo \"Credential: {username: $USR, password: $PSW}\"",
                 "}");
 
@@ -113,16 +111,16 @@ public class StandardUsernamePasswordCredentialsIT implements CredentialsTests {
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportEnvironmentBinding() {
         // Given
-        final CreateSecretResult foo = createUsernamePasswordSecret(USERNAME, PASSWORD);
+        final var secret = createUsernamePasswordSecret(USERNAME, PASSWORD);
 
         // When
-        final WorkflowRun run = runPipeline("",
+        final var run = runPipeline("",
                 "pipeline {",
                 "  agent none",
                 "  stages {",
                 "    stage('Example') {",
                 "      environment {",
-                "        FOO = credentials('" + foo.getName() + "')",
+                "        FOO = credentials('" + secret.getName() + "')",
                 "      }",
                 "      steps {",
                 "        echo \"{variable: $FOO, username: $FOO_USR, password: $FOO_PSW}\"",
@@ -157,22 +155,22 @@ public class StandardUsernamePasswordCredentialsIT implements CredentialsTests {
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldHaveDescriptorIcon() {
-        final CreateSecretResult foo = createUsernamePasswordSecret(USERNAME, PASSWORD);
-        final StandardUsernamePasswordCredentials ours = jenkins.getCredentials().lookup(StandardUsernamePasswordCredentials.class, foo.getName());
+        final var secret = createUsernamePasswordSecret(USERNAME, PASSWORD);
 
-        // the default username/password implementation
-        final StandardUsernamePasswordCredentials theirs = new UsernamePasswordCredentialsImpl(null, "id", "description", "username", "password");
+        final var ours = jenkins.getCredentials().lookup(StandardUsernamePasswordCredentials.class, secret.getName());
+
+        final var theirs = new UsernamePasswordCredentialsImpl(null, "id", "description", "username", "password");
 
         assertThat(ours)
                 .hasSameDescriptorIconAs(theirs);
     }
 
     private CreateSecretResult createUsernamePasswordSecret(String username, String password) {
-        final List<Tag> tags = Lists.of(
+        final var tags = List.of(
                 AwsTags.type(Type.usernamePassword),
                 AwsTags.username(username));
 
-        final CreateSecretRequest request = new CreateSecretRequest()
+        final var request = new CreateSecretRequest()
                 .withName(CredentialNames.random())
                 .withSecretString(password)
                 .withTags(tags);

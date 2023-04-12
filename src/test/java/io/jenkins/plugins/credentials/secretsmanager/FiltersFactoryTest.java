@@ -2,11 +2,10 @@ package io.jenkins.plugins.credentials.secretsmanager;
 
 import io.jenkins.plugins.credentials.secretsmanager.config.Filter;
 import io.jenkins.plugins.credentials.secretsmanager.config.Value;
-import io.jenkins.plugins.credentials.secretsmanager.util.Lists;
 import org.junit.Test;
 
 import java.util.Arrays;
-import java.util.Collection;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,24 +24,24 @@ public class FiltersFactoryTest {
 
     @Test
     public void shouldCreateFilter() {
-        final Collection<Filter> config = Lists.of(filter("name", "foo", "bar"));
+        final var config = List.of(filter("name", "foo", "bar"));
 
         assertThat(FiltersFactory.create(config))
                 .extracting("key", "values")
-                .contains(tuple("name", Lists.of("foo", "bar")));
+                .contains(tuple("name", List.of("foo", "bar")));
     }
 
     @Test
     public void shouldCreateFilters() {
-        final Collection<Filter> config = Lists.of(
+        final var config = List.of(
                 filter("tag-key", "foo"),
                 filter("tag-value", "bar"));
 
         assertThat(FiltersFactory.create(config))
                 .extracting("key", "values")
                 .contains(
-                        tuple("tag-key", Lists.of("foo")),
-                        tuple("tag-value", Lists.of("bar")));
+                        tuple("tag-key", List.of("foo")),
+                        tuple("tag-value", List.of("bar")));
     }
 
 }

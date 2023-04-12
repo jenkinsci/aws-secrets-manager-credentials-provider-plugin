@@ -5,7 +5,6 @@ import com.amazonaws.services.secretsmanager.model.CreateSecretResult;
 import com.amazonaws.services.secretsmanager.model.Tag;
 import com.cloudbees.plugins.credentials.SecretBytes;
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
-import hudson.util.ListBoxModel;
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
 import io.jenkins.plugins.credentials.secretsmanager.factory.Type;
 import io.jenkins.plugins.credentials.secretsmanager.util.*;
@@ -41,38 +40,38 @@ public class FileCredentialsIT implements CredentialsTests {
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldHaveId() {
         // Given
-        final CreateSecretResult foo = createFileSecret(CONTENT);
+        final var secret = createFileSecret(CONTENT);
 
         // When
-        final FileCredentials credential = lookup(FileCredentials.class, foo.getName());
+        final var credential = lookup(FileCredentials.class, secret.getName());
 
         // Then
         assertThat(credential)
-                .hasId(foo.getName());
+                .hasId(secret.getName());
     }
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldHaveFileName() {
         // Given
-        final CreateSecretResult foo = createFileSecret(CONTENT);
+        final var secret = createFileSecret(CONTENT);
 
         // When
-        final FileCredentials credential = lookup(FileCredentials.class, foo.getName());
+        final var credential = lookup(FileCredentials.class, secret.getName());
 
         // Then
         assertThat(credential)
-                .hasFileName(foo.getName());
+                .hasFileName(secret.getName());
     }
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldHaveCustomisableFileName() {
         // Given
-        final CreateSecretResult foo = createFileSecret(CONTENT, FILENAME);
+        final var secret = createFileSecret(CONTENT, FILENAME);
 
         // When
-        final FileCredentials credential = lookup(FileCredentials.class, foo.getName());
+        final var credential = lookup(FileCredentials.class, secret.getName());
 
         // Then
         assertThat(credential)
@@ -83,10 +82,10 @@ public class FileCredentialsIT implements CredentialsTests {
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldHaveContent() {
         // Given
-        final CreateSecretResult foo = createFileSecret(CONTENT);
+        final var secret = createFileSecret(CONTENT);
 
         // When
-        final FileCredentials credential = lookup(FileCredentials.class, foo.getName());
+        final var credential = lookup(FileCredentials.class, secret.getName());
 
         // Then
         assertThat(credential)
@@ -96,10 +95,11 @@ public class FileCredentialsIT implements CredentialsTests {
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldHaveDescriptorIcon() {
-        final CreateSecretResult foo = createFileSecret(CONTENT);
-        final FileCredentials ours = lookup(FileCredentials.class, foo.getName());
+        final var secret = createFileSecret(CONTENT);
 
-        final FileCredentials theirs = new FileCredentialsImpl(null, "id", "description", "filename", SecretBytes.fromBytes(CONTENT));
+        final var ours = lookup(FileCredentials.class, secret.getName());
+
+        final var theirs = new FileCredentialsImpl(null, "id", "description", "filename", SecretBytes.fromBytes(CONTENT));
 
         assertThat(ours)
                 .hasSameDescriptorIconAs(theirs);
@@ -109,26 +109,26 @@ public class FileCredentialsIT implements CredentialsTests {
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportListView() {
         // Given
-        final CreateSecretResult foo = createFileSecret(CONTENT);
+        final var secret = createFileSecret(CONTENT);
 
         // When
-        final ListBoxModel list = jenkins.getCredentials().list(FileCredentials.class);
+        final var credentialList = jenkins.getCredentials().list(FileCredentials.class);
 
         // Then
-        assertThat(list)
-                .containsOption(foo.getName(), foo.getName());
+        assertThat(credentialList)
+                .containsOption(secret.getName(), secret.getName());
     }
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportWithCredentialsBinding() {
         // Given
-        final CreateSecretResult foo = createFileSecret(CONTENT);
+        final var secret = createFileSecret(CONTENT);
 
         // When
-        final WorkflowRun run = runPipeline("",
+        final var run = runPipeline("",
                 "node {",
-                "  withCredentials([file(credentialsId: '" + foo.getName() + "', variable: 'FILE')]) {",
+                "  withCredentials([file(credentialsId: '" + secret.getName() + "', variable: 'FILE')]) {",
                 "    echo \"Credential: {fileName: $FILE}\"",
                 "  }",
                 "}");
@@ -143,16 +143,16 @@ public class FileCredentialsIT implements CredentialsTests {
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportEnvironmentBinding() {
         // Given
-        final CreateSecretResult foo = createFileSecret(CONTENT);
+        final var secret = createFileSecret(CONTENT);
 
         // When
-        final WorkflowRun run = runPipeline("",
+        final var run = runPipeline("",
                 "pipeline {",
                 "  agent any",
                 "  stages {",
                 "    stage('Example') {",
                 "      environment {",
-                "        VAR = credentials('" + foo.getName() + "')",
+                "        VAR = credentials('" + secret.getName() + "')",
                 "      }",
                 "      steps {",
                 "        echo \"{filename: $VAR}\"",
@@ -193,19 +193,19 @@ public class FileCredentialsIT implements CredentialsTests {
     }
 
     private CreateSecretResult createFileSecret(byte[] content) {
-        final List<Tag> tags = Lists.of(AwsTags.type(Type.file));
+        final var tags = List.of(AwsTags.type(Type.file));
 
         return createSecret(content,tags);
     }
 
     private CreateSecretResult createFileSecret(byte[] content, String filename) {
-        final List<Tag> tags = Lists.of(AwsTags.type(Type.file), AwsTags.filename(filename));
+        final var tags = List.of(AwsTags.type(Type.file), AwsTags.filename(filename));
 
         return createSecret(content, tags);
     }
 
     private CreateSecretResult createSecret(byte[] content, List<Tag> tags) {
-        final CreateSecretRequest request = new CreateSecretRequest()
+        final var request = new CreateSecretRequest()
                 .withName(CredentialNames.random())
                 .withSecretBinary(ByteBuffer.wrap(content))
                 .withTags(tags);
