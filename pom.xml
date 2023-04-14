@@ -75,7 +75,7 @@
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>aws-java-sdk</artifactId>
-            <version>1.12.287-357.vf82d85a_6eefd</version>
+            <version>1.12.447-380.v65b_d0c044a_b_a_</version>
         </dependency>
         <dependency>
             <groupId>io.jenkins</groupId>
