@@ -52,7 +52,7 @@
             <dependency>
                 <groupId>io.jenkins.tools.bom</groupId>
                 <artifactId>bom-2.361.x</artifactId>
-                <version>1678.vc1feb_6a_3c0f1</version>
+                <version>2062.v154408a_24d20</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
