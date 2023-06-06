@@ -18,7 +18,7 @@ public class WebEndpointConfigurationIT extends AbstractEndpointConfigurationIT 
     protected void setEndpointConfiguration(String serviceEndpoint, String signingRegion) {
         r.configure(form -> {
             form.getInputByName("_.endpointConfiguration").setChecked(true);
-            form.getInputByName("_.serviceEndpoint").setValueAttribute(serviceEndpoint);
+            form.getInputByName("_.serviceEndpoint").setValue(serviceEndpoint);
             form.getSelectByName("_.signingRegion").setSelectedAttribute(signingRegion, true);
         });
     }
