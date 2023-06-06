@@ -1,6 +1,6 @@
 package io.jenkins.plugins.credentials.secretsmanager.config.client.credentialsProvider;
 
-import com.gargoylesoftware.htmlunit.html.HtmlForm;
+import org.htmlunit.html.HtmlForm;
 import io.jenkins.plugins.credentials.secretsmanager.config.PluginConfiguration;
 import io.jenkins.plugins.credentials.secretsmanager.util.JenkinsConfiguredWithWebRule;
 import io.jenkins.plugins.credentials.secretsmanager.util.PluginConfigurationForm;
@@ -27,8 +27,8 @@ public class WebCredentialsProviderIT extends AbstractCredentialsProviderIT {
     protected void setSTSAssumeRoleCredentialsProvider(String roleArn, String roleSessionName) {
         r.configure(form -> {
             setClientCredentialsProviderSelect(form,"STS AssumeRole");
-            form.getInputByName("_.roleArn").setValueAttribute(roleArn);
-            form.getInputByName("_.roleSessionName").setValueAttribute(roleSessionName);
+            form.getInputByName("_.roleArn").setValue(roleArn);
+            form.getInputByName("_.roleSessionName").setValue(roleSessionName);
         });
     }
 
@@ -36,7 +36,7 @@ public class WebCredentialsProviderIT extends AbstractCredentialsProviderIT {
     protected void setProfileCredentialsProvider(String profileName) {
         r.configure(form -> {
             setClientCredentialsProviderSelect(form, "Profile");
-            form.getInputByName("_.profileName").setValueAttribute(profileName);
+            form.getInputByName("_.profileName").setValue(profileName);
         });
     }
 
@@ -44,8 +44,8 @@ public class WebCredentialsProviderIT extends AbstractCredentialsProviderIT {
     protected void setStaticCredentialsProvider(String accessKey, String secretKey) {
         r.configure(form -> {
             setClientCredentialsProviderSelect(form, "Static");
-            form.getInputByName("_.accessKey").setValueAttribute(accessKey);
-            form.getInputByName("_.secretKey").setValueAttribute(secretKey);
+            form.getInputByName("_.accessKey").setValue(accessKey);
+            form.getInputByName("_.secretKey").setValue(secretKey);
         });
     }
 

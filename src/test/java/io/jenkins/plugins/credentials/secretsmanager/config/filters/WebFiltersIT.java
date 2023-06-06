@@ -38,7 +38,7 @@ public class WebFiltersIT extends AbstractFiltersIT {
             form.getSelectByName("_.key").setSelectedAttribute(filter.getKey(), true);
             // TODO support multiple filter values
             // this is a hack that skips the 'other' _.value input in the form
-            form.getInputsByName("_.value").get(0).setValueAttribute(filter.getValues().get(0).getValue());
+            form.getInputsByName("_.value").get(0).setValue(filter.getValues().get(0).getValue());
         });
     }
 }

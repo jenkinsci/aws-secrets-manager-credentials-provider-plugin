@@ -1,8 +1,8 @@
 package io.jenkins.plugins.credentials.secretsmanager.util;
 
-import com.gargoylesoftware.htmlunit.NicelyResynchronizingAjaxController;
-import com.gargoylesoftware.htmlunit.html.HtmlForm;
-import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import org.htmlunit.NicelyResynchronizingAjaxController;
+import org.htmlunit.html.HtmlForm;
+import org.htmlunit.html.HtmlPage;
 
 import org.jvnet.hudson.test.JenkinsRule;
 
