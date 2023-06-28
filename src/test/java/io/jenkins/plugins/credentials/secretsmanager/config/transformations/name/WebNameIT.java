@@ -25,7 +25,7 @@ public class WebNameIT extends AbstractNameIT {
 
             final var select = f.getDropdownList("Name");
             select.getOptionByText("Remove Prefix").setSelected(true);
-            form.getInputByName("_.prefix").setValueAttribute(prefix);
+            form.getInputByName("_.prefix").setValue(prefix);
         });
     }
 
@@ -39,7 +39,7 @@ public class WebNameIT extends AbstractNameIT {
 
             // TODO support multiple prefix values
             final var firstPrefix = prefixes.stream().findFirst().get().getValue();
-            form.getInputsByName("_.value").get(0).setValueAttribute(firstPrefix);
+            form.getInputsByName("_.value").get(0).setValue(firstPrefix);
         });
     }
 }
