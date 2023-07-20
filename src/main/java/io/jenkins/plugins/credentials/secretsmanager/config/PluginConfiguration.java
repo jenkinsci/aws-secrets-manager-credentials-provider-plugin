@@ -5,6 +5,7 @@ import hudson.Extension;
 import jenkins.model.GlobalConfiguration;
 import net.sf.json.JSONObject;
 import org.jenkinsci.Symbol;
+import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.StaplerRequest;
 
@@ -46,6 +47,15 @@ public class PluginConfiguration extends GlobalConfiguration {
 
     public PluginConfiguration() {
         load();
+    }
+
+    @DataBoundConstructor
+    public PluginConfiguration(Boolean cache, Client client, ListSecrets listSecrets, Transformations transformations) {
+        // FIXME should the deprecated properties be allowed too? what about load()?
+        this.cache = cache;
+        this.client = client;
+        this.listSecrets = listSecrets;
+        this.transformations = transformations;
     }
 
     public static PluginConfiguration getInstance() {
