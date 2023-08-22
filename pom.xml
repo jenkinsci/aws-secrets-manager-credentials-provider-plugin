@@ -52,7 +52,7 @@
             <dependency>
                 <groupId>io.jenkins.tools.bom</groupId>
                 <artifactId>bom-2.387.x</artifactId>
-                <version>2102.v854b_fec19c92</version>
+                <version>2357.v1043f8578392</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
@@ -73,9 +73,8 @@
             <artifactId>ssh-credentials</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.jenkins-ci.plugins</groupId>
-            <artifactId>aws-java-sdk</artifactId>
-            <version>1.12.447-382.vda_68e2007233</version>
+            <groupId>org.jenkins-ci.plugins.aws-java-sdk</groupId>
+            <artifactId>aws-java-sdk-secretsmanager</artifactId>
         </dependency>
         <dependency>
             <groupId>io.jenkins</groupId>
@@ -107,13 +106,6 @@
             <groupId>org.testcontainers</groupId>
             <artifactId>testcontainers</artifactId>
             <version>1.18.3</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <!-- Workaround -->
-            <groupId>joda-time</groupId>
-            <artifactId>joda-time</artifactId>
-            <version>2.12.5</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
