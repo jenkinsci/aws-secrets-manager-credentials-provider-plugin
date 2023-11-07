@@ -1,12 +1,15 @@
 package io.jenkins.plugins.credentials.secretsmanager.config;
 
+import com.amazonaws.ClientConfiguration;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder;
+import jenkins.model.Jenkins;
 import hudson.Extension;
 import hudson.Util;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
+import hudson.ProxyConfiguration;
 import hudson.util.ListBoxModel;
 import io.jenkins.plugins.credentials.secretsmanager.Messages;
 import io.jenkins.plugins.credentials.secretsmanager.config.credentialsProvider.CredentialsProvider;
@@ -76,6 +79,17 @@ public class Client extends AbstractDescribableImpl<Client> implements Serializa
 
         if (region != null && !region.isEmpty()) {
             builder.setRegion(region);
+        }
+        
+        ProxyConfiguration proxyConfiguration = Jenkins.get().proxy;
+        if(proxyConfiguration != null) {
+            ClientConfiguration configuration = new ClientConfiguration();
+            configuration.setProxyHost(proxyConfiguration.name);
+            configuration.setProxyPort(proxyConfiguration.port);
+            configuration.setProxyUsername(proxyConfiguration.getUserName());
+            configuration.setProxyPassword(proxyConfiguration.getSecretPassword().getPlainText());
+            configuration.setNonProxyHosts(proxyConfiguration.getNoProxyHost());
+            builder.setClientConfiguration(configuration);
         }
 
         return builder.build();
