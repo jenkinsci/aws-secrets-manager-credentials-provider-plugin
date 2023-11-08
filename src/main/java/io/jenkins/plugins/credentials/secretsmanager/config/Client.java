@@ -20,11 +20,15 @@ import org.kohsuke.stapler.DataBoundSetter;
 
 import javax.annotation.Nonnull;
 import java.io.Serializable;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.Objects;
 
 public class Client extends AbstractDescribableImpl<Client> implements Serializable {
 
     private static final long serialVersionUID = 1L;
+
+    private static final Logger LOG = Logger.getLogger(Client.class.getName());
 
     private CredentialsProvider credentialsProvider;
 
@@ -80,16 +84,20 @@ public class Client extends AbstractDescribableImpl<Client> implements Serializa
         if (region != null && !region.isEmpty()) {
             builder.setRegion(region);
         }
-        
-        ProxyConfiguration proxyConfiguration = Jenkins.get().proxy;
-        if(proxyConfiguration != null) {
-            ClientConfiguration configuration = new ClientConfiguration();
-            configuration.setProxyHost(proxyConfiguration.name);
-            configuration.setProxyPort(proxyConfiguration.port);
-            configuration.setProxyUsername(proxyConfiguration.getUserName());
-            configuration.setProxyPassword(proxyConfiguration.getSecretPassword().getPlainText());
-            configuration.setNonProxyHosts(proxyConfiguration.getNoProxyHost());
-            builder.setClientConfiguration(configuration);
+        try {
+            ProxyConfiguration proxyConfiguration = Jenkins.get().proxy;
+            if(proxyConfiguration != null) {
+                ClientConfiguration configuration = new ClientConfiguration();
+                configuration.setProxyHost(proxyConfiguration.name);
+                configuration.setProxyPort(proxyConfiguration.port);
+                configuration.setProxyUsername(proxyConfiguration.getUserName());
+                configuration.setProxyPassword(proxyConfiguration.getSecretPassword().getPlainText());
+                configuration.setNonProxyHosts(proxyConfiguration.getNoProxyHost());
+                builder.setClientConfiguration(configuration);
+            }
+        } catch (Exception ex) {
+            LOG.warning("AWS Secrets Manager failed to set the proxy configuration");
+            LOG.warning(ex.getMessage());
         }
 
         return builder.build();
