@@ -1,34 +1,32 @@
 package io.jenkins.plugins.credentials.secretsmanager.config;
 
-import com.amazonaws.ClientConfiguration;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder;
-import jenkins.model.Jenkins;
 import hudson.Extension;
+import hudson.ProxyConfiguration;
 import hudson.Util;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
-import hudson.ProxyConfiguration;
 import hudson.util.ListBoxModel;
+import hudson.util.Secret;
 import io.jenkins.plugins.credentials.secretsmanager.Messages;
 import io.jenkins.plugins.credentials.secretsmanager.config.credentialsProvider.CredentialsProvider;
 import io.jenkins.plugins.credentials.secretsmanager.config.credentialsProvider.DefaultAWSCredentialsProviderChain;
+import jenkins.model.Jenkins;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
 import javax.annotation.Nonnull;
 import java.io.Serializable;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.Objects;
 
 public class Client extends AbstractDescribableImpl<Client> implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private static final Logger LOG = Logger.getLogger(Client.class.getName());
+    private ClientConfiguration clientConfiguration;
 
     private CredentialsProvider credentialsProvider;
 
@@ -37,10 +35,20 @@ public class Client extends AbstractDescribableImpl<Client> implements Serializa
     private String region;
 
     @DataBoundConstructor
-    public Client(CredentialsProvider credentialsProvider, EndpointConfiguration endpointConfiguration, String region) {
+    public Client(ClientConfiguration clientConfiguration, CredentialsProvider credentialsProvider, EndpointConfiguration endpointConfiguration, String region) {
+        this.clientConfiguration = clientConfiguration;
         this.credentialsProvider = credentialsProvider;
         this.endpointConfiguration = endpointConfiguration;
         this.region = region;
+    }
+
+    public ClientConfiguration getClientConfiguration() {
+        return clientConfiguration;
+    }
+
+    @DataBoundSetter
+    public void setClientConfiguration(ClientConfiguration clientConfiguration) {
+        this.clientConfiguration = clientConfiguration;
     }
 
     public EndpointConfiguration getEndpointConfiguration() {
@@ -70,8 +78,36 @@ public class Client extends AbstractDescribableImpl<Client> implements Serializa
         this.region = Util.fixEmptyAndTrim(region);
     }
 
+    // FIXME work this in
+    private static ProxyConfiguration getProxyConfiguration() {
+        final var jenkins = Jenkins.getInstanceOrNull();
+
+        if (jenkins != null) {
+            return jenkins.getProxy();
+        }
+
+        return null;
+    }
+
     public AWSSecretsManager build() {
         final AWSSecretsManagerClientBuilder builder = AWSSecretsManagerClientBuilder.standard();
+
+        if (clientConfiguration != null) {
+            builder.setClientConfiguration(clientConfiguration.build());
+        } else {
+            final var proxyConfiguration = getProxyConfiguration();
+            if (proxyConfiguration != null) {
+                final var configuration = new com.amazonaws.ClientConfiguration();
+
+                configuration.setProxyHost(proxyConfiguration.getName());
+                configuration.setProxyPort(proxyConfiguration.getPort());
+                configuration.setProxyUsername(proxyConfiguration.getUserName());
+                configuration.setProxyPassword(Secret.toString(proxyConfiguration.getSecretPassword()));
+                configuration.setNonProxyHosts(proxyConfiguration.getNoProxyHost());
+
+                builder.setClientConfiguration(configuration);
+            }
+        }
 
         if (credentialsProvider != null) {
             builder.setCredentials(credentialsProvider.build());
@@ -84,21 +120,6 @@ public class Client extends AbstractDescribableImpl<Client> implements Serializa
         if (region != null && !region.isEmpty()) {
             builder.setRegion(region);
         }
-        try {
-            ProxyConfiguration proxyConfiguration = Jenkins.get().proxy;
-            if(proxyConfiguration != null) {
-                ClientConfiguration configuration = new ClientConfiguration();
-                configuration.setProxyHost(proxyConfiguration.name);
-                configuration.setProxyPort(proxyConfiguration.port);
-                configuration.setProxyUsername(proxyConfiguration.getUserName());
-                configuration.setProxyPassword(proxyConfiguration.getSecretPassword().getPlainText());
-                configuration.setNonProxyHosts(proxyConfiguration.getNoProxyHost());
-                builder.setClientConfiguration(configuration);
-            }
-        } catch (Exception ex) {
-            LOG.warning("AWS Secrets Manager failed to set the proxy configuration");
-            LOG.warning(ex.getMessage());
-        }
 
         return builder.build();
     }
@@ -108,14 +129,15 @@ public class Client extends AbstractDescribableImpl<Client> implements Serializa
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Client client = (Client) o;
-        return Objects.equals(credentialsProvider, client.credentialsProvider) &&
+        return Objects.equals(clientConfiguration, client.clientConfiguration) &&
+                Objects.equals(credentialsProvider, client.credentialsProvider) &&
                 Objects.equals(endpointConfiguration, client.endpointConfiguration) &&
                 Objects.equals(region, client.region);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(credentialsProvider, endpointConfiguration, region);
+        return Objects.hash(clientConfiguration, credentialsProvider, endpointConfiguration, region);
     }
 
     @Extension

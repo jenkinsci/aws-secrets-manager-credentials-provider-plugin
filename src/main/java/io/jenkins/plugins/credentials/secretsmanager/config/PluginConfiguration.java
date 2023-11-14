@@ -64,7 +64,7 @@ public class PluginConfiguration extends GlobalConfiguration {
 
     protected Object readResolve() {
         if (endpointConfiguration != null) {
-            client = new Client(null, endpointConfiguration, null);
+            client = new Client(null, null, endpointConfiguration, null);
             endpointConfiguration = null;
         }
 
