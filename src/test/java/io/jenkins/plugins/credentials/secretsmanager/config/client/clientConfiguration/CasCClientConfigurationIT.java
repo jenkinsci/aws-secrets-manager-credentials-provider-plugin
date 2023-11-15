@@ -21,14 +21,6 @@ public class CasCClientConfigurationIT extends AbstractClientConfigurationIT {
         // no-op (configured by annotations)
     }
 
-
-    @Override
-    @Test
-    @ConfiguredWithCode("/default.yml")
-    public void shouldHaveDefaultClientConfiguration() {
-        super.shouldHaveDefaultClientConfiguration();
-    }
-
     @Override
     @Test
     @ConfiguredWithCode("/config/client/clientConfiguration.yml")

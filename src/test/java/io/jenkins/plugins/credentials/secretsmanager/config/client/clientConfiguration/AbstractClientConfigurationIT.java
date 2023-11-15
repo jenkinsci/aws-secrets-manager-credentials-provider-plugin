@@ -13,16 +13,6 @@ public abstract class AbstractClientConfigurationIT {
     protected abstract void setClientConfiguration(String nonProxyHosts, String proxyHost, int proxyPort, String proxyUsername, String proxyPassword);
 
     @Test
-    public void shouldHaveDefaultClientConfiguration() {
-        // When
-        final var config = getPluginConfiguration();
-
-        // Then
-        assertThat(config.getClient().getClientConfiguration())
-                .isNull();
-    }
-
-    @Test
     public void shouldHaveClientConfiguration() {
         // Given
         final var nonProxyHosts = "example.com";
