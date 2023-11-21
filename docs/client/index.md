@@ -77,6 +77,34 @@ unclassified:
           secretKey: "${aws-secret-key}"    # e.g. wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
 ```
 
+## Client Configuration
+
+The plugin will use the default AWS client configuration if no overrides are set.
+
+If the Jenkins system-wide HTTP proxy is configured, the plugin will use the Jenkins proxy settings:
+
+```yaml
+jenkins:
+  proxy:
+    name: "localhost"
+    port: 5000
+    userName: "user"
+    secretPassword: "fake"
+```
+
+Alternatively you can set the AWS client configuration for the client. This will take precedence over any Jenkins proxy settings that may be present. (This may be useful if you need to apply different HTTP proxy settings just for Secrets Manager.)
+
+```yaml
+unclassified:
+  awsCredentialsProvider:
+    client:
+      clientConfiguration:
+        proxyHost: "localhost"
+        proxyPort: 5000
+        proxyUsername: "user"
+        proxyPassword: "fake"
+```
+
 ## Endpoint Configuration
 
 You can set the AWS endpoint configuration for the client.
