@@ -79,10 +79,12 @@ public class Client extends AbstractDescribableImpl<Client> implements Serializa
         this.region = Util.fixEmptyAndTrim(region);
     }
 
-    static Optional<ProxyConfiguration> getProxyConfiguration() {
-        final var maybeProxyConfiguration = Jenkins.lookup(ProxyConfiguration.class);
+    private static Optional<ProxyConfiguration> getProxyConfiguration() {
+        // jenkins object could be null
+        final var maybeJenkins = Optional.ofNullable(Jenkins.getInstanceOrNull());
 
-        return Optional.ofNullable(maybeProxyConfiguration);
+        // proxy object could also be null
+        return maybeJenkins.flatMap(j -> Optional.ofNullable(j.getProxy()));
     }
 
     static com.amazonaws.ClientConfiguration toClientConfiguration(ProxyConfiguration proxyConfiguration) {
