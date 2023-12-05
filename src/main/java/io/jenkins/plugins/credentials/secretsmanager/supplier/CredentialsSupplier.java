@@ -90,7 +90,7 @@ public class CredentialsSupplier implements Supplier<Collection<StandardCredenti
 
     private static AWSSecretsManager createClient(PluginConfiguration config) {
         final Client clientConfig = Optional.ofNullable(config.getClient())
-                .orElse(new Client(null, null, null));
+                .orElse(new Client(null, null, null, null));
 
         return clientConfig.build();
     }
