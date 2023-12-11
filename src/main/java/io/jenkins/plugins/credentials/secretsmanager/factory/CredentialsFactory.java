@@ -10,6 +10,7 @@ import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.util.Secret;
 import io.jenkins.plugins.credentials.secretsmanager.Messages;
+import io.jenkins.plugins.credentials.secretsmanager.factory.aws.AwsAccessKeysCredentials;
 import io.jenkins.plugins.credentials.secretsmanager.factory.certificate.AwsCertificateCredentials;
 import io.jenkins.plugins.credentials.secretsmanager.factory.file.AwsFileCredentials;
 import io.jenkins.plugins.credentials.secretsmanager.factory.ssh_user_private_key.AwsSshUserPrivateKey;
@@ -52,6 +53,13 @@ public abstract class CredentialsFactory {
                 return Optional.of(new AwsCertificateCredentials(name, description, new SecretBytesSupplier(client, arn)));
             case Type.file:
                 return Optional.of(new AwsFileCredentials(name, description, filename, new SecretBytesSupplier(client, arn)));
+            case Type.awsAccessKeys:
+                final String accesskeyid = tags.getOrDefault(Tags.accesskeyid, "");
+                final String iamrolearn = tags.getOrDefault(Tags.iamrolearn, "");
+                final String iamexternalid = tags.getOrDefault(Tags.iamexternalid, "");
+                final String iammfaserialnumberid = tags.getOrDefault(Tags.iammfaserialnumberid, "");
+                final String ststokenduration = tags.get(Tags.ststokenduration);
+                return Optional.of(new AwsAccessKeysCredentials(name, description, new SecretSupplier(client, arn), accesskeyid, iamrolearn, iamexternalid, iammfaserialnumberid, ststokenduration != null ? Integer.parseInt(ststokenduration) : null));
             default:
                 return Optional.empty();
         }
