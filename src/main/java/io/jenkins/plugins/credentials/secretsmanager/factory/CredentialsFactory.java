@@ -12,8 +12,10 @@ import hudson.util.Secret;
 import io.jenkins.plugins.credentials.secretsmanager.Messages;
 import io.jenkins.plugins.credentials.secretsmanager.factory.certificate.AwsCertificateCredentials;
 import io.jenkins.plugins.credentials.secretsmanager.factory.file.AwsFileCredentials;
+import io.jenkins.plugins.credentials.secretsmanager.factory.ssh_user_private_key.AwsJsonSshUserPrivateKey;
 import io.jenkins.plugins.credentials.secretsmanager.factory.ssh_user_private_key.AwsSshUserPrivateKey;
 import io.jenkins.plugins.credentials.secretsmanager.factory.string.AwsStringCredentials;
+import io.jenkins.plugins.credentials.secretsmanager.factory.username_password.AwsJsonUsernamePasswordCredentials;
 import io.jenkins.plugins.credentials.secretsmanager.factory.username_password.AwsUsernamePasswordCredentials;
 
 import java.util.Map;
@@ -46,8 +48,12 @@ public abstract class CredentialsFactory {
                 return Optional.of(new AwsStringCredentials(name, description, new SecretSupplier(client, arn)));
             case Type.usernamePassword:
                 return Optional.of(new AwsUsernamePasswordCredentials(name, description, new SecretSupplier(client, arn), username));
+            case Type.jsonUsernamePassword:
+                return Optional.of(new AwsJsonUsernamePasswordCredentials(name, description, new SecretSupplier(client, arn)));
             case Type.sshUserPrivateKey:
                 return Optional.of(new AwsSshUserPrivateKey(name, description, new StringSupplier(client, arn), username));
+            case Type.jsonSshUserPrivateKey:
+                return Optional.of(new AwsJsonSshUserPrivateKey(name, description, new SecretSupplier(client, arn)));
             case Type.certificate:
                 return Optional.of(new AwsCertificateCredentials(name, description, new SecretBytesSupplier(client, arn)));
             case Type.file:
