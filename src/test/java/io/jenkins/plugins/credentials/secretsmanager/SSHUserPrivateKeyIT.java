@@ -181,7 +181,7 @@ public class SSHUserPrivateKeyIT implements CredentialsTests {
 
     private CreateSecretResult createSshUserPrivateKeySecret(String username, String privateKey) {
         final var tags = List.of(
-                AwsTags.type(Type.sshUserPrivateKey),
+                AwsTags.type("sshUserPrivateKey"),
                 AwsTags.username(username));
 
         final var request = new CreateSecretRequest()

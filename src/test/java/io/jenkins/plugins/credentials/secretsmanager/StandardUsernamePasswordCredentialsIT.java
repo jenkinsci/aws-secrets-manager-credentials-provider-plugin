@@ -166,7 +166,7 @@ public class StandardUsernamePasswordCredentialsIT implements CredentialsTests {
 
     private CreateSecretResult createUsernamePasswordSecret(String username, String password) {
         final var tags = List.of(
-                AwsTags.type(Type.usernamePassword),
+                AwsTags.type("usernamePassword"),
                 AwsTags.username(username));
 
         final var request = new CreateSecretRequest()

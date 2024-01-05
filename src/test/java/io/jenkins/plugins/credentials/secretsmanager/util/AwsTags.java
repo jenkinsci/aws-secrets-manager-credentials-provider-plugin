@@ -23,10 +23,6 @@ public abstract class AwsTags {
         return tag(namespaced("type"), type);
     }
 
-    public static Tag tag(String key) {
-        return new Tag().withKey(key);
-    }
-
     public static Tag tag(String key, String value) {
         return new Tag().withKey(key).withValue(value);
     }

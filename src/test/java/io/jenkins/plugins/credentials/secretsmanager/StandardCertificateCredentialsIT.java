@@ -179,7 +179,7 @@ public class StandardCertificateCredentialsIT implements CredentialsTests {
     }
 
     private CreateSecretResult createCertificateSecret(byte[] secretBinary) {
-        final var tags = List.of(AwsTags.type(Type.certificate));
+        final var tags = List.of(AwsTags.type("certificate"));
 
         final var request = new CreateSecretRequest()
                 .withName(CredentialNames.random())
