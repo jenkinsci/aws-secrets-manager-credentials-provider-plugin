@@ -9,7 +9,6 @@ import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import com.cloudbees.plugins.credentials.impl.CertificateCredentialsImpl;
 import hudson.model.Result;
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
-import io.jenkins.plugins.credentials.secretsmanager.factory.Type;
 import io.jenkins.plugins.credentials.secretsmanager.util.*;
 import io.jenkins.plugins.credentials.secretsmanager.util.assertions.CustomSoftAssertions;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;

@@ -3,9 +3,11 @@ package io.jenkins.plugins.credentials.secretsmanager.factory;
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
 
-import java.util.Map;
 import java.util.Optional;
 
+/**
+ * Interface for factories that construct Secrets Manager credential objects. Authors of custom Secrets Manager-based credential types should implement this interface, and declare it in their META-INF/services definition.
+ */
 public interface AwsCredentialsFactory {
 
     /**
@@ -24,5 +26,5 @@ public interface AwsCredentialsFactory {
      * @param client the Secrets Manager client that will retrieve the secret's value on demand
      * @return a credential (if one could be constructed from the secret's properties)
      */
-    Optional<StandardCredentials> create(String arn, String name, String description, Map<String, String> tags, AWSSecretsManager client);
+    Optional<StandardCredentials> create(String arn, String name, String description, Tags tags, AWSSecretsManager client);
 }

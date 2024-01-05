@@ -6,7 +6,6 @@ import com.cloudbees.jenkins.plugins.sshcredentials.SSHUserPrivateKey;
 import com.cloudbees.jenkins.plugins.sshcredentials.impl.BasicSSHUserPrivateKey;
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
-import io.jenkins.plugins.credentials.secretsmanager.factory.Type;
 import io.jenkins.plugins.credentials.secretsmanager.util.*;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.junit.Rule;

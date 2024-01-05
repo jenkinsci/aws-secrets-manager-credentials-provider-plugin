@@ -1,4 +1,4 @@
-package io.jenkins.plugins.credentials.secretsmanager.factory;
+package io.jenkins.plugins.credentials.secretsmanager.util;
 
 /**
  * Corresponds to the Jenkinsfile credentials binding type names.

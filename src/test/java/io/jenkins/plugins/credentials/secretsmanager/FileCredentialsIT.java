@@ -6,7 +6,6 @@ import com.amazonaws.services.secretsmanager.model.Tag;
 import com.cloudbees.plugins.credentials.SecretBytes;
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
-import io.jenkins.plugins.credentials.secretsmanager.factory.Type;
 import io.jenkins.plugins.credentials.secretsmanager.util.*;
 import org.jenkinsci.plugins.plaincredentials.FileCredentials;
 import org.jenkinsci.plugins.plaincredentials.impl.FileCredentialsImpl;

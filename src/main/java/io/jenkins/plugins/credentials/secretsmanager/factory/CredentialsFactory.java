@@ -9,7 +9,6 @@ import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import io.jenkins.plugins.credentials.secretsmanager.Messages;
 
-import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.ServiceLoader;
@@ -24,7 +23,7 @@ public abstract class CredentialsFactory {
     }
 
     public static Optional<StandardCredentials> create(String arn, String name, String description, Map<String, String> tags, AWSSecretsManager client) {
-        final var type = tags.getOrDefault(Tags.type, "");
+        final var type = tags.getOrDefault("type", "");
 
         // Collectors.toMap ensures the factories are unique
         final var factories = ServiceLoader.load(AwsCredentialsFactory.class)
@@ -34,8 +33,10 @@ public abstract class CredentialsFactory {
 
         final var factory = Optional.ofNullable(factories.get(type));
 
+        final var tagsProvider = new NamespacedTags(tags);
+
         return factory.stream()
-                .map(f -> f.create(arn, name, description, tags, client))
+                .map(f -> f.create(arn, name, description, tagsProvider, client))
                 .flatMap(Optional::stream)
                 .findFirst();
     }
