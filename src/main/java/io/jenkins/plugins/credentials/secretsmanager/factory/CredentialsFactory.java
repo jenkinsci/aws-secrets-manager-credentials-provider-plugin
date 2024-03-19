@@ -143,7 +143,7 @@ public abstract class CredentialsFactory {
                     return SecretValue.binary(result.getSecretBinary().array());
                 }
                 if (result.getSecretString() != null) {
-                    return SecretValue.string(result.getSecretString());
+                    return SecretValue.string(result.getSecretString().replaceAll("\r", ""));
                 }
                 throw new IllegalStateException(Messages.emptySecretError(id));
             } catch (AmazonClientException ex) {
