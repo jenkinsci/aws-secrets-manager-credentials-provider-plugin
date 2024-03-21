@@ -112,7 +112,7 @@ public abstract class CredentialsFactory {
             return getSecretValue().match(new SecretValue.Matcher<String>() {
                 @Override
                 public String string(String str) {
-                    return str;
+                    return str.replaceAll("\r\n", "\n");
                 }
 
                 @Override
