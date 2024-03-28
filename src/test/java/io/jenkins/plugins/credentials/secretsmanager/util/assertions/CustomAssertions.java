@@ -1,5 +1,6 @@
 package io.jenkins.plugins.credentials.secretsmanager.util.assertions;
 
+import com.cloudbees.jenkins.plugins.awscredentials.AmazonWebServicesCredentials;
 import com.cloudbees.jenkins.plugins.sshcredentials.SSHUserPrivateKey;
 import com.cloudbees.plugins.credentials.common.StandardCertificateCredentials;
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
@@ -40,6 +41,10 @@ public class CustomAssertions {
 
     public static SSHUserPrivateKeyAssert assertThat(SSHUserPrivateKey actual) {
         return new SSHUserPrivateKeyAssert(actual);
+    }
+
+    public static AmazonWebServicesCredentialsAssert assertThat(AmazonWebServicesCredentials actual) {
+        return new AmazonWebServicesCredentialsAssert(actual);
     }
 
     public static WorkflowRunAssert assertThat(WorkflowRun actual) {
