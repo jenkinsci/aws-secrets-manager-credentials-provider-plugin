@@ -3,7 +3,7 @@ package io.jenkins.plugins.credentials.secretsmanager;
 import com.amazonaws.services.secretsmanager.model.CreateSecretRequest;
 import com.amazonaws.services.secretsmanager.model.CreateSecretResult;
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
-import io.jenkins.plugins.credentials.secretsmanager.factory.Type;
+import io.jenkins.plugins.credentials.secretsmanager.util.Type;
 import io.jenkins.plugins.credentials.secretsmanager.util.*;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.junit.Rule;
