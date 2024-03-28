@@ -9,6 +9,7 @@ public abstract class Type {
     public static final String usernamePassword = "usernamePassword";
     public static final String sshUserPrivateKey = "sshUserPrivateKey";
     public static final String string = "string";
+    public static final String githubApp = "githubApp";
 
     private Type() {
 

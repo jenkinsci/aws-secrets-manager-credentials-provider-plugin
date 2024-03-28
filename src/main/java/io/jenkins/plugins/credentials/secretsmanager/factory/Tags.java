@@ -9,6 +9,7 @@ public abstract class Tags {
     public static final String filename = namespace + "filename";
     public static final String type = namespace + "type";
     public static final String username = namespace + "username";
+    public static final String appid = namespace + "appid";
 
     private Tags() {
 

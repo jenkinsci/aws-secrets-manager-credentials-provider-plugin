@@ -5,6 +5,7 @@ import com.cloudbees.plugins.credentials.common.StandardCertificateCredentials;
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import hudson.util.ListBoxModel;
+import org.jenkinsci.plugins.github_branch_source.GitHubAppCredentials;
 import org.jenkinsci.plugins.plaincredentials.FileCredentials;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
@@ -40,6 +41,10 @@ public class CustomAssertions {
 
     public static SSHUserPrivateKeyAssert assertThat(SSHUserPrivateKey actual) {
         return new SSHUserPrivateKeyAssert(actual);
+    }
+
+    public static GithubAppCredentialsAssert assertThat(GitHubAppCredentials actual) {
+        return new GithubAppCredentialsAssert(actual);
     }
 
     public static WorkflowRunAssert assertThat(WorkflowRun actual) {
