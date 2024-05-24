@@ -40,12 +40,15 @@ public abstract class CredentialsFactory {
         final String type = tags.getOrDefault(Tags.type, "");
         final String username = tags.getOrDefault(Tags.username, "");
         final String filename = tags.getOrDefault(Tags.filename, name);
+        final Boolean maskUsername = tags.getOrDefault(Tags.maskUsername, "").equalsIgnoreCase("false")
+            ? false
+            : true;
 
         switch (type) {
             case Type.string:
                 return Optional.of(new AwsStringCredentials(name, description, new SecretSupplier(client, arn)));
             case Type.usernamePassword:
-                return Optional.of(new AwsUsernamePasswordCredentials(name, description, new SecretSupplier(client, arn), username));
+                return Optional.of(new AwsUsernamePasswordCredentials(name, description, new SecretSupplier(client, arn), username, maskUsername));
             case Type.sshUserPrivateKey:
                 return Optional.of(new AwsSshUserPrivateKey(name, description, new StringSupplier(client, arn), username));
             case Type.certificate:
