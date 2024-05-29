@@ -14,7 +14,7 @@ public class AwsSshUserPrivateKeySnapshotTaker extends CredentialsSnapshotTaker<
 
     @Override
     public AwsSshUserPrivateKey snapshot(AwsSshUserPrivateKey credential) {
-        return new AwsSshUserPrivateKey(credential.getId(), credential.getDescription(), new StringSnapshot(credential.getPrivateKey()), credential.getUsername());
+        return new AwsSshUserPrivateKey(credential.getId(), credential.getDescription(), new StringSnapshot(credential.getPrivateKey()), credential.getUsername(), credential.isUsernameSecret());
     }
 
     private static class StringSnapshot extends Snapshot<String> {
@@ -23,4 +23,3 @@ public class AwsSshUserPrivateKeySnapshotTaker extends CredentialsSnapshotTaker<
         }
     }
 }
-

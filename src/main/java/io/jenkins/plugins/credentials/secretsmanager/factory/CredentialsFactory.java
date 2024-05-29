@@ -50,7 +50,7 @@ public abstract class CredentialsFactory {
             case Type.usernamePassword:
                 return Optional.of(new AwsUsernamePasswordCredentials(name, description, new SecretSupplier(client, arn), username, maskUsername));
             case Type.sshUserPrivateKey:
-                return Optional.of(new AwsSshUserPrivateKey(name, description, new StringSupplier(client, arn), username));
+                return Optional.of(new AwsSshUserPrivateKey(name, description, new StringSupplier(client, arn), username, maskUsername));
             case Type.certificate:
                 return Optional.of(new AwsCertificateCredentials(name, description, new SecretBytesSupplier(client, arn)));
             case Type.file:
