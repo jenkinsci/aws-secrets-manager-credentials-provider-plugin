@@ -16,6 +16,7 @@ import io.jenkins.plugins.credentials.secretsmanager.factory.ssh_user_private_ke
 import io.jenkins.plugins.credentials.secretsmanager.factory.string.AwsStringCredentials;
 import io.jenkins.plugins.credentials.secretsmanager.factory.username_password.AwsUsernamePasswordCredentials;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -68,7 +69,7 @@ public abstract class CredentialsFactory {
             return getSecretValue().match(new SecretValue.Matcher<SecretBytes>() {
                 @Override
                 public SecretBytes string(String str) {
-                    return null;
+                    return SecretBytes.fromBytes(str.getBytes(StandardCharsets.UTF_8));
                 }
 
                 @Override
