@@ -19,11 +19,13 @@ public class AwsSshUserPrivateKey extends BaseStandardCredentials implements SSH
 
     private final Supplier<String> privateKey;
     private final String username;
+    private final Boolean maskUsername;
 
-    public AwsSshUserPrivateKey(String id, String description, Supplier<String> privateKey, String username) {
+    public AwsSshUserPrivateKey(String id, String description, Supplier<String> privateKey, String username, Boolean maskUsername) {
         super(id, description);
         this.privateKey = privateKey;
         this.username = username;
+        this.maskUsername = maskUsername;
     }
 
     @NonNull
@@ -36,6 +38,11 @@ public class AwsSshUserPrivateKey extends BaseStandardCredentials implements SSH
     @Override
     public Secret getPassphrase() {
         return NO_PASSPHRASE;
+    }
+
+    @Override
+    public boolean isUsernameSecret() {
+        return maskUsername;
     }
 
     @NonNull
