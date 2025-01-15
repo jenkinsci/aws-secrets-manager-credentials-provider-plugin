@@ -1,8 +1,8 @@
 package io.jenkins.plugins.credentials.secretsmanager.util;
 
-import com.gargoylesoftware.htmlunit.html.HtmlButton;
-import com.gargoylesoftware.htmlunit.html.HtmlForm;
-import com.gargoylesoftware.htmlunit.html.HtmlSelect;
+import org.htmlunit.html.HtmlButton;
+import org.htmlunit.html.HtmlForm;
+import org.htmlunit.html.HtmlSelect;
 
 import java.util.List;
 
@@ -25,11 +25,11 @@ public class PluginConfigurationForm {
 
     private static class XPaths {
         private static String dropdownList(String settingName) {
-            return String.format("//div[contains(@class, 'setting-name') and normalize-space(text()) = '%s']/following-sibling::div[contains(@class, 'setting-main')]/select[contains(@class, 'dropdownList')]", settingName);
+            return String.format("//div[contains(@class, 'jenkins-form-label') and normalize-space(text()) = '%s']/following-sibling::div[contains(@class, 'jenkins-select')]/select", settingName);
         }
 
         private static String repeatableAddButtons(String settingName) {
-            return String.format("//div[contains(@class, 'setting-name') and text()='%s']/following-sibling::div[@class='setting-main']//span[contains(string(@class),'repeatable-add')]//button[contains(text(), 'Add')]", settingName);
+            return String.format("//div[contains(@class, 'jenkins-form-label') and text()='%s']/following-sibling::div[@class='setting-main']//span[contains(string(@class),'repeatable-add')]//button[contains(text(), 'Add')]", settingName);
         }
     }
 }

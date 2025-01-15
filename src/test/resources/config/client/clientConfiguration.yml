@@ -1,0 +1,9 @@
+unclassified:
+  awsCredentialsProvider:
+    client:
+      clientConfiguration:
+        nonProxyHosts: "example.com"
+        proxyHost: "localhost"
+        proxyPort: 5000
+        proxyUsername: "user"
+        proxyPassword: "fake"

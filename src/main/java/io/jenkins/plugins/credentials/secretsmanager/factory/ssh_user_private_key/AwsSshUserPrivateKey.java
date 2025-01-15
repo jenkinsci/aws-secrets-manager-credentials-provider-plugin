@@ -61,7 +61,7 @@ public class AwsSshUserPrivateKey extends BaseStandardCredentials implements SSH
 
         @Override
         public String getIconClassName() {
-            return "icon-ssh-credentials-ssh-key";
+            return "symbol-fingerprint";
         }
 
         @Override

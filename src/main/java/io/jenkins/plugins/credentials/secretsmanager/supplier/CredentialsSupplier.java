@@ -63,7 +63,7 @@ public class CredentialsSupplier implements Supplier<Collection<StandardCredenti
                     final String description = secretListEntry.getDescription();
                     final Map<String, String> tags = Lists.toMap(secretListEntry.getTags(), Tag::getKey, Tag::getValue);
                     final Optional<StandardCredentials> cred = CredentialsFactory.create(arn, name, description, tags, client);
-                    return Optionals.stream(cred);
+                    return cred.stream();
                 })
                 .collect(Collectors.toList());
     }
@@ -90,7 +90,7 @@ public class CredentialsSupplier implements Supplier<Collection<StandardCredenti
 
     private static AWSSecretsManager createClient(PluginConfiguration config) {
         final Client clientConfig = Optional.ofNullable(config.getClient())
-                .orElse(new Client(null, null, null));
+                .orElse(new Client(null, null, null, null));
 
         return clientConfig.build();
     }

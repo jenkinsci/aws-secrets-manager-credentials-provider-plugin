@@ -1,7 +1,9 @@
 package io.jenkins.plugins.credentials.secretsmanager.config.client.credentialsProvider;
 
+import hudson.util.Secret;
 import io.jenkins.plugins.credentials.secretsmanager.config.Client;
 import io.jenkins.plugins.credentials.secretsmanager.config.PluginConfiguration;
+import io.jenkins.plugins.credentials.secretsmanager.config.credentialsProvider.AWSStaticCredentialsProvider;
 import io.jenkins.plugins.credentials.secretsmanager.config.credentialsProvider.DefaultAWSCredentialsProviderChain;
 import io.jenkins.plugins.credentials.secretsmanager.config.credentialsProvider.ProfileCredentialsProvider;
 import io.jenkins.plugins.credentials.secretsmanager.config.credentialsProvider.STSAssumeRoleSessionCredentialsProvider;
@@ -16,19 +18,21 @@ public abstract class AbstractCredentialsProviderIT {
 
     protected abstract PluginConfiguration getPluginConfiguration();
 
-    protected abstract void setCredentialsProvider();
+    protected abstract void setDefaultCredentialsProvider();
 
-    protected abstract void setCredentialsProvider(String roleArn, String roleSessionName);
+    protected abstract void setSTSAssumeRoleCredentialsProvider(String roleArn, String roleSessionName);
 
-    protected abstract void setCredentialsProvider(String profileName);
+    protected abstract void setProfileCredentialsProvider(String profileName);
+
+    protected abstract void setStaticCredentialsProvider(String accessKey, String secretKey);
 
     @Test
     public void shouldSupportDefault() {
         // Given
-        setCredentialsProvider();
+        setDefaultCredentialsProvider();
 
         // When
-        final PluginConfiguration config = getPluginConfiguration();
+        final var config = getPluginConfiguration();
 
         // Then (it's allowed to be null or an instance of the default type)
         CustomAssertions.assertThat(Optional.ofNullable(config).map(PluginConfiguration::getClient).map(Client::getCredentialsProvider))
@@ -38,12 +42,12 @@ public abstract class AbstractCredentialsProviderIT {
     @Test
     public void shouldSupportAssumeRole() {
         // Given
-        final String roleArn = "arn:aws:iam::111111111111:role/foo-role";
-        final String roleSessionName = "foo";
-        setCredentialsProvider(roleArn, roleSessionName);
+        final var roleArn = "arn:aws:iam::111111111111:role/foo-role";
+        final var roleSessionName = "foo";
+        setSTSAssumeRoleCredentialsProvider(roleArn, roleSessionName);
 
         // When
-        final PluginConfiguration config = getPluginConfiguration();
+        final var config = getPluginConfiguration();
 
         // Then
         assertThat(config.getClient().getCredentialsProvider())
@@ -53,14 +57,29 @@ public abstract class AbstractCredentialsProviderIT {
     @Test
     public void shouldSupportProfile() {
         // Given
-        final String profileName = "foo";
-        setCredentialsProvider(profileName);
+        final var profileName = "foo";
+        setProfileCredentialsProvider(profileName);
+
+        // When
+        final var config = getPluginConfiguration();
+
+        // Then
+        assertThat(config.getClient().getCredentialsProvider())
+                .isEqualTo(new ProfileCredentialsProvider(profileName));
+    }
+
+    @Test
+    public void shouldSupportStatic() {
+        // Given
+        final String accessKey = "AKIAIOSFODNN7EXAMPLE";
+        final String secretKey = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY";
+        setStaticCredentialsProvider(accessKey, secretKey);
 
         // When
         final PluginConfiguration config = getPluginConfiguration();
 
         // Then
         assertThat(config.getClient().getCredentialsProvider())
-                .isEqualTo(new ProfileCredentialsProvider(profileName));
+                .isEqualTo(new AWSStaticCredentialsProvider(accessKey, Secret.fromString(secretKey)));
     }
 }

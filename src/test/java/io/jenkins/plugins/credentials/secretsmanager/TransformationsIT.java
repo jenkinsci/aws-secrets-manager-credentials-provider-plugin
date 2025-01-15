@@ -12,8 +12,6 @@ import org.junit.experimental.runners.Enclosed;
 import org.junit.rules.TestRule;
 import org.junit.runner.RunWith;
 
-import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
 
@@ -34,15 +32,15 @@ public class TransformationsIT {
         public final TestRule chain = Rules.jenkinsWithSecretsManager(jenkins, secretsManager);
 
         @Test
-        @ConfiguredWithCode(value = "/transformations.yml")
+        @ConfiguredWithCode(value = "/transformations/removePrefix.yml")
         public void shouldRemovePrefix() {
             // Given
-            final CreateSecretResult foo = createSecretWithName("staging-foo", SECRET_STRING);
-            final CreateSecretResult bar = createSecretWithName("staging-bar", SECRET_STRING);
-            final CreateSecretResult baz = createSecretWithName("baz", SECRET_STRING);
+            final var foo = createSecretWithName("staging-foo", SECRET_STRING);
+            final var bar = createSecretWithName("staging-bar", SECRET_STRING);
+            final var baz = createSecretWithName("baz", SECRET_STRING);
 
             // When
-            final List<StringCredentials> credentials = jenkins.getCredentials().lookup(StringCredentials.class);
+            final var credentials = jenkins.getCredentials().lookup(StringCredentials.class);
 
             // Then
             assertThat(credentials)
@@ -51,7 +49,24 @@ public class TransformationsIT {
         }
 
         @Test
-        @ConfiguredWithCode(value = "/transformations.yml")
+        @ConfiguredWithCode(value = "/transformations/removePrefixes.yml")
+        public void shouldRemovePrefixes() {
+            // Given
+            final var foo = createSecretWithName("staging-foo", SECRET_STRING);
+            final var bar = createSecretWithName("production-bar", SECRET_STRING);
+            final var baz = createSecretWithName("baz", SECRET_STRING);
+
+            // When
+            final var credentials = jenkins.getCredentials().lookup(StringCredentials.class);
+
+            // Then
+            assertThat(credentials)
+                    .extracting("id")
+                    .contains("foo", "bar", "baz");
+        }
+
+        @Test
+        @ConfiguredWithCode(value = "/transformations/removePrefix.yml")
         public void shouldStillResolveAfterTransformation() {
             // Given
             final CreateSecretResult stagingFoo = createSecretWithName("staging-foo", SECRET_STRING);
@@ -65,7 +80,7 @@ public class TransformationsIT {
         }
 
         private CreateSecretResult createSecretWithName(String name, String secretString) {
-            final CreateSecretRequest request = new CreateSecretRequest()
+            final var request = new CreateSecretRequest()
                     .withName(name)
                     .withSecretString(secretString)
                     .withTags(AwsTags.type(Type.string));
@@ -91,10 +106,10 @@ public class TransformationsIT {
         @ConfiguredWithCode(value = "/integration.yml")
         public void shouldShowDescriptionByDefault() {
             //Given
-            final CreateSecretResult secret = createSecretWithDescription(DESCRIPTION);
+            final var secret = createSecretWithDescription(DESCRIPTION);
 
             // When
-            final List<StringCredentials> credentials = jenkins.getCredentials().lookup(StringCredentials.class);
+            final var credentials = jenkins.getCredentials().lookup(StringCredentials.class);
 
             // Then
             assertThat(credentials)
@@ -103,13 +118,13 @@ public class TransformationsIT {
         }
 
         @Test
-        @ConfiguredWithCode(value = "/no-description.yml")
+        @ConfiguredWithCode(value = "/transformations/no-description.yml")
         public void shouldHideDescription() {
             // Given
-            final CreateSecretResult secret = createSecretWithDescription(DESCRIPTION);
+            final var secret = createSecretWithDescription(DESCRIPTION);
 
             // When
-            final List<StringCredentials> credentials = jenkins.getCredentials().lookup(StringCredentials.class);
+            final var credentials = jenkins.getCredentials().lookup(StringCredentials.class);
 
             // Then
             assertThat(credentials)
@@ -118,7 +133,7 @@ public class TransformationsIT {
         }
 
         private CreateSecretResult createSecretWithDescription(String description) {
-            final CreateSecretRequest request = new CreateSecretRequest()
+            final var request = new CreateSecretRequest()
                     .withName(CredentialNames.random())
                     .withSecretString("supersecret")
                     .withDescription(description)

@@ -4,10 +4,8 @@ import com.amazonaws.AmazonWebServiceRequest;
 import com.amazonaws.ResponseMetadata;
 import com.amazonaws.services.secretsmanager.AWSSecretsManager;
 import com.amazonaws.services.secretsmanager.model.*;
-
 import org.junit.Test;
 
-import java.util.Collection;
 import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -16,30 +14,30 @@ public class ListSecretsOperationTest {
 
     @Test
     public void shouldHandleMissingSecret() {
-        final ListSecretsResult result = new ListSecretsResult().withSecretList();
-        final ListSecretsOperation strategy = new ListSecretsOperation(new MockAwsSecretsManager(result), Collections.emptyList());
+        final var result = new ListSecretsResult().withSecretList();
+        final var strategy = new ListSecretsOperation(new MockAwsSecretsManager(result), Collections.emptyList());
 
-        final Collection<SecretListEntry> secrets = strategy.get();
+        final var secrets = strategy.get();
 
         assertThat(secrets).isEmpty();
     }
 
     @Test
     public void shouldHandleSecret() {
-        final ListSecretsResult result = new ListSecretsResult().withSecretList(new SecretListEntry().withName("foo").withDescription("bar"));
-        final ListSecretsOperation strategy = new ListSecretsOperation(new MockAwsSecretsManager(result), Collections.emptyList());
+        final var result = new ListSecretsResult().withSecretList(new SecretListEntry().withName("foo").withDescription("bar"));
+        final var strategy = new ListSecretsOperation(new MockAwsSecretsManager(result), Collections.emptyList());
 
-        final Collection<SecretListEntry> secrets = strategy.get();
+        final var secrets = strategy.get();
 
         assertThat(secrets).containsExactly(new SecretListEntry().withDescription("bar").withName("foo"));
     }
 
     @Test
     public void shouldHandleSecretWithTags() {
-        final ListSecretsResult result = new ListSecretsResult().withSecretList(new SecretListEntry().withName("foo").withDescription("bar").withTags(new Tag().withKey("key").withValue("value")));
-        final ListSecretsOperation strategy = new ListSecretsOperation(new MockAwsSecretsManager(result), Collections.emptyList());
+        final var result = new ListSecretsResult().withSecretList(new SecretListEntry().withName("foo").withDescription("bar").withTags(new Tag().withKey("key").withValue("value")));
+        final var strategy = new ListSecretsOperation(new MockAwsSecretsManager(result), Collections.emptyList());
 
-        final Collection<SecretListEntry> secrets = strategy.get();
+        final var secrets = strategy.get();
 
         assertThat(secrets).containsExactly(new SecretListEntry().withDescription("bar").withName("foo").withTags(new Tag().withKey("key").withValue("value")));
     }

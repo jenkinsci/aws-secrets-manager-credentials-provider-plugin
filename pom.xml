@@ -5,13 +5,13 @@
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
-        <version>4.40</version>
+        <version>4.79</version>
         <relativePath />
     </parent>
 
     <groupId>io.jenkins.plugins</groupId>
     <artifactId>aws-secrets-manager-credentials-provider</artifactId>
-    <version>${revision}${changelist}</version>
+    <version>${revision}.${changelist}</version>
     <packaging>hpi</packaging>
 
     <name>AWS Secrets Manager Credentials Provider</name>
@@ -35,24 +35,24 @@
 
     <scm>
         <connection>https://github.com/jenkinsci/${project.artifactId}-plugin.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com/jenkinsci/${project.artifactId}-plugin.git</developerConnection>
-        <url>https://github.com/jenkinsci/${project.artifactId}-plugin/blob/master/docs/README.md</url>
+        <developerConnection>scm:git:git@github.com:jenkinsci/${project.artifactId}-plugin.git</developerConnection>
+        <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
         <tag>${scmTag}</tag>
     </scm>
 
     <properties>
-        <revision>1.2.1</revision>
-        <changelist>-SNAPSHOT</changelist>
-        <java.level>8</java.level>
-        <jenkins.version>2.289.3</jenkins.version>
+        <revision>1</revision>
+        <changelist>999999-SNAPSHOT</changelist>
+        <java.level>11</java.level>
+        <jenkins.version>2.387.3</jenkins.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
             <dependency>
                 <groupId>io.jenkins.tools.bom</groupId>
-                <artifactId>bom-2.289.x</artifactId>
-                <version>1461.vb_3c6de28f2b_a_</version>
+                <artifactId>bom-2.387.x</artifactId>
+                <version>2543.vfb_1a_5fb_9496d</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
@@ -73,9 +73,8 @@
             <artifactId>ssh-credentials</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.jenkins-ci.plugins</groupId>
-            <artifactId>aws-java-sdk</artifactId>
-            <version>1.12.163-315.v2b_716ec8e4df</version>
+            <groupId>org.jenkins-ci.plugins.aws-java-sdk</groupId>
+            <artifactId>aws-java-sdk-secretsmanager</artifactId>
         </dependency>
         <dependency>
             <groupId>io.jenkins</groupId>
@@ -100,34 +99,13 @@
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
-            <version>3.21.0</version>
+            <version>3.24.2</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>testcontainers</artifactId>
-            <version>1.17.3</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <!-- Workaround -->
-            <groupId>joda-time</groupId>
-            <artifactId>joda-time</artifactId>
-            <version>2.10.13</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <!-- Workaround -->
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>1.7.36</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <!-- Workaround -->
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-compress</artifactId>
-            <version>1.21</version>
+            <version>1.19.2</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -179,7 +157,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>3.1.2</version>
+                <version>3.2.0</version>
                 <configuration>
                     <configLocation>google_checks.xml</configLocation>
                     <sourceDirectories>${project.build.sourceDirectory}</sourceDirectories>
