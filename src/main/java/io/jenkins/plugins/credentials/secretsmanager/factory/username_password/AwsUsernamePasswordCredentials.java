@@ -16,11 +16,13 @@ public class AwsUsernamePasswordCredentials extends BaseStandardCredentials impl
 
     private final Supplier<Secret> password;
     private final String username;
+    private final Boolean maskUsername;
 
-    public AwsUsernamePasswordCredentials(String id, String description, Supplier<Secret> password, String username) {
+    public AwsUsernamePasswordCredentials(String id, String description, Supplier<Secret> password, String username, Boolean maskUsername) {
         super(id, description);
         this.password = password;
         this.username = username;
+        this.maskUsername = maskUsername;
     }
 
     @NonNull
@@ -33,6 +35,11 @@ public class AwsUsernamePasswordCredentials extends BaseStandardCredentials impl
     @Override
     public String getUsername() {
         return username;
+    }
+
+    @Override
+    public boolean isUsernameSecret() {
+        return maskUsername;
     }
 
     @Extension
