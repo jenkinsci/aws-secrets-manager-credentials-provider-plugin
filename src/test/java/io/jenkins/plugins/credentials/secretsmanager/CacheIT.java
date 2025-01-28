@@ -8,7 +8,7 @@ import io.jenkins.plugins.credentials.secretsmanager.config.Filter;
 import io.jenkins.plugins.credentials.secretsmanager.config.ListSecrets;
 import io.jenkins.plugins.credentials.secretsmanager.config.PluginConfiguration;
 import io.jenkins.plugins.credentials.secretsmanager.config.Value;
-import io.jenkins.plugins.credentials.secretsmanager.factory.Type;
+import io.jenkins.plugins.credentials.secretsmanager.util.Type;
 import io.jenkins.plugins.credentials.secretsmanager.util.*;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.junit.Rule;
