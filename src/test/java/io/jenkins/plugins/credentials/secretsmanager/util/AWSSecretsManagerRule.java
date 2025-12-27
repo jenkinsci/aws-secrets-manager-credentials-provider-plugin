@@ -14,7 +14,7 @@ import org.testcontainers.utility.DockerImageName;
  */
 public class AWSSecretsManagerRule extends ExternalResource {
 
-    private static final DockerImageName MOTO_IMAGE = DockerImageName.parse("motoserver/moto:2.3.0");
+    private static final DockerImageName MOTO_IMAGE = DockerImageName.parse("motoserver/moto:5.1.18");
 
     private static final String SIGNING_REGION = "us-east-1";
 
