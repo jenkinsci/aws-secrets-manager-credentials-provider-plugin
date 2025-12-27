@@ -18,6 +18,7 @@ import org.junit.rules.TestRule;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static io.jenkins.plugins.credentials.secretsmanager.util.assertions.CustomAssertions.assertThat;
@@ -29,6 +30,7 @@ public class FileCredentialsIT implements CredentialsTests {
 
     private static final String FILENAME = "hello.txt";
     private static final byte[] CONTENT = {0x01, 0x02, 0x03};
+    private static final String STRING_CONTENT = "This is a text file";
 
     public MyJenkinsConfiguredWithCodeRule jenkins = new MyJenkinsConfiguredWithCodeRule();
     public final AWSSecretsManagerRule secretsManager = new AWSSecretsManagerRule();
@@ -80,7 +82,7 @@ public class FileCredentialsIT implements CredentialsTests {
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
-    public void shouldHaveContent() {
+    public void shouldHaveFileContent() {
         // Given
         final var secret = createFileSecret(CONTENT);
 
@@ -90,6 +92,20 @@ public class FileCredentialsIT implements CredentialsTests {
         // Then
         assertThat(credential)
                 .hasContent(CONTENT);
+    }
+
+    @Test
+    @ConfiguredWithCode(value = "/integration.yml")
+    public void shouldHaveStringContent() {
+        // Given
+        final CreateSecretResult foo = createFileSecret(STRING_CONTENT);
+
+        // When
+        final FileCredentials credential = lookup(FileCredentials.class, foo.getName());
+
+        // Then
+        assertThat(credential)
+                .hasContent(STRING_CONTENT.getBytes(StandardCharsets.UTF_8));
     }
 
     @Test
@@ -198,6 +214,12 @@ public class FileCredentialsIT implements CredentialsTests {
         return createSecret(content,tags);
     }
 
+    private CreateSecretResult createFileSecret(String content) {
+        final List<Tag> tags = Lists.of(AwsTags.type(Type.file));
+
+        return createSecret(content,tags);
+    }
+
     private CreateSecretResult createFileSecret(byte[] content, String filename) {
         final var tags = List.of(AwsTags.type(Type.file), AwsTags.filename(filename));
 
@@ -208,6 +230,15 @@ public class FileCredentialsIT implements CredentialsTests {
         final var request = new CreateSecretRequest()
                 .withName(CredentialNames.random())
                 .withSecretBinary(ByteBuffer.wrap(content))
+                .withTags(tags);
+
+        return secretsManager.getClient().createSecret(request);
+    }
+
+    private CreateSecretResult createSecret(String content, List<Tag> tags) {
+        final CreateSecretRequest request = new CreateSecretRequest()
+                .withName(CredentialNames.random())
+                .withSecretString(content)
                 .withTags(tags);
 
         return secretsManager.getClient().createSecret(request);
