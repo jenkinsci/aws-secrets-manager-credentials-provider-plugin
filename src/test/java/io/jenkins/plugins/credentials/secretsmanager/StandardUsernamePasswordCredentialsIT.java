@@ -4,6 +4,7 @@ import com.amazonaws.services.secretsmanager.model.CreateSecretRequest;
 import com.amazonaws.services.secretsmanager.model.CreateSecretResult;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl;
+import hudson.model.Descriptor;
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
 import io.jenkins.plugins.credentials.secretsmanager.factory.Type;
 import io.jenkins.plugins.credentials.secretsmanager.util.*;
@@ -159,10 +160,14 @@ public class StandardUsernamePasswordCredentialsIT implements CredentialsTests {
 
         final var ours = jenkins.getCredentials().lookup(StandardUsernamePasswordCredentials.class, secret.getName());
 
-        final var theirs = new UsernamePasswordCredentialsImpl(null, "id", "description", "username", "password");
+        try {
+            final var theirs = new UsernamePasswordCredentialsImpl(null, "id", "description", "username", "password");
 
-        assertThat(ours)
-                .hasSameDescriptorIconAs(theirs);
+            assertThat(ours)
+                    .hasSameDescriptorIconAs(theirs);
+        } catch (Descriptor.FormException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private CreateSecretResult createUsernamePasswordSecret(String username, String password) {

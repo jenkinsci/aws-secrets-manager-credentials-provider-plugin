@@ -51,6 +51,11 @@ public class ListSecretsOperationTest {
         }
 
         @Override
+        public BatchGetSecretValueResult batchGetSecretValue(BatchGetSecretValueRequest batchGetSecretValueRequest) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
         public CancelRotateSecretResult cancelRotateSecret(CancelRotateSecretRequest cancelRotateSecretRequest) {
             throw new UnsupportedOperationException();
         }
