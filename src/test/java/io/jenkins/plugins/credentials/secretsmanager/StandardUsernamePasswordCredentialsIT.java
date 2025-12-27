@@ -5,7 +5,6 @@ import com.amazonaws.services.secretsmanager.model.CreateSecretResult;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl;
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
-import io.jenkins.plugins.credentials.secretsmanager.factory.Type;
 import io.jenkins.plugins.credentials.secretsmanager.util.*;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.junit.Rule;
@@ -167,7 +166,7 @@ public class StandardUsernamePasswordCredentialsIT implements CredentialsTests {
 
     private CreateSecretResult createUsernamePasswordSecret(String username, String password) {
         final var tags = List.of(
-                AwsTags.type(Type.usernamePassword),
+                AwsTags.type("usernamePassword"),
                 AwsTags.username(username));
 
         final var request = new CreateSecretRequest()

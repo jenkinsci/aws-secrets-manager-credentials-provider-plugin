@@ -6,7 +6,6 @@ import com.cloudbees.jenkins.plugins.sshcredentials.SSHUserPrivateKey;
 import com.cloudbees.jenkins.plugins.sshcredentials.impl.BasicSSHUserPrivateKey;
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
-import io.jenkins.plugins.credentials.secretsmanager.factory.Type;
 import io.jenkins.plugins.credentials.secretsmanager.util.*;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.junit.Rule;
@@ -182,7 +181,7 @@ public class SSHUserPrivateKeyIT implements CredentialsTests {
 
     private CreateSecretResult createSshUserPrivateKeySecret(String username, String privateKey) {
         final var tags = List.of(
-                AwsTags.type(Type.sshUserPrivateKey),
+                AwsTags.type("sshUserPrivateKey"),
                 AwsTags.username(username));
 
         final var request = new CreateSecretRequest()

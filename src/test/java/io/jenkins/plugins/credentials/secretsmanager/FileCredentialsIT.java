@@ -6,7 +6,6 @@ import com.amazonaws.services.secretsmanager.model.Tag;
 import com.cloudbees.plugins.credentials.SecretBytes;
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
-import io.jenkins.plugins.credentials.secretsmanager.factory.Type;
 import io.jenkins.plugins.credentials.secretsmanager.util.*;
 import org.jenkinsci.plugins.plaincredentials.FileCredentials;
 import org.jenkinsci.plugins.plaincredentials.impl.FileCredentialsImpl;
@@ -193,13 +192,13 @@ public class FileCredentialsIT implements CredentialsTests {
     }
 
     private CreateSecretResult createFileSecret(byte[] content) {
-        final var tags = List.of(AwsTags.type(Type.file));
+        final var tags = List.of(AwsTags.type("file"));
 
         return createSecret(content,tags);
     }
 
     private CreateSecretResult createFileSecret(byte[] content, String filename) {
-        final var tags = List.of(AwsTags.type(Type.file), AwsTags.filename(filename));
+        final var tags = List.of(AwsTags.type("file"), AwsTags.filename(filename));
 
         return createSecret(content, tags);
     }
