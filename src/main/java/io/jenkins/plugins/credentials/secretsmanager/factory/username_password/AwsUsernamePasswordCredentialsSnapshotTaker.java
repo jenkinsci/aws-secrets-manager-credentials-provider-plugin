@@ -15,7 +15,7 @@ public class AwsUsernamePasswordCredentialsSnapshotTaker extends CredentialsSnap
 
     @Override
     public AwsUsernamePasswordCredentials snapshot(AwsUsernamePasswordCredentials credential) {
-        return new AwsUsernamePasswordCredentials(credential.getId(), credential.getDescription(), new SecretSnapshot(credential.getPassword()), credential.getUsername());
+        return new AwsUsernamePasswordCredentials(credential.getId(), credential.getDescription(), new SecretSnapshot(credential.getPassword()), credential.getUsername(), credential.isUsernameSecret());
     }
 
     private static class SecretSnapshot extends Snapshot<Secret> {

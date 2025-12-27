@@ -35,7 +35,7 @@ public class SSHUserPrivateKeyIT implements CredentialsTests {
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportListView() {
         // Given
-        final var secret = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
+        final var secret = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY, true);
 
         // When
         final var credentialList = jenkins.getCredentials().list(SSHUserPrivateKey.class);
@@ -47,9 +47,23 @@ public class SSHUserPrivateKeyIT implements CredentialsTests {
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
+    public void shouldSupportListViewUnmasked() {
+        // Given
+        final var secret = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY, false);
+
+        // When
+        final var credentialList = jenkins.getCredentials().list(SSHUserPrivateKey.class);
+
+        // Then
+        assertThat(credentialList)
+                .containsOption(USERNAME, secret.getName());
+    }
+
+    @Test
+    @ConfiguredWithCode(value = "/integration.yml")
     public void shouldHaveId() {
         // Given
-        final var secret = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
+        final var secret = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY, true);
 
         // When
         final var credential = lookup(SSHUserPrivateKey.class, secret.getName());
@@ -63,7 +77,7 @@ public class SSHUserPrivateKeyIT implements CredentialsTests {
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldHaveUsername() {
         // Given
-        final var secret = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
+        final var secret = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY, true);
 
         // When
         final var credential = lookup(SSHUserPrivateKey.class, secret.getName());
@@ -77,7 +91,7 @@ public class SSHUserPrivateKeyIT implements CredentialsTests {
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldHavePrivateKey() {
         // Given
-        final var secret = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
+        final var secret = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY, true);
 
         // When
         final var credential = lookup(SSHUserPrivateKey.class, secret.getName());
@@ -91,7 +105,7 @@ public class SSHUserPrivateKeyIT implements CredentialsTests {
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldHaveEmptyPassphrase() {
         // Given
-        final var secret = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
+        final var secret = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY, true);
 
         // When
         final var credential = lookup(SSHUserPrivateKey.class, secret.getName());
@@ -104,7 +118,7 @@ public class SSHUserPrivateKeyIT implements CredentialsTests {
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldHaveDescriptorIcon() {
-        final var secret = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
+        final var secret = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY, true);
 
         final var ours = lookup(SSHUserPrivateKey.class, secret.getName());
 
@@ -118,7 +132,7 @@ public class SSHUserPrivateKeyIT implements CredentialsTests {
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportWithCredentialsBinding() {
         // Given
-        final var secret = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
+        final var secret = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY, true);
 
         // When
         final var run = runPipeline("",
@@ -136,9 +150,29 @@ public class SSHUserPrivateKeyIT implements CredentialsTests {
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
+    public void shouldSupportWithCredentialsBindingUnmasked() {
+        // Given
+        final var secret = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY, false);
+
+        // When
+        final var run = runPipeline("",
+                "node {",
+                "  withCredentials([sshUserPrivateKey(credentialsId: '" + secret.getName() + "', keyFileVariable: 'KEYFILE', usernameVariable: 'USERNAME')]) {",
+                "    echo \"Credential: {username: $USERNAME, keyFile: $KEYFILE}\"",
+                "  }",
+                "}");
+
+        // Then
+        assertThat(run)
+                .hasResult(hudson.model.Result.SUCCESS)
+                .hasLogContaining("Credential: {username: joe, keyFile: ****}");
+    }
+
+    @Test
+    @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportEnvironmentBinding() {
         // Given
-        final var secret = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
+        final var secret = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY, true);
 
         // When
         final var run = runPipeline("",
@@ -164,9 +198,37 @@ public class SSHUserPrivateKeyIT implements CredentialsTests {
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
+    public void shouldSupportEnvironmentBindingUnmasked() {
+        // Given
+        final var secret = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY, false);
+
+        // When
+        final var run = runPipeline("",
+                "pipeline {",
+                "  agent any",
+                "  stages {",
+                "    stage('Example') {",
+                "      environment {",
+                "        FOO = credentials('" + secret.getName() + "')",
+                "      }",
+                "      steps {",
+                "        echo \"{variable: $FOO, username: $FOO_USR}\"",
+                "      }",
+                "    }",
+                "  }",
+                "}");
+
+        // Then
+        assertThat(run)
+                .hasResult(hudson.model.Result.SUCCESS)
+                .hasLogContaining("{variable: ****, username: joe}");
+    }
+
+    @Test
+    @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportSnapshots() {
         // Given
-        final CreateSecretResult foo = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
+        final CreateSecretResult foo = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY, true);
         final SSHUserPrivateKey before = lookup(SSHUserPrivateKey.class, foo.getName());
 
         // When
@@ -180,10 +242,11 @@ public class SSHUserPrivateKeyIT implements CredentialsTests {
                 .hasId(before.getId());
     }
 
-    private CreateSecretResult createSshUserPrivateKeySecret(String username, String privateKey) {
+    private CreateSecretResult createSshUserPrivateKeySecret(String username, String privateKey, Boolean maskUsername) {
         final var tags = List.of(
                 AwsTags.type(Type.sshUserPrivateKey),
-                AwsTags.username(username));
+                AwsTags.username(username),
+                AwsTags.maskUsername(String.valueOf(maskUsername)));
 
         final var request = new CreateSecretRequest()
                 .withName(CredentialNames.random())
