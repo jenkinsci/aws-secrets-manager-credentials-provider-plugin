@@ -1,9 +1,7 @@
 package io.jenkins.plugins.credentials.secretsmanager;
 
-import com.amazonaws.services.secretsmanager.model.CreateSecretRequest;
-import com.amazonaws.services.secretsmanager.model.CreateSecretResult;
-import com.amazonaws.services.secretsmanager.model.DeleteSecretRequest;
-import com.amazonaws.services.secretsmanager.model.Tag;
+import software.amazon.awssdk.services.secretsmanager.model.CreateSecretResponse;
+import software.amazon.awssdk.services.secretsmanager.model.Tag;
 import com.cloudbees.plugins.credentials.CredentialsScope;
 import com.cloudbees.plugins.credentials.CredentialsUnavailableException;
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
@@ -68,7 +66,7 @@ public class CredentialsProviderIT {
         // Then
         assertThat(credentialNames)
                 .extracting("name")
-                .containsOnly(secret.getName());
+                .containsOnly(secret.name());
     }
 
     @Test
@@ -79,13 +77,13 @@ public class CredentialsProviderIT {
         final var bar = createStringSecret(SECRET);
 
         // When
-        deleteSecret(bar.getName());
+        deleteSecret(bar.name());
         final var credentials = lookup(StringCredentials.class);
 
         // Then
         assertThat(credentials)
                 .extracting("id", "secret")
-                .containsOnly(tuple(foo.getName(), Secret.fromString(SECRET)));
+                .containsOnly(tuple(foo.name(), Secret.fromString(SECRET)));
     }
 
     @Test
@@ -97,11 +95,11 @@ public class CredentialsProviderIT {
 
         // When
         final var credentials = lookup(StringCredentials.class);
-        deleteSecret(bar.getName());
+        deleteSecret(bar.name());
 
         // Then
-        final var fooCreds = credentials.stream().filter(c -> c.getId().equals(foo.getName())).findFirst().orElseThrow(() -> new IllegalStateException("Needed a credential, but it did not exist"));
-        final var barCreds = credentials.stream().filter(c -> c.getId().equals(bar.getName())).findFirst().orElseThrow(() -> new IllegalStateException("Needed a credential, but it did not exist"));
+        final var fooCreds = credentials.stream().filter(c -> c.getId().equals(foo.name())).findFirst().orElseThrow(() -> new IllegalStateException("Needed a credential, but it did not exist"));
+        final var barCreds = credentials.stream().filter(c -> c.getId().equals(bar.name())).findFirst().orElseThrow(() -> new IllegalStateException("Needed a credential, but it did not exist"));
 
         assertSoftly(s -> {
             s.assertThat(fooCreds.getSecret()).as("Foo").isEqualTo(Secret.fromString(SECRET));
@@ -122,7 +120,7 @@ public class CredentialsProviderIT {
         // Then
         assertThat(credentials)
                 .extracting("id", "secret")
-                .containsOnly(tuple(foo.getName(), Secret.fromString(SECRET)));
+                .containsOnly(tuple(foo.name(), Secret.fromString(SECRET)));
     }
 
     @Test
@@ -143,7 +141,7 @@ public class CredentialsProviderIT {
         // Then
         assertThat(credentials)
                 .extracting("id", "secret")
-                .containsOnly(tuple(secret.getName(), Secret.fromString(SECRET)));
+                .containsOnly(tuple(secret.name(), Secret.fromString(SECRET)));
     }
 
     @Test
@@ -183,22 +181,22 @@ public class CredentialsProviderIT {
     }
 
     private void deleteSecret(String secretId) {
-        final var request = new DeleteSecretRequest().withSecretId(secretId);
-        secretsManager.getClient().deleteSecret(request);
+        secretsManager.getClient().deleteSecret(secret -> {
+            secret.secretId(secretId);
+        });
     }
 
-    private CreateSecretResult createStringSecret(String secretString) {
+    private CreateSecretResponse createStringSecret(String secretString) {
         final var tags = List.of(AwsTags.type(Type.string));
 
         return createSecret(secretString, tags);
     }
 
-    private CreateSecretResult createSecret(String secretString, List<Tag> tags) {
-        final var request = new CreateSecretRequest()
-                .withName(CredentialNames.random())
-                .withSecretString(secretString)
-                .withTags(tags);
-
-        return secretsManager.getClient().createSecret(request);
+    private CreateSecretResponse createSecret(String secretString, List<Tag> tags) {
+        return secretsManager.getClient().createSecret(secret -> {
+            secret.name(CredentialNames.random());
+            secret.secretString(secretString);
+            secret.tags(tags);
+        });
     }
 }

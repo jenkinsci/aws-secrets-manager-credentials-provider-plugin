@@ -1,7 +1,6 @@
 package io.jenkins.plugins.credentials.secretsmanager;
 
-import com.amazonaws.services.secretsmanager.model.CreateSecretRequest;
-import com.amazonaws.services.secretsmanager.model.CreateSecretResult;
+import software.amazon.awssdk.services.secretsmanager.model.CreateSecretResponse;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl;
 import hudson.model.Descriptor;
@@ -42,7 +41,7 @@ public class StandardUsernamePasswordCredentialsIT implements CredentialsTests {
 
         // Then
         assertThat(credentialList)
-                .containsOption(secret.getName(), secret.getName());
+                .containsOption(secret.name(), secret.name());
     }
 
     @Test
@@ -53,7 +52,7 @@ public class StandardUsernamePasswordCredentialsIT implements CredentialsTests {
 
         // When
         final var credential =
-                jenkins.getCredentials().lookup(StandardUsernamePasswordCredentials.class, secret.getName());
+                jenkins.getCredentials().lookup(StandardUsernamePasswordCredentials.class, secret.name());
 
         // Then
         assertThat(credential)
@@ -68,7 +67,7 @@ public class StandardUsernamePasswordCredentialsIT implements CredentialsTests {
 
         // When
         final var credential =
-                jenkins.getCredentials().lookup(StandardUsernamePasswordCredentials.class, secret.getName());
+                jenkins.getCredentials().lookup(StandardUsernamePasswordCredentials.class, secret.name());
 
         // Then
         assertThat(credential)
@@ -83,11 +82,11 @@ public class StandardUsernamePasswordCredentialsIT implements CredentialsTests {
 
         // When
         final var credential =
-                jenkins.getCredentials().lookup(StandardUsernamePasswordCredentials.class, secret.getName());
+                jenkins.getCredentials().lookup(StandardUsernamePasswordCredentials.class, secret.name());
 
         // Then
         assertThat(credential)
-                .hasId(secret.getName());
+                .hasId(secret.name());
     }
 
     @Test
@@ -98,7 +97,7 @@ public class StandardUsernamePasswordCredentialsIT implements CredentialsTests {
 
         // When
         final var run = runPipeline("",
-                "withCredentials([usernamePassword(credentialsId: '" + secret.getName() + "', usernameVariable: 'USR', passwordVariable: 'PSW')]) {",
+                "withCredentials([usernamePassword(credentialsId: '" + secret.name() + "', usernameVariable: 'USR', passwordVariable: 'PSW')]) {",
                 "  echo \"Credential: {username: $USR, password: $PSW}\"",
                 "}");
 
@@ -121,7 +120,7 @@ public class StandardUsernamePasswordCredentialsIT implements CredentialsTests {
                 "  stages {",
                 "    stage('Example') {",
                 "      environment {",
-                "        FOO = credentials('" + secret.getName() + "')",
+                "        FOO = credentials('" + secret.name() + "')",
                 "      }",
                 "      steps {",
                 "        echo \"{variable: $FOO, username: $FOO_USR, password: $FOO_PSW}\"",
@@ -140,8 +139,8 @@ public class StandardUsernamePasswordCredentialsIT implements CredentialsTests {
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportSnapshots() {
         // Given
-        final CreateSecretResult foo = createUsernamePasswordSecret(USERNAME, PASSWORD);
-        final StandardUsernamePasswordCredentials before = jenkins.getCredentials().lookup(StandardUsernamePasswordCredentials.class, foo.getName());
+        final var foo = createUsernamePasswordSecret(USERNAME, PASSWORD);
+        final StandardUsernamePasswordCredentials before = jenkins.getCredentials().lookup(StandardUsernamePasswordCredentials.class, foo.name());
 
         // When
         final StandardUsernamePasswordCredentials after = CredentialSnapshots.snapshot(before);
@@ -158,7 +157,7 @@ public class StandardUsernamePasswordCredentialsIT implements CredentialsTests {
     public void shouldHaveDescriptorIcon() {
         final var secret = createUsernamePasswordSecret(USERNAME, PASSWORD);
 
-        final var ours = jenkins.getCredentials().lookup(StandardUsernamePasswordCredentials.class, secret.getName());
+        final var ours = jenkins.getCredentials().lookup(StandardUsernamePasswordCredentials.class, secret.name());
 
         try {
             final var theirs = new UsernamePasswordCredentialsImpl(null, "id", "description", "username", "password");
@@ -170,17 +169,16 @@ public class StandardUsernamePasswordCredentialsIT implements CredentialsTests {
         }
     }
 
-    private CreateSecretResult createUsernamePasswordSecret(String username, String password) {
+    private CreateSecretResponse createUsernamePasswordSecret(String username, String password) {
         final var tags = List.of(
                 AwsTags.type(Type.usernamePassword),
                 AwsTags.username(username));
 
-        final var request = new CreateSecretRequest()
-                .withName(CredentialNames.random())
-                .withSecretString(password)
-                .withTags(tags);
-
-        return secretsManager.getClient().createSecret(request);
+        return secretsManager.getClient().createSecret((b) -> {
+            b.name(CredentialNames.random());
+            b.secretString(password);
+            b.tags(tags);
+        });
     }
 
     private WorkflowRun runPipeline(String... pipeline) {

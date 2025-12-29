@@ -1,9 +1,7 @@
 package io.jenkins.plugins.credentials.secretsmanager.factory;
 
-import com.amazonaws.AmazonClientException;
-import com.amazonaws.services.secretsmanager.AWSSecretsManager;
-import com.amazonaws.services.secretsmanager.model.GetSecretValueRequest;
-import com.amazonaws.services.secretsmanager.model.GetSecretValueResult;
+import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
+import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
 import com.cloudbees.plugins.credentials.CredentialsUnavailableException;
 import com.cloudbees.plugins.credentials.SecretBytes;
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
@@ -15,6 +13,7 @@ import io.jenkins.plugins.credentials.secretsmanager.factory.file.AwsFileCredent
 import io.jenkins.plugins.credentials.secretsmanager.factory.ssh_user_private_key.AwsSshUserPrivateKey;
 import io.jenkins.plugins.credentials.secretsmanager.factory.string.AwsStringCredentials;
 import io.jenkins.plugins.credentials.secretsmanager.factory.username_password.AwsUsernamePasswordCredentials;
+import software.amazon.awssdk.services.secretsmanager.model.SecretsManagerException;
 
 import java.util.Map;
 import java.util.Optional;
@@ -36,7 +35,7 @@ public abstract class CredentialsFactory {
      * @param client the Secrets Manager client that will retrieve the secret's value on demand
      * @return a credential (if one could be constructed from the secret's properties)
      */
-    public static Optional<StandardCredentials> create(String arn, String name, String description, Map<String, String> tags, AWSSecretsManager client) {
+    public static Optional<StandardCredentials> create(String arn, String name, String description, Map<String, String> tags, SecretsManagerClient client) {
         final String type = tags.getOrDefault(Tags.type, "");
         final String username = tags.getOrDefault(Tags.username, "");
         final String filename = tags.getOrDefault(Tags.filename, name);
@@ -59,7 +58,7 @@ public abstract class CredentialsFactory {
 
     private static class SecretBytesSupplier extends RealSecretsManager implements Supplier<SecretBytes> {
 
-        private SecretBytesSupplier(AWSSecretsManager client, String name) {
+        private SecretBytesSupplier(SecretsManagerClient client, String name) {
             super(client, name);
         }
 
@@ -81,7 +80,7 @@ public abstract class CredentialsFactory {
 
     private static class SecretSupplier extends RealSecretsManager implements Supplier<Secret> {
 
-        private SecretSupplier(AWSSecretsManager client, String name) {
+        private SecretSupplier(SecretsManagerClient client, String name) {
             super(client, name);
         }
 
@@ -103,7 +102,7 @@ public abstract class CredentialsFactory {
 
     private static class StringSupplier extends RealSecretsManager implements Supplier<String> {
 
-        private StringSupplier(AWSSecretsManager client, String name) {
+        private StringSupplier(SecretsManagerClient client, String name) {
             super(client, name);
         }
 
@@ -128,25 +127,27 @@ public abstract class CredentialsFactory {
         private static final Logger LOG = Logger.getLogger(RealSecretsManager.class.getName());
 
         private final String id;
-        private final transient AWSSecretsManager client;
+        private final transient SecretsManagerClient client;
 
-        RealSecretsManager(AWSSecretsManager client, String id) {
+        RealSecretsManager(SecretsManagerClient client, String id) {
             this.client = client;
             this.id = id;
         }
 
         @NonNull
         SecretValue getSecretValue() {
+            final var request = GetSecretValueRequest.builder().secretId(id).build();
+
             try {
-                final GetSecretValueResult result = client.getSecretValue(new GetSecretValueRequest().withSecretId(id));
-                if (result.getSecretBinary() != null) {
-                    return SecretValue.binary(result.getSecretBinary().array());
+                final var result = client.getSecretValue(request);
+                if (result.secretBinary() != null) {
+                    return SecretValue.binary(result.secretBinary().asByteArray());
                 }
-                if (result.getSecretString() != null) {
-                    return SecretValue.string(result.getSecretString());
+                if (result.secretString() != null) {
+                    return SecretValue.string(result.secretString());
                 }
                 throw new IllegalStateException(Messages.emptySecretError(id));
-            } catch (AmazonClientException ex) {
+            } catch (SecretsManagerException ex) {
                 LOG.warning("AWS Secrets Manager retrieval error");
                 LOG.warning(ex.getMessage());
 

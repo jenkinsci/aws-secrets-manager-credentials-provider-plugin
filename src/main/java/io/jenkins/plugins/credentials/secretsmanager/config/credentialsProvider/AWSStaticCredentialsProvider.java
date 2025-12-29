@@ -1,8 +1,8 @@
 package io.jenkins.plugins.credentials.secretsmanager.config.credentialsProvider;
 
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import hudson.Extension;
 import hudson.Util;
 import hudson.util.FormValidation;
@@ -12,6 +12,7 @@ import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 
 import javax.annotation.Nonnull;
 import java.util.Objects;
@@ -35,10 +36,15 @@ public class AWSStaticCredentialsProvider extends CredentialsProvider {
     }
 
     @Override
-    public AWSCredentialsProvider build() {
-        final String secretKey = this.secretKey.getPlainText();
-        final AWSCredentials creds = new BasicAWSCredentials(accessKey, secretKey);
-        return new com.amazonaws.auth.AWSStaticCredentialsProvider(creds);
+    public AwsCredentialsProvider build() {
+        final var secretKey = this.secretKey.getPlainText();
+
+        final AwsCredentials creds = AwsBasicCredentials.builder()
+                .accessKeyId(accessKey)
+                .secretAccessKey(secretKey)
+                .build();
+
+        return StaticCredentialsProvider.create(creds);
     }
 
     public String getAccessKey() {

@@ -1,12 +1,13 @@
 package io.jenkins.plugins.credentials.secretsmanager.util;
 
-import com.amazonaws.client.builder.AwsClientBuilder;
-import com.amazonaws.services.secretsmanager.AWSSecretsManager;
-import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder;
 import org.junit.rules.ExternalResource;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.utility.DockerImageName;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
+
+import java.net.URI;
 
 /**
  * Wraps client-side access to AWS Secrets Manager in tests. Defers client initialization in case you want to set AWS
@@ -16,22 +17,22 @@ public class AWSSecretsManagerRule extends ExternalResource {
 
     private static final DockerImageName MOTO_IMAGE = DockerImageName.parse("motoserver/moto:5.1.18");
 
-    private static final String SIGNING_REGION = "us-east-1";
+    private static final Region REGION = Region.US_EAST_1;
 
     private final GenericContainer<?> secretsManager = new GenericContainer<>(MOTO_IMAGE)
             .withExposedPorts(5000)
             .waitingFor(Wait.forHttp("/"));
 
-    private transient AWSSecretsManager client;
+    private transient SecretsManagerClient client;
 
-    public String getServiceEndpoint() {
+    public String getEndpointUrl() {
         final String host = secretsManager.getHost();
         final int port = secretsManager.getFirstMappedPort();
         return String.format("http://%s:%d", host, port);
     }
 
-    public String getSigningRegion() {
-        return SIGNING_REGION;
+    public String getRegion() {
+        return REGION.toString();
     }
 
     public String getHost() {
@@ -42,10 +43,11 @@ public class AWSSecretsManagerRule extends ExternalResource {
     public void before() {
         secretsManager.start();
 
-        final String serviceEndpoint = getServiceEndpoint();
+        final String endpointUrl = getEndpointUrl();
 
-        client = AWSSecretsManagerClientBuilder.standard()
-                .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(serviceEndpoint, SIGNING_REGION))
+        client = SecretsManagerClient.builder()
+                .region(REGION)
+                .endpointOverride(URI.create(endpointUrl))
                 .build();
     }
 
@@ -55,7 +57,7 @@ public class AWSSecretsManagerRule extends ExternalResource {
         secretsManager.stop();
     }
 
-    public AWSSecretsManager getClient() {
+    public SecretsManagerClient getClient() {
         return client;
     }
 }

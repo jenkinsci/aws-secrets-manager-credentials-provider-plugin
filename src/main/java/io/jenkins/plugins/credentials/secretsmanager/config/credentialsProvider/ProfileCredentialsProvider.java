@@ -1,6 +1,6 @@
 package io.jenkins.plugins.credentials.secretsmanager.config.credentialsProvider;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import hudson.Extension;
 import io.jenkins.plugins.credentials.secretsmanager.Messages;
 import org.jenkinsci.Symbol;
@@ -29,8 +29,10 @@ public class ProfileCredentialsProvider extends CredentialsProvider {
     }
 
     @Override
-    public AWSCredentialsProvider build() {
-        return new com.amazonaws.auth.profile.ProfileCredentialsProvider(profileName);
+    public AwsCredentialsProvider build() {
+        return software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider.builder()
+                .profileName(profileName)
+                .build();
     }
 
     @Override

@@ -1,8 +1,8 @@
 package io.jenkins.plugins.credentials.secretsmanager;
 
-import com.amazonaws.services.secretsmanager.model.CreateSecretRequest;
-import com.amazonaws.services.secretsmanager.model.CreateSecretResult;
-import com.amazonaws.services.secretsmanager.model.Tag;
+import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.services.secretsmanager.model.CreateSecretResponse;
+import software.amazon.awssdk.services.secretsmanager.model.Tag;
 import com.cloudbees.plugins.credentials.SecretBytes;
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
@@ -17,7 +17,6 @@ import org.junit.rules.TestRule;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.ByteBuffer;
 import java.util.List;
 
 import static io.jenkins.plugins.credentials.secretsmanager.util.assertions.CustomAssertions.assertThat;
@@ -43,11 +42,11 @@ public class FileCredentialsIT implements CredentialsTests {
         final var secret = createFileSecret(CONTENT);
 
         // When
-        final var credential = lookup(FileCredentials.class, secret.getName());
+        final var credential = lookup(FileCredentials.class, secret.name());
 
         // Then
         assertThat(credential)
-                .hasId(secret.getName());
+                .hasId(secret.name());
     }
 
     @Test
@@ -57,11 +56,11 @@ public class FileCredentialsIT implements CredentialsTests {
         final var secret = createFileSecret(CONTENT);
 
         // When
-        final var credential = lookup(FileCredentials.class, secret.getName());
+        final var credential = lookup(FileCredentials.class, secret.name());
 
         // Then
         assertThat(credential)
-                .hasFileName(secret.getName());
+                .hasFileName(secret.name());
     }
 
     @Test
@@ -71,7 +70,7 @@ public class FileCredentialsIT implements CredentialsTests {
         final var secret = createFileSecret(CONTENT, FILENAME);
 
         // When
-        final var credential = lookup(FileCredentials.class, secret.getName());
+        final var credential = lookup(FileCredentials.class, secret.name());
 
         // Then
         assertThat(credential)
@@ -85,7 +84,7 @@ public class FileCredentialsIT implements CredentialsTests {
         final var secret = createFileSecret(CONTENT);
 
         // When
-        final var credential = lookup(FileCredentials.class, secret.getName());
+        final var credential = lookup(FileCredentials.class, secret.name());
 
         // Then
         assertThat(credential)
@@ -97,7 +96,7 @@ public class FileCredentialsIT implements CredentialsTests {
     public void shouldHaveDescriptorIcon() {
         final var secret = createFileSecret(CONTENT);
 
-        final var ours = lookup(FileCredentials.class, secret.getName());
+        final var ours = lookup(FileCredentials.class, secret.name());
 
         final var theirs = new FileCredentialsImpl(null, "id", "description", "filename", SecretBytes.fromBytes(CONTENT));
 
@@ -116,7 +115,7 @@ public class FileCredentialsIT implements CredentialsTests {
 
         // Then
         assertThat(credentialList)
-                .containsOption(secret.getName(), secret.getName());
+                .containsOption(secret.name(), secret.name());
     }
 
     @Test
@@ -128,7 +127,7 @@ public class FileCredentialsIT implements CredentialsTests {
         // When
         final var run = runPipeline("",
                 "node {",
-                "  withCredentials([file(credentialsId: '" + secret.getName() + "', variable: 'FILE')]) {",
+                "  withCredentials([file(credentialsId: '" + secret.name() + "', variable: 'FILE')]) {",
                 "    echo \"Credential: {fileName: $FILE}\"",
                 "  }",
                 "}");
@@ -152,7 +151,7 @@ public class FileCredentialsIT implements CredentialsTests {
                 "  stages {",
                 "    stage('Example') {",
                 "      environment {",
-                "        VAR = credentials('" + secret.getName() + "')",
+                "        VAR = credentials('" + secret.name() + "')",
                 "      }",
                 "      steps {",
                 "        echo \"{filename: $VAR}\"",
@@ -171,8 +170,8 @@ public class FileCredentialsIT implements CredentialsTests {
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportSnapshots() {
         // Given
-        final CreateSecretResult foo = createFileSecret(CONTENT);
-        final FileCredentials before = lookup(FileCredentials.class, foo.getName());
+        final CreateSecretResponse foo = createFileSecret(CONTENT);
+        final FileCredentials before = lookup(FileCredentials.class, foo.name());
 
         // When
         final FileCredentials after = CredentialSnapshots.snapshot(before);
@@ -192,25 +191,24 @@ public class FileCredentialsIT implements CredentialsTests {
         }
     }
 
-    private CreateSecretResult createFileSecret(byte[] content) {
+    private CreateSecretResponse createFileSecret(byte[] content) {
         final var tags = List.of(AwsTags.type(Type.file));
 
         return createSecret(content,tags);
     }
 
-    private CreateSecretResult createFileSecret(byte[] content, String filename) {
+    private CreateSecretResponse createFileSecret(byte[] content, String filename) {
         final var tags = List.of(AwsTags.type(Type.file), AwsTags.filename(filename));
 
         return createSecret(content, tags);
     }
 
-    private CreateSecretResult createSecret(byte[] content, List<Tag> tags) {
-        final var request = new CreateSecretRequest()
-                .withName(CredentialNames.random())
-                .withSecretBinary(ByteBuffer.wrap(content))
-                .withTags(tags);
-
-        return secretsManager.getClient().createSecret(request);
+    private CreateSecretResponse createSecret(byte[] content, List<Tag> tags) {
+        return secretsManager.getClient().createSecret((b) -> {
+            b.name(CredentialNames.random());
+            b.secretBinary(SdkBytes.fromByteArray(content));
+            b.tags(tags);
+        });
     }
 
     private <C extends StandardCredentials> C lookup(Class<C> type, String id) {

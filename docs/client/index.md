@@ -105,17 +105,16 @@ unclassified:
         proxyPassword: "fake"
 ```
 
-## Endpoint Configuration
+## Endpoint
 
-You can set the AWS endpoint configuration for the client.
+You can set the AWS endpoint URL for the client.
 
 ```yaml
 unclassified:
   awsCredentialsProvider:
     client:
-      endpointConfiguration:
-        serviceEndpoint: "http://localhost:4584"
-        signingRegion: "us-east-1"
+      endpointUrl: "http://localhost:4584"
+      region: "us-east-1"                    # If you set the endpointUrl, don't forget to set the region too!
 ```
 
 ## Region

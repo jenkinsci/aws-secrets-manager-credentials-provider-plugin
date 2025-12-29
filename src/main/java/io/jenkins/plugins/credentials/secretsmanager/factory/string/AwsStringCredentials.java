@@ -39,5 +39,10 @@ public class AwsStringCredentials extends BaseStandardCredentials implements Str
         public boolean isApplicable(CredentialsProvider provider) {
             return provider instanceof AwsCredentialsProvider;
         }
+
+        @Override
+        public String getIconClassName() {
+            return "symbol-details";
+        }
     }
 }

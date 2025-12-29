@@ -1,6 +1,6 @@
 package io.jenkins.plugins.credentials.secretsmanager.config.credentialsProvider;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
 
@@ -13,7 +13,7 @@ public abstract class CredentialsProvider extends AbstractDescribableImpl<Creden
 
     private static final long serialVersionUID = 1L;
 
-    public abstract AWSCredentialsProvider build();
+    public abstract AwsCredentialsProvider build();
 
     public abstract static class DescriptorImpl extends Descriptor<CredentialsProvider> {
 

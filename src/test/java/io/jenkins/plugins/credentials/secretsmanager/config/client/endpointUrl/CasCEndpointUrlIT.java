@@ -1,4 +1,4 @@
-package io.jenkins.plugins.credentials.secretsmanager.config.client.endpointConfiguration;
+package io.jenkins.plugins.credentials.secretsmanager.config.client.endpointUrl;
 
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
 import io.jenkins.plugins.casc.misc.JenkinsConfiguredWithCodeRule;
@@ -7,7 +7,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 
-public class CasCEndpointConfigurationIT extends AbstractEndpointConfigurationIT {
+public class CasCEndpointUrlIT extends AbstractEndpointUrlIT {
 
     @Rule
     public final JenkinsRule r = new JenkinsConfiguredWithCodeRule();
@@ -18,14 +18,14 @@ public class CasCEndpointConfigurationIT extends AbstractEndpointConfigurationIT
     }
 
     @Override
-    protected void setEndpointConfiguration(String serviceEndpoint, String signingRegion) {
+    protected void setEndpointUrl(String endpointUrl) {
         // no-op (configured by annotations)
     }
 
     @Override
     @Test
-    @ConfiguredWithCode("/config/client/endpointConfiguration.yml")
-    public void shouldHaveEndpointConfiguration() {
-        super.shouldHaveEndpointConfiguration();
+    @ConfiguredWithCode("/config/client/endpointUrl.yml")
+    public void shouldHaveEndpointUrl() {
+        super.shouldHaveEndpointUrl();
     }
 }

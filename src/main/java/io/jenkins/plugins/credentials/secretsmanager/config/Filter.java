@@ -1,6 +1,6 @@
 package io.jenkins.plugins.credentials.secretsmanager.config;
 
-import com.amazonaws.services.secretsmanager.model.FilterNameStringType;
+import software.amazon.awssdk.services.secretsmanager.model.FilterNameStringType;
 import hudson.Extension;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;

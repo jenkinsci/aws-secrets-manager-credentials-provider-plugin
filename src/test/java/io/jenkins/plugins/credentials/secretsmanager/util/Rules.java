@@ -12,8 +12,8 @@ public class Rules {
                 .around(new DeferredEnvironmentVariables()
                         .set("AWS_ACCESS_KEY_ID", "fake")
                         .set("AWS_SECRET_ACCESS_KEY", "fake")
-                        .set("AWS_SERVICE_ENDPOINT", secretsManager::getServiceEndpoint)
-                        .set("AWS_SIGNING_REGION", secretsManager::getSigningRegion))
+                        .set("AWS_ENDPOINT_URL", secretsManager::getEndpointUrl)
+                        .set("AWS_REGION", secretsManager::getRegion))
                 .around(jenkins);
     }
 }

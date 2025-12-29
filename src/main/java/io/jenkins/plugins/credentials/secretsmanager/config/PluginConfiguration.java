@@ -1,6 +1,6 @@
 package io.jenkins.plugins.credentials.secretsmanager.config;
 
-import com.amazonaws.services.secretsmanager.model.FilterNameStringType;
+import software.amazon.awssdk.services.secretsmanager.model.FilterNameStringType;
 import hudson.Extension;
 import jenkins.model.GlobalConfiguration;
 import net.sf.json.JSONObject;
@@ -11,7 +11,6 @@ import org.kohsuke.stapler.StaplerRequest;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 import java.util.logging.Logger;
 
 @Extension
@@ -33,9 +32,6 @@ public class PluginConfiguration extends GlobalConfiguration {
      * Secrets Manager client configuration
      */
     private Client client;
-
-    @Deprecated
-    private transient EndpointConfiguration endpointConfiguration;
 
     @Deprecated
     private transient Filters filters;
@@ -63,16 +59,11 @@ public class PluginConfiguration extends GlobalConfiguration {
     }
 
     protected Object readResolve() {
-        if (endpointConfiguration != null) {
-            client = new Client(null, null, endpointConfiguration, null);
-            endpointConfiguration = null;
-        }
-
         if (filters != null && filters.getTag() != null) {
-            final Tag tag = filters.getTag();
-            final Filter tagKey = new Filter(FilterNameStringType.TagKey.toString(), Collections.singletonList(new Value(tag.getKey())));
-            final Filter tagValue = new Filter(FilterNameStringType.TagValue.toString(), Collections.singletonList(new Value(tag.getValue())));
-            final List<Filter> filters = Arrays.asList(tagKey, tagValue);
+            final var tag = filters.getTag();
+            final var tagKey = new Filter(FilterNameStringType.TAG_KEY.toString(), Collections.singletonList(new Value(tag.getKey())));
+            final var tagValue = new Filter(FilterNameStringType.TAG_VALUE.toString(), Collections.singletonList(new Value(tag.getValue())));
+            final var filters = Arrays.asList(tagKey, tagValue);
             listSecrets = new ListSecrets(filters);
         }
 

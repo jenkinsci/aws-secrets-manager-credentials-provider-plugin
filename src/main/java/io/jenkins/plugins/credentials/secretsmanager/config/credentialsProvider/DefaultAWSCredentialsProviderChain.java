@@ -1,6 +1,6 @@
 package io.jenkins.plugins.credentials.secretsmanager.config.credentialsProvider;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import hudson.Extension;
 import io.jenkins.plugins.credentials.secretsmanager.Messages;
 import org.jenkinsci.Symbol;
@@ -17,8 +17,8 @@ public class DefaultAWSCredentialsProviderChain extends CredentialsProvider {
     }
 
     @Override
-    public AWSCredentialsProvider build() {
-        return new com.amazonaws.auth.DefaultAWSCredentialsProviderChain();
+    public AwsCredentialsProvider build() {
+        return software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider.builder().build();
     }
 
     @Override

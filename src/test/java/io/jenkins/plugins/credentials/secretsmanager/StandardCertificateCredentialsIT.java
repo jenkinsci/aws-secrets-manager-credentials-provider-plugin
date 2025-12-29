@@ -1,7 +1,7 @@
 package io.jenkins.plugins.credentials.secretsmanager;
 
-import com.amazonaws.services.secretsmanager.model.CreateSecretRequest;
-import com.amazonaws.services.secretsmanager.model.CreateSecretResult;
+import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.services.secretsmanager.model.CreateSecretResponse;
 import com.cloudbees.plugins.credentials.CredentialsUnavailableException;
 import com.cloudbees.plugins.credentials.SecretBytes;
 import com.cloudbees.plugins.credentials.common.StandardCertificateCredentials;
@@ -18,9 +18,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
 
-import java.nio.ByteBuffer;
 import java.security.KeyPair;
-import java.security.KeyStore;
 import java.security.cert.Certificate;
 import java.util.List;
 
@@ -57,7 +55,7 @@ public class StandardCertificateCredentialsIT implements CredentialsTests {
 
         // Then
         assertThat(credentialList)
-                .containsOption(CN, secret.getName());
+                .containsOption(CN, secret.name());
     }
 
     @Test
@@ -67,7 +65,7 @@ public class StandardCertificateCredentialsIT implements CredentialsTests {
         final var keystoreBytes = Crypto.save(keystore, PASSWORD);
         final var secret = createCertificateSecret(keystoreBytes);
 
-        final var ours = lookup(StandardCertificateCredentials.class, secret.getName());
+        final var ours = lookup(StandardCertificateCredentials.class, secret.name());
 
         final var theirs = new CertificateCredentialsImpl(null, "id", "description", "password", new CertificateCredentialsImpl.UploadedKeyStoreSource(SecretBytes.fromBytes(keystoreBytes)));
 
@@ -83,11 +81,11 @@ public class StandardCertificateCredentialsIT implements CredentialsTests {
         final var secret = createCertificateSecret(Crypto.save(keyStore, PASSWORD));
 
         // When
-        final var credential = lookup(StandardCertificateCredentials.class, secret.getName());
+        final var credential = lookup(StandardCertificateCredentials.class, secret.name());
 
         // Then
         assertThat(credential)
-                .hasId(secret.getName());
+                .hasId(secret.name());
     }
 
     @Test
@@ -98,7 +96,7 @@ public class StandardCertificateCredentialsIT implements CredentialsTests {
         final var secret = createCertificateSecret(Crypto.save(keyStore, PASSWORD));
 
         // When
-        final var credential = lookup(StandardCertificateCredentials.class, secret.getName());
+        final var credential = lookup(StandardCertificateCredentials.class, secret.name());
 
         // Then
         assertThat(credential)
@@ -113,7 +111,7 @@ public class StandardCertificateCredentialsIT implements CredentialsTests {
         final var secret = createCertificateSecret(Crypto.save(keyStore, PASSWORD));
 
         // When
-        final var credential = lookup(StandardCertificateCredentials.class, secret.getName());
+        final var credential = lookup(StandardCertificateCredentials.class, secret.name());
 
         // Then
         assertThat(credential.getKeyStore())
@@ -130,7 +128,7 @@ public class StandardCertificateCredentialsIT implements CredentialsTests {
         // When
         final var run = runPipeline("",
                 "node {",
-                "  withCredentials([certificate(credentialsId: '" + secret.getName() + "', keystoreVariable: 'KEYSTORE')]) {",
+                "  withCredentials([certificate(credentialsId: '" + secret.name() + "', keystoreVariable: 'KEYSTORE')]) {",
                 "    echo \"Credential: {keystore: $KEYSTORE}\"",
                 "  }",
                 "}");
@@ -150,15 +148,15 @@ public class StandardCertificateCredentialsIT implements CredentialsTests {
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportSnapshots() {
         // Given
-        final KeyStore keyStore = Crypto.singletonKeyStore(ALIAS, KEY_PAIR.getPrivate(), PASSWORD, CERTIFICATE_CHAIN);
-        final CreateSecretResult foo = createCertificateSecret(Crypto.save(keyStore, PASSWORD));
-        final StandardCertificateCredentials before = lookup(StandardCertificateCredentials.class, foo.getName());
+        final var keyStore = Crypto.singletonKeyStore(ALIAS, KEY_PAIR.getPrivate(), PASSWORD, CERTIFICATE_CHAIN);
+        final var foo = createCertificateSecret(Crypto.save(keyStore, PASSWORD));
+        final StandardCertificateCredentials before = lookup(StandardCertificateCredentials.class, foo.name());
 
         // When
         final StandardCertificateCredentials after = CredentialSnapshots.snapshot(before);
 
         // Then
-        final CustomSoftAssertions s = new CustomSoftAssertions();
+        final var s = new CustomSoftAssertions();
         s.assertThat(after).hasId(before.getId());
         s.assertThat(after).hasPassword(before.getPassword());
         s.assertThat(after.getKeyStore()).containsEntry(ALIAS, CERTIFICATE_CHAIN);
@@ -172,22 +170,21 @@ public class StandardCertificateCredentialsIT implements CredentialsTests {
         final var secret = createCertificateSecret(new byte[] {0x00, 0x01});
 
         // When
-        final var credential = jenkins.getCredentials().lookup(StandardCertificateCredentials.class, secret.getName());
+        final var credential = jenkins.getCredentials().lookup(StandardCertificateCredentials.class, secret.name());
 
         // Then
         assertThatThrownBy(credential::getKeyStore)
                 .isInstanceOf(CredentialsUnavailableException.class);
     }
 
-    private CreateSecretResult createCertificateSecret(byte[] secretBinary) {
+    private CreateSecretResponse createCertificateSecret(byte[] secretBinary) {
         final var tags = List.of(AwsTags.type(Type.certificate));
 
-        final var request = new CreateSecretRequest()
-                .withName(CredentialNames.random())
-                .withSecretBinary(ByteBuffer.wrap(secretBinary))
-                .withTags(tags);
-
-        return secretsManager.getClient().createSecret(request);
+        return secretsManager.getClient().createSecret((b) -> {
+            b.name(CredentialNames.random());
+            b.secretBinary(SdkBytes.fromByteArray(secretBinary));
+            b.tags(tags);
+        });
     }
 
     private <C extends StandardCredentials> C lookup(Class<C> type, String id) {

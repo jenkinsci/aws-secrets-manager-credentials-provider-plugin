@@ -355,9 +355,7 @@ unclassified:
     cache: (boolean)                 # optional
     client:                          # optional
       credentialsProvider: (object)  # optional
-      endpointConfiguration:         # optional
-        serviceEndpoint: (URL)
-        signingRegion: (string)
+      endpointUrl: (URL)             # optional
       region: (string)               # optional
     listSecrets:                     # optional
       filters:

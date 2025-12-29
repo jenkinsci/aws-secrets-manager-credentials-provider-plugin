@@ -1,9 +1,9 @@
 package io.jenkins.plugins.credentials.secretsmanager.supplier;
 
-import com.amazonaws.services.secretsmanager.AWSSecretsManager;
-import com.amazonaws.services.secretsmanager.model.Filter;
-import com.amazonaws.services.secretsmanager.model.SecretListEntry;
-import com.amazonaws.services.secretsmanager.model.Tag;
+import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
+import software.amazon.awssdk.services.secretsmanager.model.Filter;
+import software.amazon.awssdk.services.secretsmanager.model.SecretListEntry;
+import software.amazon.awssdk.services.secretsmanager.model.Tag;
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import io.jenkins.plugins.credentials.secretsmanager.FiltersFactory;
 import io.jenkins.plugins.credentials.secretsmanager.config.Client;
@@ -35,14 +35,14 @@ public class CredentialsSupplier implements Supplier<Collection<StandardCredenti
     public Collection<StandardCredentials> get() {
         LOG.log(Level.FINE,"Retrieve secrets from AWS Secrets Manager");
 
-        final PluginConfiguration config = PluginConfiguration.getInstance();
+        final var config = PluginConfiguration.getInstance();
 
         final Function<String, String> nameFormatter = createNameFormatter(config);
         final Function<String, String> descriptionFormatter = createDescriptionFormatter(config);
 
-        final Collection<Filter> filters = createListSecretsFilters(config);
+        final var filters = createListSecretsFilters(config);
 
-        final AWSSecretsManager client = createClient(config);
+        final var client = createClient(config);
 
         final ListSecretsOperation listSecretsOperation = new ListSecretsOperation(client, filters);
 
@@ -50,19 +50,21 @@ public class CredentialsSupplier implements Supplier<Collection<StandardCredenti
 
         return secretList.stream()
                 .map(secretListEntry -> {
-                    final String name = secretListEntry.getName();
-                    final String description = Optional.ofNullable(secretListEntry.getDescription()).orElse("");
+                    final var name = secretListEntry.name();
+                    final var description = Optional.ofNullable(secretListEntry.description()).orElse("");
 
-                    return secretListEntry
-                            .withName(nameFormatter.apply(name))
-                            .withDescription(descriptionFormatter.apply(description));
+                    // Return the secretListEntry, but apply formatting to the relevant fields
+                    return secretListEntry.copy((builder) -> {
+                        builder.name(nameFormatter.apply(name));
+                        builder.description(descriptionFormatter.apply(description));
+                    });
                 })
                 .flatMap(secretListEntry -> {
-                    final String arn = secretListEntry.getARN();
-                    final String name = secretListEntry.getName();
-                    final String description = secretListEntry.getDescription();
-                    final Map<String, String> tags = Lists.toMap(secretListEntry.getTags(), Tag::getKey, Tag::getValue);
-                    final Optional<StandardCredentials> cred = CredentialsFactory.create(arn, name, description, tags, client);
+                    final var arn = secretListEntry.arn();
+                    final var name = secretListEntry.name();
+                    final var description = secretListEntry.description();
+                    final var tags = Lists.toMap(secretListEntry.tags(), Tag::key, Tag::value);
+                    final var cred = CredentialsFactory.create(arn, name, description, tags, client);
                     return cred.stream();
                 })
                 .collect(Collectors.toList());
@@ -88,7 +90,7 @@ public class CredentialsSupplier implements Supplier<Collection<StandardCredenti
                 .orElse(new io.jenkins.plugins.credentials.secretsmanager.config.transformer.description.Default())::transform;
     }
 
-    private static AWSSecretsManager createClient(PluginConfiguration config) {
+    private static SecretsManagerClient createClient(PluginConfiguration config) {
         final Client clientConfig = Optional.ofNullable(config.getClient())
                 .orElse(new Client(null, null, null, null));
 
