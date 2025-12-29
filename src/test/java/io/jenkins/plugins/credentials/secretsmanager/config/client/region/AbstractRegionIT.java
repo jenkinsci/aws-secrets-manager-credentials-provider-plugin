@@ -14,7 +14,7 @@ public abstract class AbstractRegionIT {
     @Test
     public void shouldHaveRegion() {
         // Given
-        final var region = "us-east-1";
+        final var region = "eu-west-1";
         setRegion(region);
 
         // When
