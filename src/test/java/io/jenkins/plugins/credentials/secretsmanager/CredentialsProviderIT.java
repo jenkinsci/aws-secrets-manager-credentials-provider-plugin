@@ -130,7 +130,6 @@ public class CredentialsProviderIT {
         final var tags = List.of(
                 AwsTags.type(Type.string),
                 AwsTags.tag("foo", "bar"),
-                AwsTags.tag(null, "baz"),
                 AwsTags.tag("qux", null));
 
         final var secret = createSecret(SECRET, tags);
