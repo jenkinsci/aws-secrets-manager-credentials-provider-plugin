@@ -1,9 +1,9 @@
 package io.jenkins.plugins.credentials.secretsmanager;
 
+import org.assertj.core.api.Assertions;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.secretsmanager.model.CreateSecretResponse;
 import com.cloudbees.plugins.credentials.CredentialsUnavailableException;
-import com.cloudbees.plugins.credentials.SecretBytes;
 import com.cloudbees.plugins.credentials.common.StandardCertificateCredentials;
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import com.cloudbees.plugins.credentials.impl.CertificateCredentialsImpl;
@@ -66,11 +66,12 @@ public class StandardCertificateCredentialsIT implements CredentialsTests {
         final var secret = createCertificateSecret(keystoreBytes);
 
         final var ours = lookup(StandardCertificateCredentials.class, secret.name());
+        final var ourDescriptor = ours.getDescriptor();
 
-        final var theirs = new CertificateCredentialsImpl(null, "id", "description", "password", new CertificateCredentialsImpl.UploadedKeyStoreSource(SecretBytes.fromBytes(keystoreBytes)));
+        final var theirDescriptor = new CertificateCredentialsImpl.DescriptorImpl();
 
-        assertThat(ours)
-                .hasSameDescriptorIconAs(theirs);
+        Assertions.assertThat(ourDescriptor.getIconClassName())
+                .isEqualTo(theirDescriptor.getIconClassName());
     }
 
     @Test
