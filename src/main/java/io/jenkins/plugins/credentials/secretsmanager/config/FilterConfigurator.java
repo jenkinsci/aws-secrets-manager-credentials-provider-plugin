@@ -1,6 +1,6 @@
 package io.jenkins.plugins.credentials.secretsmanager.config;
 
-import com.amazonaws.services.secretsmanager.model.FilterNameStringType;
+import software.amazon.awssdk.services.secretsmanager.model.FilterNameStringType;
 import com.google.common.collect.Sets;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
@@ -62,7 +62,7 @@ public class FilterConfigurator extends BaseConfigurator<Filter>
     @CheckForNull
     @Override
     public CNode describe(Filter instance, ConfigurationContext context) throws Exception {
-        final Mapping mapping = new Mapping();
+        final var mapping = new Mapping();
         for (Attribute<Filter, ?> attribute : describe()) {
             mapping.put(attribute.getName(), attribute.describe(instance, context));
         }

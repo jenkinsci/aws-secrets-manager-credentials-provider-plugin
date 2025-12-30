@@ -1,5 +1,6 @@
 package io.jenkins.plugins.credentials.secretsmanager.util;
 
+import hudson.model.Descriptor;
 import hudson.model.Run;
 import jenkins.model.Jenkins;
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
@@ -29,7 +30,7 @@ public class JenkinsPipelines {
             final WorkflowRun workflowRun = workflowRunFuture.waitForStart();
             waitForCompletion(workflowRun);
             return workflowRun;
-        } catch (IOException | InterruptedException | ExecutionException e) {
+        } catch (IOException | InterruptedException | ExecutionException | Descriptor.FormException e) {
             throw new RuntimeException(e);
         }
     }

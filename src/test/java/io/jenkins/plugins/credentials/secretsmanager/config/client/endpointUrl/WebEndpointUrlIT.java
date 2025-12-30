@@ -1,10 +1,10 @@
-package io.jenkins.plugins.credentials.secretsmanager.config.client.endpointConfiguration;
+package io.jenkins.plugins.credentials.secretsmanager.config.client.endpointUrl;
 
 import io.jenkins.plugins.credentials.secretsmanager.config.PluginConfiguration;
 import io.jenkins.plugins.credentials.secretsmanager.util.JenkinsConfiguredWithWebRule;
 import org.junit.Rule;
 
-public class WebEndpointConfigurationIT extends AbstractEndpointConfigurationIT {
+public class WebEndpointUrlIT extends AbstractEndpointUrlIT {
 
     @Rule
     public final JenkinsConfiguredWithWebRule r = new JenkinsConfiguredWithWebRule();
@@ -15,11 +15,9 @@ public class WebEndpointConfigurationIT extends AbstractEndpointConfigurationIT 
     }
 
     @Override
-    protected void setEndpointConfiguration(String serviceEndpoint, String signingRegion) {
+    protected void setEndpointUrl(String endpointUrl) {
         r.configure(form -> {
-            form.getInputByName("_.endpointConfiguration").setChecked(true);
-            form.getInputByName("_.serviceEndpoint").setValue(serviceEndpoint);
-            form.getSelectByName("_.signingRegion").setSelectedAttribute(signingRegion, true);
+            form.getInputByName("_.endpointUrl").setValue(endpointUrl);
         });
     }
 }

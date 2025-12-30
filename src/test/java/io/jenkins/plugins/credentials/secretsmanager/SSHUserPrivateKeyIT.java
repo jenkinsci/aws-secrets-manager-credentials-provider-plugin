@@ -1,7 +1,6 @@
 package io.jenkins.plugins.credentials.secretsmanager;
 
-import com.amazonaws.services.secretsmanager.model.CreateSecretRequest;
-import com.amazonaws.services.secretsmanager.model.CreateSecretResult;
+import software.amazon.awssdk.services.secretsmanager.model.CreateSecretResponse;
 import com.cloudbees.jenkins.plugins.sshcredentials.SSHUserPrivateKey;
 import com.cloudbees.jenkins.plugins.sshcredentials.impl.BasicSSHUserPrivateKey;
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
@@ -42,7 +41,7 @@ public class SSHUserPrivateKeyIT implements CredentialsTests {
 
         // Then
         assertThat(credentialList)
-                .containsOption(secret.getName(), secret.getName());
+                .containsOption(secret.name(), secret.name());
     }
 
     @Test
@@ -52,11 +51,11 @@ public class SSHUserPrivateKeyIT implements CredentialsTests {
         final var secret = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
 
         // When
-        final var credential = lookup(SSHUserPrivateKey.class, secret.getName());
+        final var credential = lookup(SSHUserPrivateKey.class, secret.name());
 
         // Then
         assertThat(credential)
-                .hasId(secret.getName());
+                .hasId(secret.name());
     }
 
     @Test
@@ -66,7 +65,7 @@ public class SSHUserPrivateKeyIT implements CredentialsTests {
         final var secret = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
 
         // When
-        final var credential = lookup(SSHUserPrivateKey.class, secret.getName());
+        final var credential = lookup(SSHUserPrivateKey.class, secret.name());
 
         // Then
         assertThat(credential)
@@ -80,7 +79,7 @@ public class SSHUserPrivateKeyIT implements CredentialsTests {
         final var secret = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
 
         // When
-        final var credential = lookup(SSHUserPrivateKey.class, secret.getName());
+        final var credential = lookup(SSHUserPrivateKey.class, secret.name());
 
         // Then
         assertThat(credential)
@@ -94,7 +93,7 @@ public class SSHUserPrivateKeyIT implements CredentialsTests {
         final var secret = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
 
         // When
-        final var credential = lookup(SSHUserPrivateKey.class, secret.getName());
+        final var credential = lookup(SSHUserPrivateKey.class, secret.name());
 
         // Then
         assertThat(credential)
@@ -106,7 +105,7 @@ public class SSHUserPrivateKeyIT implements CredentialsTests {
     public void shouldHaveDescriptorIcon() {
         final var secret = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
 
-        final var ours = lookup(SSHUserPrivateKey.class, secret.getName());
+        final var ours = lookup(SSHUserPrivateKey.class, secret.name());
 
         final var theirs = new BasicSSHUserPrivateKey(null, "id", "username", null, "passphrase", "description");
 
@@ -123,7 +122,7 @@ public class SSHUserPrivateKeyIT implements CredentialsTests {
         // When
         final var run = runPipeline("",
                 "node {",
-                "  withCredentials([sshUserPrivateKey(credentialsId: '" + secret.getName() + "', keyFileVariable: 'KEYFILE', usernameVariable: 'USERNAME')]) {",
+                "  withCredentials([sshUserPrivateKey(credentialsId: '" + secret.name() + "', keyFileVariable: 'KEYFILE', usernameVariable: 'USERNAME')]) {",
                 "    echo \"Credential: {username: $USERNAME, keyFile: $KEYFILE}\"",
                 "  }",
                 "}");
@@ -147,7 +146,7 @@ public class SSHUserPrivateKeyIT implements CredentialsTests {
                 "  stages {",
                 "    stage('Example') {",
                 "      environment {",
-                "        FOO = credentials('" + secret.getName() + "')",
+                "        FOO = credentials('" + secret.name() + "')",
                 "      }",
                 "      steps {",
                 "        echo \"{variable: $FOO, username: $FOO_USR}\"",
@@ -166,8 +165,8 @@ public class SSHUserPrivateKeyIT implements CredentialsTests {
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportSnapshots() {
         // Given
-        final CreateSecretResult foo = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
-        final SSHUserPrivateKey before = lookup(SSHUserPrivateKey.class, foo.getName());
+        final var foo = createSshUserPrivateKeySecret(USERNAME, PRIVATE_KEY);
+        final SSHUserPrivateKey before = lookup(SSHUserPrivateKey.class, foo.name());
 
         // When
         final SSHUserPrivateKey after = CredentialSnapshots.snapshot(before);
@@ -180,17 +179,16 @@ public class SSHUserPrivateKeyIT implements CredentialsTests {
                 .hasId(before.getId());
     }
 
-    private CreateSecretResult createSshUserPrivateKeySecret(String username, String privateKey) {
+    private CreateSecretResponse createSshUserPrivateKeySecret(String username, String privateKey) {
         final var tags = List.of(
                 AwsTags.type(Type.sshUserPrivateKey),
                 AwsTags.username(username));
 
-        final var request = new CreateSecretRequest()
-                .withName(CredentialNames.random())
-                .withSecretString(privateKey)
-                .withTags(tags);
-
-        return secretsManager.getClient().createSecret(request);
+        return secretsManager.getClient().createSecret((b) -> {
+            b.name(CredentialNames.random());
+            b.secretString(privateKey);
+            b.tags(tags);
+        });
     }
 
     private <C extends StandardCredentials> C lookup(Class<C> type, String id) {

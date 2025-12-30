@@ -5,14 +5,24 @@ import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
 import hudson.util.Secret;
 import io.jenkins.plugins.credentials.secretsmanager.Messages;
+import org.apache.http.client.utils.URIBuilder;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
+import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.http.apache.ProxyConfiguration;
 
 import javax.annotation.Nonnull;
 import java.io.Serializable;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Collections;
 import java.util.Objects;
 
+/**
+ * Configure the HTTP client used by the AWS SDK.
+ */
 public class ClientConfiguration extends AbstractDescribableImpl<ClientConfiguration> implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -90,18 +100,36 @@ public class ClientConfiguration extends AbstractDescribableImpl<ClientConfigura
         return Objects.hash(nonProxyHosts, proxyHost, proxyPort, proxyUsername, proxyPassword);
     }
 
-    public com.amazonaws.ClientConfiguration build() {
-        final var configuration = new com.amazonaws.ClientConfiguration();
+    public SdkHttpClient build() {
+        return ApacheHttpClient.builder()
+                .proxyConfiguration(buildProxyConfiguration())
+                .build();
+    }
 
-        configuration.setNonProxyHosts(nonProxyHosts);
-        configuration.setProxyHost(proxyHost);
+    private ProxyConfiguration buildProxyConfiguration() {
+        final var proxyEndpoint = buildProxyEndpoint();
+
+        return ProxyConfiguration.builder()
+                .nonProxyHosts(Collections.singleton(nonProxyHosts))
+                .endpoint(proxyEndpoint)
+                .username(proxyUsername)
+                .password(Secret.toString(proxyPassword))
+                .build();
+    }
+
+    private URI buildProxyEndpoint() {
+        final var proxyEndpointBuilder = new URIBuilder()
+                .setHost(proxyHost);
+
         if (proxyPort != null) {
-            configuration.setProxyPort(proxyPort);
+            proxyEndpointBuilder.setPort(proxyPort);
         }
-        configuration.setProxyUsername(proxyUsername);
-        configuration.setProxyPassword(Secret.toString(proxyPassword));
 
-        return configuration;
+        try {
+            return proxyEndpointBuilder.build();
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Extension

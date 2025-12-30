@@ -1,8 +1,7 @@
 package io.jenkins.plugins.credentials.secretsmanager;
 
-import com.amazonaws.services.secretsmanager.model.CreateSecretRequest;
-import com.amazonaws.services.secretsmanager.model.CreateSecretResult;
-import com.amazonaws.services.secretsmanager.model.Tag;
+import software.amazon.awssdk.services.secretsmanager.model.CreateSecretResponse;
+import software.amazon.awssdk.services.secretsmanager.model.Tag;
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
 import io.jenkins.plugins.credentials.secretsmanager.config.Filter;
 import io.jenkins.plugins.credentials.secretsmanager.config.ListSecrets;
@@ -43,8 +42,8 @@ public class CacheIT {
 
         // Then
         assertSoftly(s -> {
-            s.assertThat(first).as("First call").extracting("id").containsOnly(foo.getName(), bar.getName());
-            s.assertThat(second).as("Second call").extracting("id").containsOnly(foo.getName(), bar.getName());
+            s.assertThat(first).as("First call").extracting("id").containsOnly(foo.name(), bar.name());
+            s.assertThat(second).as("Second call").extracting("id").containsOnly(foo.name(), bar.name());
         });
     }
 
@@ -64,8 +63,8 @@ public class CacheIT {
 
         // Then
         assertSoftly(s -> {
-            s.assertThat(first).as("First call").extracting("id").containsOnly(foo.getName(), bar.getName());
-            s.assertThat(second).as("Second call").extracting("id").containsOnly(foo.getName(), bar.getName());
+            s.assertThat(first).as("First call").extracting("id").containsOnly(foo.name(), bar.name());
+            s.assertThat(second).as("Second call").extracting("id").containsOnly(foo.name(), bar.name());
         });
     }
 
@@ -85,8 +84,8 @@ public class CacheIT {
 
         // Then
         assertSoftly(s -> {
-            s.assertThat(first).as("First call").extracting("id").containsOnly(foo.getName(), bar.getName());
-            s.assertThat(second).as("Second call").extracting("id").containsOnly(foo.getName());
+            s.assertThat(first).as("First call").extracting("id").containsOnly(foo.name(), bar.name());
+            s.assertThat(second).as("Second call").extracting("id").containsOnly(foo.name());
         });
     }
 
@@ -97,17 +96,16 @@ public class CacheIT {
         config.setListSecrets(listSecrets);
     }
 
-    private CreateSecretResult createSecretWithTag(String key, String value) {
+    private CreateSecretResponse createSecretWithTag(String key, String value) {
         return createSecret("supersecret", List.of(AwsTags.type(Type.string), AwsTags.tag(key, value)));
     }
 
-    private CreateSecretResult createSecret(String secretString, List<Tag> tags) {
-        final var request = new CreateSecretRequest()
-                .withName(CredentialNames.random())
-                .withSecretString(secretString)
-                .withTags(tags);
-
-        return secretsManager.getClient().createSecret(request);
+    private CreateSecretResponse createSecret(String secretString, List<Tag> tags) {
+        return secretsManager.getClient().createSecret((b) -> {
+            b.name(CredentialNames.random());
+            b.secretString(secretString);
+            b.tags(tags);
+        });
     }
 
 }

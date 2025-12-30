@@ -1,6 +1,6 @@
 package io.jenkins.plugins.credentials.secretsmanager.util;
 
-import com.amazonaws.services.secretsmanager.model.Tag;
+import software.amazon.awssdk.services.secretsmanager.model.Tag;
 import io.jenkins.plugins.credentials.secretsmanager.factory.Tags;
 
 /**
@@ -24,10 +24,10 @@ public abstract class AwsTags {
     }
 
     public static Tag tag(String key) {
-        return new Tag().withKey(key);
+        return Tag.builder().key(key).build();
     }
 
     public static Tag tag(String key, String value) {
-        return new Tag().withKey(key).withValue(value);
+        return Tag.builder().key(key).value(value).build();
     }
 }

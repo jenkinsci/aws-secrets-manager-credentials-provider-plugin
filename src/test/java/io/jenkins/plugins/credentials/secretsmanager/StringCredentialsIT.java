@@ -1,7 +1,6 @@
 package io.jenkins.plugins.credentials.secretsmanager;
 
-import com.amazonaws.services.secretsmanager.model.CreateSecretRequest;
-import com.amazonaws.services.secretsmanager.model.CreateSecretResult;
+import software.amazon.awssdk.services.secretsmanager.model.CreateSecretResponse;
 import hudson.util.Secret;
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
 import io.jenkins.plugins.credentials.secretsmanager.factory.Type;
@@ -42,7 +41,7 @@ public class StringCredentialsIT implements CredentialsTests {
 
         // Then
         assertThat(credentialList)
-                .containsOption(secret.getName(), secret.getName());
+                .containsOption(secret.name(), secret.name());
     }
 
     @Test
@@ -52,11 +51,11 @@ public class StringCredentialsIT implements CredentialsTests {
         final var secret = createStringSecret(SECRET);
 
         // When
-        final var credential = jenkins.getCredentials().lookup(StringCredentials.class, secret.getName());
+        final var credential = jenkins.getCredentials().lookup(StringCredentials.class, secret.name());
 
         // Then
         assertThat(credential)
-                .hasId(secret.getName());
+                .hasId(secret.name());
     }
 
     @Test
@@ -66,7 +65,7 @@ public class StringCredentialsIT implements CredentialsTests {
         final var secret = createStringSecret(SECRET);
 
         // When
-        final var credential = jenkins.getCredentials().lookup(StringCredentials.class, secret.getName());
+        final var credential = jenkins.getCredentials().lookup(StringCredentials.class, secret.name());
 
         // Then
         assertThat(credential)
@@ -78,7 +77,7 @@ public class StringCredentialsIT implements CredentialsTests {
     public void shouldHaveDescriptorIcon() {
         final var secret = createStringSecret(SECRET);
 
-        final var ours = jenkins.getCredentials().lookup(StringCredentials.class, secret.getName());
+        final var ours = jenkins.getCredentials().lookup(StringCredentials.class, secret.name());
 
         final var theirs = new StringCredentialsImpl(null, "id", "description", Secret.fromString("secret"));
 
@@ -94,7 +93,7 @@ public class StringCredentialsIT implements CredentialsTests {
 
         // When
         final var run = runPipeline("",
-                "withCredentials([string(credentialsId: '" + secret.getName() + "', variable: 'VAR')]) {",
+                "withCredentials([string(credentialsId: '" + secret.name() + "', variable: 'VAR')]) {",
                 "  echo \"Credential: $VAR\"",
                 "}");
 
@@ -117,7 +116,7 @@ public class StringCredentialsIT implements CredentialsTests {
                 "  stages {",
                 "    stage('Example') {",
                 "      environment {",
-                "        VAR = credentials('" + secret.getName() + "')",
+                "        VAR = credentials('" + secret.name() + "')",
                 "      }",
                 "      steps {",
                 "        echo \"{variable: $VAR}\"",
@@ -136,8 +135,8 @@ public class StringCredentialsIT implements CredentialsTests {
     @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportSnapshots() {
         // Given
-        final CreateSecretResult foo = createStringSecret(SECRET);
-        final StringCredentials before = jenkins.getCredentials().lookup(StringCredentials.class, foo.getName());
+        final var foo = createStringSecret(SECRET);
+        final StringCredentials before = jenkins.getCredentials().lookup(StringCredentials.class, foo.name());
 
         // When
         final StringCredentials after = CredentialSnapshots.snapshot(before);
@@ -149,15 +148,14 @@ public class StringCredentialsIT implements CredentialsTests {
         });
     }
 
-    private CreateSecretResult createStringSecret(String secretString) {
+    private CreateSecretResponse createStringSecret(String secretString) {
         final var tags = List.of(AwsTags.type(Type.string));
 
-        final var request = new CreateSecretRequest()
-                .withName(CredentialNames.random())
-                .withSecretString(secretString)
-                .withTags(tags);
-
-        return secretsManager.getClient().createSecret(request);
+        return secretsManager.getClient().createSecret((b) -> {
+            b.name(CredentialNames.random());
+            b.secretString(secretString);
+            b.tags(tags);
+        });
     }
 
     private WorkflowRun runPipeline(String... pipeline) {

@@ -1,7 +1,6 @@
 package io.jenkins.plugins.credentials.secretsmanager;
 
-import com.amazonaws.services.secretsmanager.model.CreateSecretRequest;
-import com.amazonaws.services.secretsmanager.model.CreateSecretResult;
+import software.amazon.awssdk.services.secretsmanager.model.CreateSecretResponse;
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
 import io.jenkins.plugins.credentials.secretsmanager.factory.Type;
 import io.jenkins.plugins.credentials.secretsmanager.util.*;
@@ -69,7 +68,7 @@ public class TransformationsIT {
         @ConfiguredWithCode(value = "/transformations/removePrefix.yml")
         public void shouldStillResolveAfterTransformation() {
             // Given
-            final CreateSecretResult stagingFoo = createSecretWithName("staging-foo", SECRET_STRING);
+            final var stagingFoo = createSecretWithName("staging-foo", SECRET_STRING);
 
             // When
             final StringCredentials foo = jenkins.getCredentials().lookup(StringCredentials.class, "foo");
@@ -79,13 +78,12 @@ public class TransformationsIT {
                     .isEqualTo(SECRET_STRING);
         }
 
-        private CreateSecretResult createSecretWithName(String name, String secretString) {
-            final var request = new CreateSecretRequest()
-                    .withName(name)
-                    .withSecretString(secretString)
-                    .withTags(AwsTags.type(Type.string));
-
-            return secretsManager.getClient().createSecret(request);
+        private CreateSecretResponse createSecretWithName(String name, String secretString) {
+            return secretsManager.getClient().createSecret((b) -> {
+                b.name(name);
+                b.secretString(secretString);
+                b.tags(AwsTags.type(Type.string));
+            });
         }
     }
 
@@ -114,7 +112,7 @@ public class TransformationsIT {
             // Then
             assertThat(credentials)
                     .extracting("id", "description")
-                    .contains(tuple(secret.getName(), DESCRIPTION));
+                    .contains(tuple(secret.name(), DESCRIPTION));
         }
 
         @Test
@@ -129,17 +127,16 @@ public class TransformationsIT {
             // Then
             assertThat(credentials)
                     .extracting("id", "description")
-                    .contains(tuple(secret.getName(), ""));
+                    .contains(tuple(secret.name(), ""));
         }
 
-        private CreateSecretResult createSecretWithDescription(String description) {
-            final var request = new CreateSecretRequest()
-                    .withName(CredentialNames.random())
-                    .withSecretString("supersecret")
-                    .withDescription(description)
-                    .withTags(AwsTags.type(Type.string));
-
-            return secretsManager.getClient().createSecret(request);
+        private CreateSecretResponse createSecretWithDescription(String description) {
+            return secretsManager.getClient().createSecret((b) -> {
+                b.name(CredentialNames.random());
+                b.secretString("supersecret");
+                b.description(description);
+                b.tags(AwsTags.type(Type.string));
+            });
         }
 
     }

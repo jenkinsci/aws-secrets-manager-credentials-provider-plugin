@@ -1,11 +1,13 @@
 package io.jenkins.plugins.credentials.secretsmanager.config.credentialsProvider;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import hudson.Extension;
 import io.jenkins.plugins.credentials.secretsmanager.Messages;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
+import software.amazon.awssdk.services.sts.auth.StsAssumeRoleCredentialsProvider;
+import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
 
 import javax.annotation.Nonnull;
 import java.util.Objects;
@@ -43,9 +45,19 @@ public class STSAssumeRoleSessionCredentialsProvider extends CredentialsProvider
     }
 
     @Override
-    public AWSCredentialsProvider build() {
-        return new com.amazonaws.auth.STSAssumeRoleSessionCredentialsProvider.Builder(roleArn, roleSessionName)
-                .withRoleSessionDurationSeconds(DEFAULT_ROLE_SESSION_DURATION_SECONDS)
+    public AwsCredentialsProvider build() {
+        final var refreshRequest = buildRefreshRequest();
+
+        return StsAssumeRoleCredentialsProvider.builder()
+                .refreshRequest(refreshRequest)
+                .build();
+    }
+
+    private AssumeRoleRequest buildRefreshRequest() {
+        return AssumeRoleRequest.builder()
+                .roleArn(roleArn)
+                .roleSessionName(roleSessionName)
+                .durationSeconds(DEFAULT_ROLE_SESSION_DURATION_SECONDS)
                 .build();
     }
 

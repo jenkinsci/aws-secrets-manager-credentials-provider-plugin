@@ -1,8 +1,9 @@
 package io.jenkins.plugins.credentials.secretsmanager.config;
 
-import com.amazonaws.regions.Regions;
-import com.amazonaws.services.secretsmanager.AWSSecretsManager;
-import com.amazonaws.services.secretsmanager.AWSSecretsManagerClientBuilder;
+import org.apache.http.client.utils.URIBuilder;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import hudson.Extension;
 import hudson.ProxyConfiguration;
 import hudson.Util;
@@ -20,6 +21,9 @@ import org.kohsuke.stapler.DataBoundSetter;
 
 import javax.annotation.Nonnull;
 import java.io.Serializable;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -31,15 +35,15 @@ public class Client extends AbstractDescribableImpl<Client> implements Serializa
 
     private CredentialsProvider credentialsProvider;
 
-    private EndpointConfiguration endpointConfiguration;
+    private String endpointUrl;
 
     private String region;
 
     @DataBoundConstructor
-    public Client(ClientConfiguration clientConfiguration, CredentialsProvider credentialsProvider, EndpointConfiguration endpointConfiguration, String region) {
+    public Client(ClientConfiguration clientConfiguration, CredentialsProvider credentialsProvider, String endpointUrl, String region) {
         this.clientConfiguration = clientConfiguration;
         this.credentialsProvider = credentialsProvider;
-        this.endpointConfiguration = endpointConfiguration;
+        this.endpointUrl = endpointUrl;
         this.region = region;
     }
 
@@ -50,15 +54,6 @@ public class Client extends AbstractDescribableImpl<Client> implements Serializa
     @DataBoundSetter
     public void setClientConfiguration(ClientConfiguration clientConfiguration) {
         this.clientConfiguration = clientConfiguration;
-    }
-
-    public EndpointConfiguration getEndpointConfiguration() {
-        return endpointConfiguration;
-    }
-
-    @DataBoundSetter
-    public void setEndpointConfiguration(EndpointConfiguration endpointConfiguration) {
-        this.endpointConfiguration = endpointConfiguration;
     }
 
     public CredentialsProvider getCredentialsProvider() {
@@ -79,6 +74,15 @@ public class Client extends AbstractDescribableImpl<Client> implements Serializa
         this.region = Util.fixEmptyAndTrim(region);
     }
 
+    public String getEndpointUrl() {
+        return endpointUrl;
+    }
+
+    @DataBoundSetter
+    public void setEndpointUrl(String endpointUrl) {
+        this.endpointUrl = Util.fixEmptyAndTrim(endpointUrl);
+    }
+
     private static Optional<ProxyConfiguration> getProxyConfiguration() {
         // jenkins object could be null
         final var maybeJenkins = Optional.ofNullable(Jenkins.getInstanceOrNull());
@@ -87,45 +91,58 @@ public class Client extends AbstractDescribableImpl<Client> implements Serializa
         return maybeJenkins.flatMap(j -> Optional.ofNullable(j.getProxy()));
     }
 
-    static com.amazonaws.ClientConfiguration toClientConfiguration(ProxyConfiguration proxyConfiguration) {
-        final var configuration = new com.amazonaws.ClientConfiguration();
+    static software.amazon.awssdk.http.apache.ProxyConfiguration toAwsProxyConfiguration(ProxyConfiguration conf) {
+        final URI proxyEndpoint;
+        try {
+            proxyEndpoint = new URIBuilder()
+                    .setHost(conf.getName())
+                    .setPort(conf.getPort())
+                    .build();
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException(e);
+        }
 
-        configuration.setProxyHost(proxyConfiguration.getName());
-        configuration.setProxyPort(proxyConfiguration.getPort());
-        configuration.setProxyUsername(proxyConfiguration.getUserName());
-        configuration.setProxyPassword(Secret.toString(proxyConfiguration.getSecretPassword()));
-        configuration.setNonProxyHosts(proxyConfiguration.getNoProxyHost());
-
-        return configuration;
+        return software.amazon.awssdk.http.apache.ProxyConfiguration.builder()
+                .nonProxyHosts(Collections.singleton(conf.getNoProxyHost()))
+                .endpoint(proxyEndpoint)
+                .username(conf.getUserName())
+                .password(Secret.toString(conf.getSecretPassword()))
+                .build();
     }
 
-    public AWSSecretsManager build() {
-        final AWSSecretsManagerClientBuilder builder = AWSSecretsManagerClientBuilder.standard();
+    public SecretsManagerClient build() {
+        final var builder = SecretsManagerClient.builder();
 
         if (clientConfiguration != null) {
-            builder.setClientConfiguration(clientConfiguration.build());
+            builder.httpClient(clientConfiguration.build());
         } else {
             // If Jenkins has a system-wide proxy configuration set, use it.
             // Otherwise, leave the AWS client configuration as default.
             final var proxyConfiguration = getProxyConfiguration();
 
             proxyConfiguration.ifPresent(p -> {
-                final var proxyClientConfiguration = toClientConfiguration(p);
+                final var proxyClientConfiguration = toAwsProxyConfiguration(p);
 
-                builder.setClientConfiguration(proxyClientConfiguration);
+                final var httpClient = ApacheHttpClient.builder()
+                        .proxyConfiguration(proxyClientConfiguration)
+                        .build();
+
+                builder.httpClient(httpClient);
             });
         }
 
         if (credentialsProvider != null) {
-            builder.setCredentials(credentialsProvider.build());
+            builder.credentialsProvider(credentialsProvider.build());
         }
 
-        if (endpointConfiguration != null) {
-            builder.setEndpointConfiguration(endpointConfiguration.build());
+        if (endpointUrl != null && !endpointUrl.isEmpty()) {
+            final var theEndpointUrl = URI.create(endpointUrl);
+            builder.endpointOverride(theEndpointUrl);
         }
 
         if (region != null && !region.isEmpty()) {
-            builder.setRegion(region);
+            final var theRegion = Region.of(region);
+            builder.region(theRegion);
         }
 
         return builder.build();
@@ -138,13 +155,13 @@ public class Client extends AbstractDescribableImpl<Client> implements Serializa
         Client client = (Client) o;
         return Objects.equals(clientConfiguration, client.clientConfiguration) &&
                 Objects.equals(credentialsProvider, client.credentialsProvider) &&
-                Objects.equals(endpointConfiguration, client.endpointConfiguration) &&
+                Objects.equals(endpointUrl, client.endpointUrl) &&
                 Objects.equals(region, client.region);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(clientConfiguration, credentialsProvider, endpointConfiguration, region);
+        return Objects.hash(clientConfiguration, credentialsProvider, endpointUrl, region);
     }
 
     @Extension
@@ -165,8 +182,9 @@ public class Client extends AbstractDescribableImpl<Client> implements Serializa
         public ListBoxModel doFillRegionItems() {
             final ListBoxModel regions = new ListBoxModel();
             regions.add("", "");
-            for (Regions s : Regions.values()) {
-                regions.add(s.getDescription(), s.getName());
+            for (final var region : Region.regions()) {
+                final var metadata = region.metadata();
+                regions.add(metadata.description(), metadata.id());
             }
             return regions;
         }

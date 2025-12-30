@@ -1,4 +1,4 @@
 unclassified:
   awsCredentialsProvider:
     client:
-      region: "eu-west-1"
+      endpointUrl: "http://localhost:4584"

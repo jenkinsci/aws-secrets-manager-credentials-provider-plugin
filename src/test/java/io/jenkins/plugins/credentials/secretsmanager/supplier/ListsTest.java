@@ -1,6 +1,6 @@
 package io.jenkins.plugins.credentials.secretsmanager.supplier;
 
-import com.amazonaws.services.secretsmanager.model.Tag;
+import software.amazon.awssdk.services.secretsmanager.model.Tag;
 import org.junit.Test;
 
 import java.util.Collections;
@@ -14,7 +14,7 @@ public class ListsTest {
 
     @Test
     public void shouldTransformNullListToMap() {
-        assertThat(Lists.toMap(null, Tag::getKey, Tag::getValue))
+        assertThat(Lists.toMap(null, Tag::key, Tag::value))
                 .isEmpty();
     }
 
@@ -22,7 +22,7 @@ public class ListsTest {
     public void shouldTransformEmptyListToMap() {
         final List<Tag> tags = Collections.emptyList();
 
-        assertThat(Lists.toMap(tags, Tag::getKey, Tag::getValue))
+        assertThat(Lists.toMap(tags, Tag::key, Tag::value))
                 .isEmpty();
     }
 
@@ -32,7 +32,7 @@ public class ListsTest {
                 newTag("foo", "1"),
                 newTag("bar", "2"));
 
-        assertThat(Lists.toMap(tags, Tag::getKey, Tag::getValue))
+        assertThat(Lists.toMap(tags, Tag::key, Tag::value))
                 .containsOnly(entry("foo", "1"), entry("bar", "2"));
     }
 
@@ -43,10 +43,13 @@ public class ListsTest {
                 newTag("foo", "2"));
 
         assertThatIllegalStateException()
-                .isThrownBy(() -> Lists.toMap(tags, Tag::getKey, Tag::getValue));
+                .isThrownBy(() -> Lists.toMap(tags, Tag::key, Tag::value));
     }
 
     private static Tag newTag(String key, String value) {
-        return new Tag().withKey(key).withValue(value);
+        return Tag.builder()
+                .key(key)
+                .value(value)
+                .build();
     }
 }

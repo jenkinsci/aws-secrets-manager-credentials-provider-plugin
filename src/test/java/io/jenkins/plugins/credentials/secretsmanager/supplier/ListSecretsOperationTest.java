@@ -1,10 +1,10 @@
 package io.jenkins.plugins.credentials.secretsmanager.supplier;
 
-import com.amazonaws.AmazonWebServiceRequest;
-import com.amazonaws.ResponseMetadata;
-import com.amazonaws.services.secretsmanager.AWSSecretsManager;
-import com.amazonaws.services.secretsmanager.model.*;
+import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
+import software.amazon.awssdk.services.secretsmanager.model.ListSecretsRequest;
+import software.amazon.awssdk.services.secretsmanager.model.ListSecretsResponse;
 import org.junit.Test;
+import software.amazon.awssdk.services.secretsmanager.model.SecretListEntry;
 
 import java.util.Collections;
 
@@ -14,8 +14,8 @@ public class ListSecretsOperationTest {
 
     @Test
     public void shouldHandleMissingSecret() {
-        final var result = new ListSecretsResult().withSecretList();
-        final var strategy = new ListSecretsOperation(new MockAwsSecretsManager(result), Collections.emptyList());
+        final var response = ListSecretsResponse.builder().build();
+        final var strategy = new ListSecretsOperation(new MockAwsSecretsManager(response), Collections.emptyList());
 
         final var secrets = strategy.get();
 
@@ -24,151 +24,59 @@ public class ListSecretsOperationTest {
 
     @Test
     public void shouldHandleSecret() {
-        final var result = new ListSecretsResult().withSecretList(new SecretListEntry().withName("foo").withDescription("bar"));
-        final var strategy = new ListSecretsOperation(new MockAwsSecretsManager(result), Collections.emptyList());
+        final var response = ListSecretsResponse.builder()
+                .secretList(secret -> {
+                    secret.name("foo");
+                    secret.description("bar");
+                })
+                .build();
+
+        final var strategy = new ListSecretsOperation(new MockAwsSecretsManager(response), Collections.emptyList());
 
         final var secrets = strategy.get();
 
-        assertThat(secrets).containsExactly(new SecretListEntry().withDescription("bar").withName("foo"));
+        assertThat(secrets).containsExactly(SecretListEntry.builder().description("bar").name("foo").build());
     }
 
     @Test
     public void shouldHandleSecretWithTags() {
-        final var result = new ListSecretsResult().withSecretList(new SecretListEntry().withName("foo").withDescription("bar").withTags(new Tag().withKey("key").withValue("value")));
-        final var strategy = new ListSecretsOperation(new MockAwsSecretsManager(result), Collections.emptyList());
+        final var response = ListSecretsResponse.builder()
+                .secretList(secret -> {
+                    secret.name("foo");
+                    secret.description("bar");
+                    secret.tags(tag -> tag.key("key").value("value"));
+                })
+                .build();
+
+        final var strategy = new ListSecretsOperation(new MockAwsSecretsManager(response), Collections.emptyList());
 
         final var secrets = strategy.get();
 
-        assertThat(secrets).containsExactly(new SecretListEntry().withDescription("bar").withName("foo").withTags(new Tag().withKey("key").withValue("value")));
+        assertThat(secrets).containsExactly(
+                SecretListEntry.builder().description("bar").name("foo").tags(tag -> tag.key("key").value("value")).build());
     }
 
-    private static class MockAwsSecretsManager implements AWSSecretsManager {
+    private static class MockAwsSecretsManager implements SecretsManagerClient {
 
-        private final ListSecretsResult result;
+        private final ListSecretsResponse response;
 
-        private MockAwsSecretsManager(ListSecretsResult result) {
-            this.result = result;
+        private MockAwsSecretsManager(ListSecretsResponse response) {
+            this.response = response;
         }
 
         @Override
-        public CancelRotateSecretResult cancelRotateSecret(CancelRotateSecretRequest cancelRotateSecretRequest) {
-            throw new UnsupportedOperationException();
+        public ListSecretsResponse listSecrets(ListSecretsRequest listSecretsRequest) {
+            return response;
         }
 
         @Override
-        public CreateSecretResult createSecret(CreateSecretRequest createSecretRequest) {
-            throw new UnsupportedOperationException();
+        public String serviceName() {
+            return "";
         }
 
         @Override
-        public DeleteResourcePolicyResult deleteResourcePolicy(DeleteResourcePolicyRequest deleteResourcePolicyRequest) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public DeleteSecretResult deleteSecret(DeleteSecretRequest deleteSecretRequest) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public DescribeSecretResult describeSecret(DescribeSecretRequest describeSecretRequest) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public GetRandomPasswordResult getRandomPassword(GetRandomPasswordRequest getRandomPasswordRequest) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public GetResourcePolicyResult getResourcePolicy(GetResourcePolicyRequest getResourcePolicyRequest) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public GetSecretValueResult getSecretValue(GetSecretValueRequest getSecretValueRequest) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public ListSecretVersionIdsResult listSecretVersionIds(ListSecretVersionIdsRequest listSecretVersionIdsRequest) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public ListSecretsResult listSecrets(ListSecretsRequest listSecretsRequest) {
-            return result;
-        }
-
-        @Override
-        public PutResourcePolicyResult putResourcePolicy(PutResourcePolicyRequest putResourcePolicyRequest) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public PutSecretValueResult putSecretValue(PutSecretValueRequest putSecretValueRequest) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public RemoveRegionsFromReplicationResult removeRegionsFromReplication(RemoveRegionsFromReplicationRequest removeRegionsFromReplicationRequest) {
-            throw new UnsupportedOperationException();
-        }
-
-        
-        @Override
-        public ReplicateSecretToRegionsResult replicateSecretToRegions(ReplicateSecretToRegionsRequest replicateSecretToRegionsRequest) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public RestoreSecretResult restoreSecret(RestoreSecretRequest restoreSecretRequest) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public RotateSecretResult rotateSecret(RotateSecretRequest rotateSecretRequest) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public StopReplicationToReplicaResult stopReplicationToReplica(StopReplicationToReplicaRequest stopReplicationToReplicaRequest) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public TagResourceResult tagResource(TagResourceRequest tagResourceRequest) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public UntagResourceResult untagResource(UntagResourceRequest untagResourceRequest) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public UpdateSecretResult updateSecret(UpdateSecretRequest updateSecretRequest) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public UpdateSecretVersionStageResult updateSecretVersionStage(UpdateSecretVersionStageRequest updateSecretVersionStageRequest) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public ValidateResourcePolicyResult validateResourcePolicy(ValidateResourcePolicyRequest validateResourcePolicyRequest) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public void shutdown() {
-
-        }
-
-        @Override
-        public ResponseMetadata getCachedResponseMetadata(AmazonWebServiceRequest amazonWebServiceRequest) {
-            throw new UnsupportedOperationException();
+        public void close() {
+            // no-op
         }
     }
 }

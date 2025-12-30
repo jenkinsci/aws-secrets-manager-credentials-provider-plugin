@@ -1,6 +1,5 @@
 package io.jenkins.plugins.credentials.secretsmanager;
 
-import com.amazonaws.SdkBaseException;
 import com.cloudbees.plugins.credentials.Credentials;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.CredentialsStore;
@@ -45,7 +44,7 @@ public class AwsCredentialsProvider extends CredentialsProvider {
             Collection<StandardCredentials> allCredentials = Collections.emptyList();
             try {
                 allCredentials = credentialsSupplier.get();
-            } catch (SdkBaseException e) {
+            } catch (Exception e) {
                 LOG.log(Level.WARNING, "Could not list credentials in Secrets Manager: message=[{0}]", e.getMessage());
             }
 

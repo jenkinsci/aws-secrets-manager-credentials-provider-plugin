@@ -1,8 +1,7 @@
 package io.jenkins.plugins.credentials.secretsmanager;
 
-import com.amazonaws.services.secretsmanager.model.CreateSecretRequest;
-import com.amazonaws.services.secretsmanager.model.CreateSecretResult;
-import com.amazonaws.services.secretsmanager.model.Tag;
+import software.amazon.awssdk.services.secretsmanager.model.CreateSecretResponse;
+import software.amazon.awssdk.services.secretsmanager.model.Tag;
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
 import io.jenkins.plugins.credentials.secretsmanager.factory.Type;
 import io.jenkins.plugins.credentials.secretsmanager.util.*;
@@ -36,20 +35,19 @@ public class FiltersIT {
         // Then
         assertThat(credentials)
                 .extracting("id")
-                .contains(foo.getName())
-                .doesNotContain(bar.getName());
+                .contains(foo.name())
+                .doesNotContain(bar.name());
     }
 
-    private CreateSecretResult createSecretWithTag(String key, String value) {
+    private CreateSecretResponse createSecretWithTag(String key, String value) {
         return createSecret("supersecret", List.of(AwsTags.type(Type.string), AwsTags.tag(key, value)));
     }
 
-    private CreateSecretResult createSecret(String secretString, List<Tag> tags) {
-        final var request = new CreateSecretRequest()
-                .withName(CredentialNames.random())
-                .withSecretString(secretString)
-                .withTags(tags);
-
-        return secretsManager.getClient().createSecret(request);
+    private CreateSecretResponse createSecret(String secretString, List<Tag> tags) {
+        return secretsManager.getClient().createSecret((b) -> {
+            b.name(CredentialNames.random());
+            b.secretString(secretString);
+            b.tags(tags);
+        });
     }
 }

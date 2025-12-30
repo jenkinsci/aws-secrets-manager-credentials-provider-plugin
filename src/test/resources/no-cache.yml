@@ -2,6 +2,5 @@ unclassified:
   awsCredentialsProvider:
     cache: false
     client:
-      endpointConfiguration:
-        serviceEndpoint: ${AWS_SERVICE_ENDPOINT}
-        signingRegion: ${AWS_SIGNING_REGION}
+      endpointUrl: ${AWS_ENDPOINT_URL}
+      region: ${AWS_REGION}

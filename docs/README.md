@@ -355,9 +355,7 @@ unclassified:
     cache: (boolean)                 # optional
     client:                          # optional
       credentialsProvider: (object)  # optional
-      endpointConfiguration:         # optional
-        serviceEndpoint: (URL)
-        signingRegion: (string)
+      endpointUrl: (URL)             # optional
       region: (string)               # optional
     listSecrets:                     # optional
       filters:
@@ -428,7 +426,7 @@ You can explore how the plugin works by running it locally with [Moto](https://g
 Start Moto:
 
 ```shell
-docker run -it -p 5000:5000 motoserver/moto:3.1.18
+docker run -it -p 5000:5000 motoserver/moto:5.1.18
 ```
 
 Upload some fake secrets to Moto (like these):
