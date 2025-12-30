@@ -173,7 +173,7 @@ node {
 
 ### SSH User Private Key
 
-An SSH *private key*, with a *username*.
+An SSH *Private Key*, with a *Username*.
 
 - Value: *private key*
 - Tags:
@@ -295,6 +295,80 @@ node {
         echo 'Hello world'
     }
 }
+```
+
+#### Github App Credentials (Optional)
+
+Requires *git-source-branch* plugin to create this credential type
+
+A github *private key*, with a *github app id*.
+
+- Value: *content*
+- Tags:
+  - `jenkins:credentials:type` = `githubApp`
+  - `jenkins:credentials:appid` = *Github App Id*
+
+The private key format used is PKCS#8 (starts with `-----BEGIN PRIVATE KEY-----`).
+
+##### Example
+
+AWS CLI:
+
+```bash
+openssl pkcs8 -topk8 -inform PEM -outform PEM -nocrypt -in pkcs1.key -out pkcs8.key
+aws secretsmanager create-secret --name 'githubapp' --secret-string 'file://pkcs8.key' --tags 'Key=jenkins:credentials:type,Value=githubApp' 'Key=jenkins:credentials:appid,Value=11111' --description 'Github App Credentials'
+```
+
+Declarative Pipeline:
+
+```groovy
+pipeline {
+    agent any
+    environment {
+        GITHUB_APP = credentials('githubapp')
+    }
+    stages {
+        stage('Example') {
+            steps {
+              echo 'Hello world'
+            }
+        }
+    }
+}
+```
+
+Scripted Pipeline:
+
+```groovy
+node {
+    withCredentials([usernamePassword(credentialsId: 'githubapp', usernameVariable: 'GITHUBAPP_USR', passwordVariable: 'GITHUBAPP_PSW')]) {
+        echo 'Hello world'
+    }
+}
+```
+
+### SecretSource
+
+The plugin allows JCasC to interpolate string secrets from Secrets Manager.
+
+#### Example
+
+AWS CLI:
+
+```bash
+aws secretsmanager create-secret --name 'my-password' --secret-string 'abc123' --description 'Jenkins user password'
+```
+
+JCasC:
+
+```yaml
+jenkins:
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+      - id: "foo"
+        password: "${my-password}"
 ```
 
 ## Advanced Usage
