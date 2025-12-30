@@ -135,13 +135,14 @@ public class Client extends AbstractDescribableImpl<Client> implements Serializa
             builder.credentialsProvider(credentialsProvider.build());
         }
 
-        if (endpointUrl != null) {
-            final var url = URI.create(endpointUrl);
-            builder.endpointOverride(url);
+        if (endpointUrl != null && !endpointUrl.isEmpty()) {
+            final var theEndpointUrl = URI.create(endpointUrl);
+            builder.endpointOverride(theEndpointUrl);
         }
 
         if (region != null && !region.isEmpty()) {
-            builder.region(Region.of(region));
+            final var theRegion = Region.of(region);
+            builder.region(theRegion);
         }
 
         return builder.build();
