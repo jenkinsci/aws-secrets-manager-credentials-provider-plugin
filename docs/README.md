@@ -171,6 +171,24 @@ node {
 }
 ```
 
+### Username with Password (JSON format)
+
+A *username* and *password* pair.
+
+- Value: Valid JSON describing an object with a `username` field and and `password` field.
+- Tags:
+  - `jenkins:credentials:type` = `jsonUsernamePassword`
+
+#### Example
+
+AWS CLI:
+
+```bash
+aws secretsmanager create-secret --name 'artifactory' --secret-string '{ username: "joe", password: "supersecret" }' --tags 'Key=jenkins:credentials:type,Value=jsonUsernamePassword' --description 'Acme Corp Artifactory login'
+```
+
+Declarative and Scripted Pipeline behavior is (exactly) the same as non-JSON-format Username and Password.
+
 ### SSH User Private Key
 
 An SSH *private key*, with a *username*.
@@ -221,6 +239,28 @@ node {
     }
 }
 ```
+
+### SSH User Private Key (JSON format)
+
+An SSH *private key*, with a *username* and optional *passphrase* for the private key.
+
+- Value: Valid JSON describing an object with a `username` field, `privatekey` field and optionally a `passphrase` field.
+- Tags:
+  - `jenkins:credentials:type` = `jsonSshUserPrivateKey`
+
+**Note:** Unlike the non-JSON-format version, the passphrase field is supported. This is because the passphrase is contained within the AWS secret data, not as a (non-secret) tag.
+
+#### Example
+
+AWS CLI:
+
+```bash
+ssh-keygen -t rsa -b 4096 -C 'acme@example.com' -f id_rsa -N mySecretPassPhrase
+jq -n --arg key "$(cat id_rsa)" '{ username: "joe", privatekey: $key, passphrase: "mySecretPassPhrase" }' >json
+aws secretsmanager create-secret --name 'ssh-key' --secret-string 'file://json' --tags 'Key=jenkins:credentials:type,Value=jsonSshUserPrivateKey' --description 'Acme Corp SSH key'
+```
+
+Declarative and Scripted Pipeline behavior is (exactly) the same as non-JSON-format SSH User Private Key.
 
 ### Certificate
 
