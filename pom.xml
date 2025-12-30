@@ -80,6 +80,11 @@
             <artifactId>aws-java-sdk2-secretsmanager</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>aws-credentials</artifactId>
+            <version>218.v1b_e9466ec5da_</version>
+        </dependency>
+        <dependency>
             <groupId>io.jenkins</groupId>
             <artifactId>configuration-as-code</artifactId>
             <optional>true</optional>

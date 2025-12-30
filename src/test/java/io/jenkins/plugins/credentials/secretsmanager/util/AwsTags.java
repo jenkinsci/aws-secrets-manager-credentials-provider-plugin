@@ -19,6 +19,22 @@ public abstract class AwsTags {
         return AwsTags.tag(Tags.username, username);
     }
 
+    public static Tag accesskeyid(String accessKeyId) {
+        return AwsTags.tag(Tags.accesskeyid, accessKeyId);
+    }
+    public static Tag iamrolearn(String iamrolearn) {
+        return AwsTags.tag(Tags.iamrolearn, iamrolearn);
+    }
+    public static Tag iamexternalid(String iamexternalid) {
+        return AwsTags.tag(Tags.iamexternalid, iamexternalid);
+    }
+    public static Tag iammfaserialnumberid(String iammfaserialnumberid) {
+        return AwsTags.tag(Tags.iammfaserialnumberid, iammfaserialnumberid);
+    }
+    public static Tag ststokenduration(String ststokenduration) {
+        return AwsTags.tag(Tags.ststokenduration, ststokenduration);
+    }
+
     public static Tag type(String type) {
         return tag(Tags.type, type);
     }

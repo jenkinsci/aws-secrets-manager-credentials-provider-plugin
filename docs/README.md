@@ -297,6 +297,56 @@ node {
 }
 ```
 
+### AWS Credentials
+
+AWS access keys credentials compatible with the [aws-credentials-plugin](https://github.com/jenkinsci/aws-credentials-plugin).
+
+- Value: *awsSecretKey*
+- Tags:
+  - `jenkins:credentials:type` = `awsAccessKeys`
+  - `jenkins:credentials:accesskeyid` = *accesskeyid*
+  - `jenkins:credentials:iamrolearn` = *iamrolearn* (optional)
+  - `jenkins:credentials:iamexternalid` = *iamexternalid* (optional)
+  - `jenkins:credentials:iammfaserialnumberid` = *iammfaserialnumberid* (optional)
+  - `jenkins:credentials:ststokenduration` = *ststokenduration* (optional)
+
+#### Example
+
+AWS CLI:
+
+```bash
+aws secretsmanager create-secret --name 'aws-keys' --secret-string 'supersecret' --tags 'Key=jenkins:credentials:type,Value=awsAccessKeys' 'Key=jenkins:credentials:accesskeyid,Value=youraccesskeyid' --description 'Some AWS access keys'
+```
+
+Declarative Pipeline:
+
+```groovy
+pipeline {
+    agent any
+    environment {
+        // Creates variables AWS_ACCESS_KEY_ID=accesskeyid, AWS_SECRET_ACCESS_KEY=superseccret
+        ARTIFACTORY = credentials('aws-keys')
+    }
+    stages {
+        stage('Foo') {
+            steps {
+              echo 'Hello world'
+            }
+        }
+    }
+}
+```
+
+Scripted Pipeline:
+
+```groovy
+node {
+    withCredentials([aws(credentialsId: 'aws')]) {
+        echo 'Hello world'
+    }
+}
+```
+
 ## Advanced Usage
 
 You may need to deal with multi-field credentials or vendor-specific credential types that the plugin does not (yet) support.
