@@ -15,6 +15,10 @@ public abstract class AwsTags {
         return AwsTags.tag(Tags.filename, filename);
     }
 
+    public static Tag folder(String folder) {
+        return AwsTags.tag(Tags.folder, folder);
+    }
+
     public static Tag username(String username) {
         return AwsTags.tag(Tags.username, username);
     }

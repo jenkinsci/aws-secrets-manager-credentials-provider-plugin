@@ -322,6 +322,113 @@ node {
 }
 ```
 
+## Folder Scoping
+
+You can restrict credentials to specific Jenkins folders using the `jenkins:credentials:folder` tag. This is useful for multi-team environments where credentials should only be accessible to specific teams or projects.
+
+### Overview
+
+By default, credentials from AWS Secrets Manager are globally accessible across all Jenkins jobs and folders. With folder scoping, you can limit credential access to specific folders and their child folders, following Jenkins' folder hierarchy model.
+
+### How It Works
+
+- **Hierarchical Matching**: Credentials are accessible from the specified folder and all its child folders
+- **Backward Compatible**: Credentials without the `jenkins:credentials:folder` tag remain globally accessible
+- **Multiple Folders**: Support comma-separated folder paths to grant access to multiple folder hierarchies
+
+### Basic Folder Scope
+
+To make a credential only accessible from a specific folder and its child folders:
+
+```bash
+aws secretsmanager create-secret \
+  --name 'backend-api-key' \
+  --secret-string 'abc123' \
+  --tags \
+    'Key=jenkins:credentials:type,Value=string' \
+    'Key=jenkins:credentials:folder,Value=engineering/backend' \
+  --description 'Backend team API key'
+```
+
+**Access behavior:**
+- ✓ Accessible from: `engineering/backend`, `engineering/backend/api`, `engineering/backend/services`
+- ✗ NOT accessible from: root, `engineering`, `engineering/frontend`, `qa`
+
+### Multiple Folder Scopes
+
+To make a credential accessible from multiple folders, use comma-separated folder paths:
+
+```bash
+aws secretsmanager create-secret \
+  --name 'shared-api-key' \
+  --secret-string 'abc123' \
+  --tags \
+    'Key=jenkins:credentials:type,Value=string' \
+    'Key=jenkins:credentials:folder,Value=engineering/backend,engineering/frontend' \
+  --description 'Shared API key for backend and frontend'
+```
+
+**Access behavior:**
+- ✓ Accessible from: `engineering/backend` and its children, `engineering/frontend` and its children
+- ✗ NOT accessible from: root, `engineering`, `qa`
+
+### Global Credentials
+
+Credentials without the `jenkins:credentials:folder` tag remain globally accessible (the default behavior):
+
+```bash
+aws secretsmanager create-secret \
+  --name 'global-api-key' \
+  --secret-string 'abc123' \
+  --tags \
+    'Key=jenkins:credentials:type,Value=string' \
+  --description 'Global API key accessible everywhere'
+```
+
+**Access behavior:**
+- ✓ Accessible from: all folders and jobs in Jenkins
+
+### Folder Hierarchy Example
+
+Jenkins folders form a hierarchy using forward slashes:
+
+```
+Jenkins (root)
+├── engineering
+│   ├── backend
+│   │   └── api
+│   └── frontend
+└── qa
+    ├── staging
+    └── production
+```
+
+**Example credential scoping:**
+
+```bash
+# Backend-specific credential
+aws secretsmanager create-secret \
+  --name 'backend-db-password' \
+  --secret-string 'secret' \
+  --tags \
+    'Key=jenkins:credentials:type,Value=string' \
+    'Key=jenkins:credentials:folder,Value=engineering/backend'
+```
+
+**Access behavior:**
+- ✓ `engineering/backend` - accessible
+- ✓ `engineering/backend/api` - accessible (child folder)
+- ✗ Jenkins root - not accessible
+- ✗ `engineering` - not accessible (parent folder)
+- ✗ `engineering/frontend` - not accessible (sibling folder)
+- ✗ `qa` - not accessible (different branch)
+
+### Important Notes
+
+- **Credentials cache**: Folder scope changes in AWS Secrets Manager require the credentials cache to expire (default: 5 minutes) before taking effect in Jenkins. You can disable caching in plugin configuration if you need immediate updates.
+- **Principle of least privilege**: Use folder scoping to reduce the blast radius of credential leaks by ensuring credentials are only accessible where needed.
+- **IAM permissions unchanged**: Folder scoping is a Jenkins-side authorization mechanism. Jenkins still needs IAM permissions (`secretsmanager:ListSecrets` and `secretsmanager:GetSecretValue`) to access all secrets. The folder tag controls visibility within Jenkins, not AWS access.
+
 ## Configuration
 
 The plugin has a couple of **optional** settings to fine-tune its behavior. **In most installations you do not need to change these settings.** If you need to change the configuration, you can use the Web UI or CasC.

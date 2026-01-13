@@ -39,21 +39,37 @@ public abstract class CredentialsFactory {
         final String type = tags.getOrDefault(Tags.type, "");
         final String username = tags.getOrDefault(Tags.username, "");
         final String filename = tags.getOrDefault(Tags.filename, name);
+        final String folderTag = tags.get(Tags.folder); // null if not present
 
+        // Create the base credential based on type
+        Optional<StandardCredentials> baseCredential;
         switch (type) {
             case Type.string:
-                return Optional.of(new AwsStringCredentials(name, description, new SecretSupplier(client, arn)));
+                baseCredential = Optional.of(new AwsStringCredentials(name, description, new SecretSupplier(client, arn)));
+                break;
             case Type.usernamePassword:
-                return Optional.of(new AwsUsernamePasswordCredentials(name, description, new SecretSupplier(client, arn), username));
+                baseCredential = Optional.of(new AwsUsernamePasswordCredentials(name, description, new SecretSupplier(client, arn), username));
+                break;
             case Type.sshUserPrivateKey:
-                return Optional.of(new AwsSshUserPrivateKey(name, description, new StringSupplier(client, arn), username));
+                baseCredential = Optional.of(new AwsSshUserPrivateKey(name, description, new StringSupplier(client, arn), username));
+                break;
             case Type.certificate:
-                return Optional.of(new AwsCertificateCredentials(name, description, new SecretBytesSupplier(client, arn)));
+                baseCredential = Optional.of(new AwsCertificateCredentials(name, description, new SecretBytesSupplier(client, arn)));
+                break;
             case Type.file:
-                return Optional.of(new AwsFileCredentials(name, description, filename, new SecretBytesSupplier(client, arn)));
+                baseCredential = Optional.of(new AwsFileCredentials(name, description, filename, new SecretBytesSupplier(client, arn)));
+                break;
             default:
                 return Optional.empty();
         }
+
+        // Wrap with folder scope information
+        return baseCredential.map(cred -> {
+            io.jenkins.plugins.credentials.secretsmanager.FolderScope scope = folderTag != null
+                    ? io.jenkins.plugins.credentials.secretsmanager.FolderScope.parse(folderTag)
+                    : io.jenkins.plugins.credentials.secretsmanager.FolderScope.global();
+            return new io.jenkins.plugins.credentials.secretsmanager.ScopedCredentials(cred, scope);
+        });
     }
 
     private static class SecretBytesSupplier extends RealSecretsManager implements Supplier<SecretBytes> {

@@ -14,11 +14,14 @@ import org.kohsuke.stapler.export.ExportedBean;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
+import hudson.model.ItemGroup;
 import hudson.model.ModelObject;
 import hudson.security.ACL;
 import hudson.security.Permission;
@@ -26,18 +29,24 @@ import jenkins.model.Jenkins;
 
 public class AwsCredentialsStore extends CredentialsStore {
 
+    private static final Logger LOG = Logger.getLogger(AwsCredentialsStore.class.getName());
+
     private final AwsCredentialsProvider provider;
+    private final ModelObject context;
     private final AwsCredentialsStoreAction action = new AwsCredentialsStoreAction(this);
 
-    public AwsCredentialsStore(AwsCredentialsProvider provider) {
+    public AwsCredentialsStore(AwsCredentialsProvider provider, ModelObject context) {
         super(AwsCredentialsProvider.class);
         this.provider = provider;
+        this.context = context;
+        LOG.log(Level.FINE, "Created AwsCredentialsStore with context: {0}",
+                context.getDisplayName());
     }
 
     @Nonnull
     @Override
     public ModelObject getContext() {
-        return Jenkins.get();
+        return context;
     }
 
     @Override
@@ -53,7 +62,11 @@ public class AwsCredentialsStore extends CredentialsStore {
         // Only the global domain is supported
         if (Domain.global().equals(domain)
                 && Jenkins.get().hasPermission(CredentialsProvider.VIEW)) {
-            return provider.getCredentials(Credentials.class, Jenkins.get(), ACL.SYSTEM);
+            // Cast context to ItemGroup since both Jenkins and Folder implement it
+            List<Credentials> result = provider.getCredentials(Credentials.class, (ItemGroup<?>) context, ACL.SYSTEM);
+            LOG.log(Level.FINE, "Returning {0} credentials for context: {1}",
+                    new Object[]{result.size(), context.getDisplayName()});
+            return result;
         } else {
             return Collections.emptyList();
         }
