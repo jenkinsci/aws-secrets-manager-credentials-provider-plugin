@@ -6,6 +6,7 @@ import io.jenkins.plugins.credentials.secretsmanager.Messages;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
+import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.auth.StsAssumeRoleCredentialsProvider;
 import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
 
@@ -49,6 +50,7 @@ public class STSAssumeRoleSessionCredentialsProvider extends CredentialsProvider
         final var refreshRequest = buildRefreshRequest();
 
         return StsAssumeRoleCredentialsProvider.builder()
+                .stsClient(StsClient.create())
                 .refreshRequest(refreshRequest)
                 .build();
     }
