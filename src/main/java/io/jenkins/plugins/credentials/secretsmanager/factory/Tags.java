@@ -7,6 +7,7 @@ public abstract class Tags {
     private static final String namespace = "jenkins:credentials:";
 
     public static final String filename = namespace + "filename";
+    public static final String format = namespace + "format";
     public static final String type = namespace + "type";
     public static final String username = namespace + "username";
 

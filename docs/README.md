@@ -171,6 +171,41 @@ node {
 }
 ```
 
+#### JSON variant
+
+If you don't want to expose the username as an AWS tag (tags are non-secret metadata visible in any `ListSecrets` API call), you can store both the username and the password in the secret value itself as a JSON document.
+
+- Value: a JSON object with `username` and `password` fields
+- Tags:
+  - `jenkins:credentials:type` = `usernamePassword`
+  - `jenkins:credentials:format` = `json`
+
+The JSON value must look like this:
+
+```json
+{
+  "username": "joe",
+  "password": "supersecret"
+}
+```
+
+You can optionally indicate that the `username` and/or `password` fields are Base64-encoded by adding `username_encoding` and/or `password_encoding` fields with the value `base64`. This is useful when a field contains characters that would otherwise need escaping in JSON:
+
+```json
+{
+  "username": "am9l",
+  "username_encoding": "base64",
+  "password": "c3VwZXJzZWNyZXQ=",
+  "password_encoding": "base64"
+}
+```
+
+AWS CLI:
+
+```bash
+aws secretsmanager create-secret --name 'artifactory' --secret-string '{"username":"joe","password":"supersecret"}' --tags 'Key=jenkins:credentials:type,Value=usernamePassword' 'Key=jenkins:credentials:format,Value=json' --description 'Acme Corp Artifactory login'
+```
+
 ### SSH User Private Key
 
 An SSH *private key*, with a *username*.
