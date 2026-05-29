@@ -41,6 +41,7 @@ public abstract class CredentialsFactory {
         final String username = tags.getOrDefault(Tags.username, "");
         final String format = tags.getOrDefault(Tags.format, "");
         final String filename = tags.getOrDefault(Tags.filename, name);
+        final String options = tags.getOrDefault(Tags.options, "");
 
         switch (type) {
             case Type.string:
@@ -50,8 +51,8 @@ public abstract class CredentialsFactory {
                     return Optional.of(new AwsUsernamePasswordCredentials(
                             name,
                             description,
-                            new JsonPasswordSupplier(client, arn, name),
-                            new JsonUsernameSupplier(client, arn, name)));
+                            new JsonPasswordSupplier(client, arn, name, options),
+                            new JsonUsernameSupplier(client, arn, name, options)));
                 }
                 return Optional.of(new AwsUsernamePasswordCredentials(name, description, new SecretSupplier(client, arn), new Snapshot<>(username)));
             case Type.sshUserPrivateKey:
@@ -68,30 +69,34 @@ public abstract class CredentialsFactory {
     private static class JsonUsernameSupplier extends RealSecretsManager implements Supplier<String> {
 
         private final String id;
+        private final String options;
 
-        private JsonUsernameSupplier(SecretsManagerClient client, String arn, String id) {
+        private JsonUsernameSupplier(SecretsManagerClient client, String arn, String id, String options) {
             super(client, arn);
             this.id = id;
+            this.options = options;
         }
 
         @Override
         public String get() {
-            return JsonUsernamePassword.parse(id, getStringValue()).username();
+            return JsonUsernamePassword.parse(id, getStringValue(), options).username();
         }
     }
 
     private static class JsonPasswordSupplier extends RealSecretsManager implements Supplier<Secret> {
 
         private final String id;
+        private final String options;
 
-        private JsonPasswordSupplier(SecretsManagerClient client, String arn, String id) {
+        private JsonPasswordSupplier(SecretsManagerClient client, String arn, String id, String options) {
             super(client, arn);
             this.id = id;
+            this.options = options;
         }
 
         @Override
         public Secret get() {
-            return Secret.fromString(JsonUsernamePassword.parse(id, getStringValue()).password());
+            return Secret.fromString(JsonUsernamePassword.parse(id, getStringValue(), options).password());
         }
     }
 

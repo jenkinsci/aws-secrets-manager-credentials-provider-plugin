@@ -68,6 +68,35 @@ public class JsonUsernamePasswordCredentialsIT {
 
     @Test
     @ConfiguredWithCode(value = "/integration.yml")
+    public void shouldHaveUsernameAndPasswordFromCustomJsonFields() {
+        final var payload = "{\"keyId\":\"" + USERNAME + "\",\"secretAccessKey\":\"" + PASSWORD + "\"}";
+        final var secret = createJsonSecret(payload, "username=keyId:password=secretAccessKey");
+
+        final var credential =
+                jenkins.getCredentials().lookup(StandardUsernamePasswordCredentials.class, secret.name());
+
+        assertThat(credential)
+                .hasUsername(USERNAME)
+                .hasPassword(PASSWORD)
+                .hasId(secret.name());
+    }
+
+    @Test
+    @ConfiguredWithCode(value = "/integration.yml")
+    public void shouldHaveUsernameAndPasswordFromMixedJsonFields() {
+        final var payload = "{\"keyId\":\"" + USERNAME + "\",\"password\":\"" + PASSWORD + "\"}";
+        final var secret = createJsonSecret(payload, "username=keyId");
+
+        final var credential =
+                jenkins.getCredentials().lookup(StandardUsernamePasswordCredentials.class, secret.name());
+
+        assertThat(credential)
+                .hasUsername(USERNAME)
+                .hasPassword(PASSWORD);
+    }
+
+    @Test
+    @ConfiguredWithCode(value = "/integration.yml")
     public void shouldSupportWithCredentialsBinding() {
         final var secret = createJsonSecret(plainJson(USERNAME, PASSWORD));
 
@@ -101,6 +130,19 @@ public class JsonUsernamePasswordCredentialsIT {
                 AwsTags.type(Type.usernamePassword),
                 AwsTags.tag(Tags.format, Format.json));
 
+        return createJsonSecret(payload, tags);
+    }
+
+    private CreateSecretResponse createJsonSecret(String payload, String options) {
+        final var tags = List.of(
+                AwsTags.type(Type.usernamePassword),
+                AwsTags.tag(Tags.format, Format.json),
+                AwsTags.options(options));
+
+        return createJsonSecret(payload, tags);
+    }
+
+    private CreateSecretResponse createJsonSecret(String payload, List<software.amazon.awssdk.services.secretsmanager.model.Tag> tags) {
         return secretsManager.getClient().createSecret(b -> {
             b.name(CredentialNames.random());
             b.secretString(payload);

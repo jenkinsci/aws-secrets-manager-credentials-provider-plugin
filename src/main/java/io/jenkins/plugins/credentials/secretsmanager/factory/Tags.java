@@ -8,6 +8,7 @@ public abstract class Tags {
 
     public static final String filename = namespace + "filename";
     public static final String format = namespace + "format";
+    public static final String options = namespace + "options";
     public static final String type = namespace + "type";
     public static final String username = namespace + "username";
 

@@ -19,13 +19,16 @@ import java.util.Base64;
  *   "password_encoding": "base64"    // optional
  * }
  * }</pre>
+ *
+ * <p>The {@code username} and {@code password} field names are the defaults; they can be customised
+ * through the {@code jenkins:credentials:options} tag (see {@link JsonFieldNames}). The encoding
+ * field is always the field name with the {@code _encoding} suffix appended.
  */
 public final class JsonUsernamePassword {
 
     public static final String FIELD_USERNAME = "username";
     public static final String FIELD_PASSWORD = "password";
-    public static final String FIELD_USERNAME_ENCODING = "username_encoding";
-    public static final String FIELD_PASSWORD_ENCODING = "password_encoding";
+    public static final String ENCODING_SUFFIX = "_encoding";
     public static final String ENCODING_BASE64 = "base64";
 
     private final String username;
@@ -45,6 +48,12 @@ public final class JsonUsernamePassword {
     }
 
     public static JsonUsernamePassword parse(String id, String secretString) {
+        return parse(id, secretString, null);
+    }
+
+    public static JsonUsernamePassword parse(String id, String secretString, String options) {
+        final JsonFieldNames fields = JsonFieldNames.parse(id, options);
+
         final JSONObject json;
         try {
             json = new JSONObject(secretString);
@@ -54,8 +63,8 @@ public final class JsonUsernamePassword {
                     "Could not parse the credential " + id + " as JSON: " + ex.getMessage());
         }
 
-        final String username = readField(id, json, FIELD_USERNAME, FIELD_USERNAME_ENCODING);
-        final String password = readField(id, json, FIELD_PASSWORD, FIELD_PASSWORD_ENCODING);
+        final String username = readField(id, json, fields.username(), fields.username() + ENCODING_SUFFIX);
+        final String password = readField(id, json, fields.password(), fields.password() + ENCODING_SUFFIX);
         return new JsonUsernamePassword(username, password);
     }
 

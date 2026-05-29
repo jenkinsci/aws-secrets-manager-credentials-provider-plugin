@@ -62,6 +62,77 @@ public class JsonUsernamePasswordTest {
     }
 
     @Test
+    public void shouldUseCustomFieldNames() {
+        final var result = JsonUsernamePassword.parse(ID,
+                "{\"keyId\":\"joe\",\"secretAccessKey\":\"supersecret\"}",
+                "username=keyId:password=secretAccessKey");
+
+        assertThat(result.username()).isEqualTo("joe");
+        assertThat(result.password()).isEqualTo("supersecret");
+    }
+
+    @Test
+    public void shouldUseCustomUsernameFieldOnly() {
+        final var result = JsonUsernamePassword.parse(ID,
+                "{\"keyId\":\"joe\",\"password\":\"supersecret\"}",
+                "username=keyId");
+
+        assertThat(result.username()).isEqualTo("joe");
+        assertThat(result.password()).isEqualTo("supersecret");
+    }
+
+    @Test
+    public void shouldUseCustomPasswordFieldOnly() {
+        final var result = JsonUsernamePassword.parse(ID,
+                "{\"username\":\"joe\",\"secretAccessKey\":\"supersecret\"}",
+                "password=secretAccessKey");
+
+        assertThat(result.username()).isEqualTo("joe");
+        assertThat(result.password()).isEqualTo("supersecret");
+    }
+
+    @Test
+    public void shouldUseDefaultFieldNamesWhenOptionsEmpty() {
+        final var result = JsonUsernamePassword.parse(ID,
+                "{\"username\":\"joe\",\"password\":\"supersecret\"}", "");
+
+        assertThat(result.username()).isEqualTo("joe");
+        assertThat(result.password()).isEqualTo("supersecret");
+    }
+
+    @Test
+    public void shouldDecodeBase64WithCustomFieldNames() {
+        final String encodedUsername = base64("joe");
+        final String encodedPassword = base64("supersecret");
+
+        final var result = JsonUsernamePassword.parse(ID, "{"
+                + "\"keyId\":\"" + encodedUsername + "\","
+                + "\"keyId_encoding\":\"base64\","
+                + "\"secretAccessKey\":\"" + encodedPassword + "\","
+                + "\"secretAccessKey_encoding\":\"base64\""
+                + "}", "username=keyId:password=secretAccessKey");
+
+        assertThat(result.username()).isEqualTo("joe");
+        assertThat(result.password()).isEqualTo("supersecret");
+    }
+
+    @Test
+    public void shouldRejectUnknownOption() {
+        assertThatThrownBy(() -> JsonUsernamePassword.parse(ID,
+                "{\"username\":\"joe\",\"password\":\"x\"}", "user=keyId"))
+                .isInstanceOf(CredentialsUnavailableException.class)
+                .hasMessageContaining("user");
+    }
+
+    @Test
+    public void shouldRejectMalformedOption() {
+        assertThatThrownBy(() -> JsonUsernamePassword.parse(ID,
+                "{\"username\":\"joe\",\"password\":\"x\"}", "username"))
+                .isInstanceOf(CredentialsUnavailableException.class)
+                .hasMessageContaining("name=value");
+    }
+
+    @Test
     public void shouldRejectMalformedJson() {
         assertThatThrownBy(() -> JsonUsernamePassword.parse(ID, "not json"))
                 .isInstanceOf(CredentialsUnavailableException.class)
