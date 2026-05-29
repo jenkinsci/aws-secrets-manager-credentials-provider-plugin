@@ -19,6 +19,10 @@ public abstract class AwsTags {
         return AwsTags.tag(Tags.username, username);
     }
 
+    public static Tag options(String options) {
+        return AwsTags.tag(Tags.options, options);
+    }
+
     public static Tag type(String type) {
         return tag(Tags.type, type);
     }

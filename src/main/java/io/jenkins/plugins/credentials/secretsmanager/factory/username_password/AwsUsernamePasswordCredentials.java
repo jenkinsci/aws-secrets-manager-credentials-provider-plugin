@@ -15,9 +15,9 @@ import java.util.function.Supplier;
 public class AwsUsernamePasswordCredentials extends BaseStandardCredentials implements StandardUsernamePasswordCredentials {
 
     private final Supplier<Secret> password;
-    private final String username;
+    private final Supplier<String> username;
 
-    public AwsUsernamePasswordCredentials(String id, String description, Supplier<Secret> password, String username) {
+    public AwsUsernamePasswordCredentials(String id, String description, Supplier<Secret> password, Supplier<String> username) {
         super(id, description);
         this.password = password;
         this.username = username;
@@ -32,7 +32,7 @@ public class AwsUsernamePasswordCredentials extends BaseStandardCredentials impl
     @NonNull
     @Override
     public String getUsername() {
-        return username;
+        return username.get();
     }
 
     @Extension

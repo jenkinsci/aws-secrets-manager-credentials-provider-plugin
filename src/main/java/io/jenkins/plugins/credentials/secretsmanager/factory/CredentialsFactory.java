@@ -13,6 +13,7 @@ import io.jenkins.plugins.credentials.secretsmanager.factory.file.AwsFileCredent
 import io.jenkins.plugins.credentials.secretsmanager.factory.ssh_user_private_key.AwsSshUserPrivateKey;
 import io.jenkins.plugins.credentials.secretsmanager.factory.string.AwsStringCredentials;
 import io.jenkins.plugins.credentials.secretsmanager.factory.username_password.AwsUsernamePasswordCredentials;
+import io.jenkins.plugins.credentials.secretsmanager.factory.username_password.JsonUsernamePassword;
 import software.amazon.awssdk.services.secretsmanager.model.SecretsManagerException;
 
 import java.util.Map;
@@ -38,13 +39,22 @@ public abstract class CredentialsFactory {
     public static Optional<StandardCredentials> create(String arn, String name, String description, Map<String, String> tags, SecretsManagerClient client) {
         final String type = tags.getOrDefault(Tags.type, "");
         final String username = tags.getOrDefault(Tags.username, "");
+        final String format = tags.getOrDefault(Tags.format, "");
         final String filename = tags.getOrDefault(Tags.filename, name);
+        final String options = tags.getOrDefault(Tags.options, "");
 
         switch (type) {
             case Type.string:
                 return Optional.of(new AwsStringCredentials(name, description, new SecretSupplier(client, arn)));
             case Type.usernamePassword:
-                return Optional.of(new AwsUsernamePasswordCredentials(name, description, new SecretSupplier(client, arn), username));
+                if (Format.json.equals(format)) {
+                    return Optional.of(new AwsUsernamePasswordCredentials(
+                            name,
+                            description,
+                            new JsonPasswordSupplier(client, arn, name, options),
+                            new JsonUsernameSupplier(client, arn, name, options)));
+                }
+                return Optional.of(new AwsUsernamePasswordCredentials(name, description, new SecretSupplier(client, arn), new Snapshot<>(username)));
             case Type.sshUserPrivateKey:
                 return Optional.of(new AwsSshUserPrivateKey(name, description, new StringSupplier(client, arn), username));
             case Type.certificate:
@@ -53,6 +63,40 @@ public abstract class CredentialsFactory {
                 return Optional.of(new AwsFileCredentials(name, description, filename, new SecretBytesSupplier(client, arn)));
             default:
                 return Optional.empty();
+        }
+    }
+
+    private static class JsonUsernameSupplier extends RealSecretsManager implements Supplier<String> {
+
+        private final String id;
+        private final String options;
+
+        private JsonUsernameSupplier(SecretsManagerClient client, String arn, String id, String options) {
+            super(client, arn);
+            this.id = id;
+            this.options = options;
+        }
+
+        @Override
+        public String get() {
+            return JsonUsernamePassword.parse(id, getStringValue(), options).username();
+        }
+    }
+
+    private static class JsonPasswordSupplier extends RealSecretsManager implements Supplier<Secret> {
+
+        private final String id;
+        private final String options;
+
+        private JsonPasswordSupplier(SecretsManagerClient client, String arn, String id, String options) {
+            super(client, arn);
+            this.id = id;
+            this.options = options;
+        }
+
+        @Override
+        public Secret get() {
+            return Secret.fromString(JsonUsernamePassword.parse(id, getStringValue(), options).password());
         }
     }
 
@@ -132,6 +176,21 @@ public abstract class CredentialsFactory {
         RealSecretsManager(SecretsManagerClient client, String id) {
             this.client = client;
             this.id = id;
+        }
+
+        @NonNull
+        String getStringValue() {
+            return getSecretValue().match(new SecretValue.Matcher<String>() {
+                @Override
+                public String string(String str) {
+                    return str;
+                }
+
+                @Override
+                public String binary(byte[] bytes) {
+                    throw new CredentialsUnavailableException("secret", Messages.couldNotRetrieveCredentialError(id));
+                }
+            });
         }
 
         @NonNull
