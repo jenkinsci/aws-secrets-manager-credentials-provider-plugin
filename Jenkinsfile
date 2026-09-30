@@ -3,5 +3,8 @@ def configurations = [
     [ platform: "linux", jdk: "21", jenkins: null ],
     [ platform: "linux", jdk: "21", jenkins: recentLTS ],
 ]
-buildPlugin(configurations: configurations)
+buildPlugin(
+    useContainerAgent: false, // ITs start a moto container via Testcontainers, which needs a Docker daemon
+    configurations: configurations
+)
 
