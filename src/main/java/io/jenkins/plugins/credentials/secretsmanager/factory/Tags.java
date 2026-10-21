@@ -10,6 +10,8 @@ public abstract class Tags {
     public static final String folder = namespace + "folder";
     public static final String type = namespace + "type";
     public static final String username = namespace + "username";
+    public static final String apiuri = namespace + "apiuri";
+    public static final String appid = namespace + "appid";
 
     private Tags() {
 
