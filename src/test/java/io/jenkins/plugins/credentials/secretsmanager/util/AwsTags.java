@@ -11,6 +11,10 @@ public abstract class AwsTags {
 
     }
 
+    public static Tag appid(String appId) {
+        return AwsTags.tag(Tags.appid, appId);
+    }
+
     public static Tag filename(String filename) {
         return AwsTags.tag(Tags.filename, filename);
     }

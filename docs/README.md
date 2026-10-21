@@ -297,6 +297,45 @@ node {
 }
 ```
 
+### GitHub App (Optional)
+
+A GitHub App *private key*, with a *GitHub App ID*.
+
+This type is only available if the [GitHub Branch Source](https://plugins.jenkins.io/github-branch-source/) plugin is installed. If it is not installed, secrets tagged with this type are ignored.
+
+- Value: *private key*
+- Tags:
+  - `jenkins:credentials:type` = `githubApp`
+  - `jenkins:credentials:appid` = *GitHub App ID*
+
+The private key must be in PKCS#8 format (starts with `-----BEGIN PRIVATE KEY-----`). If your key is in PKCS#1 format (starts with `-----BEGIN RSA PRIVATE KEY-----`), convert it with `openssl pkcs8 -topk8 -inform PEM -outform PEM -nocrypt -in pkcs1.key -out pkcs8.key`.
+
+#### Example
+
+AWS CLI:
+
+```bash
+aws secretsmanager create-secret --name 'github-app' --secret-string 'file://pkcs8.key' --tags 'Key=jenkins:credentials:type,Value=githubApp' 'Key=jenkins:credentials:appid,Value=11111' --description 'GitHub App'
+```
+
+Declarative Pipeline:
+
+```groovy
+pipeline {
+    agent any
+    stages {
+        stage('Example') {
+            steps {
+                // Creates an installation access token as the password
+                withCredentials([usernamePassword(credentialsId: 'github-app', usernameVariable: 'GITHUB_APP', passwordVariable: 'GITHUB_TOKEN')]) {
+                    echo 'Hello world'
+                }
+            }
+        }
+    }
+}
+```
+
 ## Advanced Usage
 
 You may need to deal with multi-field credentials or vendor-specific credential types that the plugin does not (yet) support.
