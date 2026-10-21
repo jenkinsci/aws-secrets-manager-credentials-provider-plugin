@@ -42,6 +42,7 @@ public abstract class CredentialsFactory {
         final String filename = tags.getOrDefault(Tags.filename, name);
         final String folderTag = tags.get(Tags.folder); // null if not present
         final String appId = tags.getOrDefault(Tags.appid, "");
+        final String apiUri = tags.get(Tags.apiuri); // null if not present
 
         // Create the base credential based on type
         Optional<StandardCredentials> baseCredential;
@@ -62,7 +63,7 @@ public abstract class CredentialsFactory {
                 baseCredential = Optional.of(new AwsFileCredentials(name, description, filename, new SecretBytesSupplier(client, arn)));
                 break;
             case Type.githubApp:
-                baseCredential = GitHubAppCredentialsFactory.create(name, description, appId, new SecretSupplier(client, arn));
+                baseCredential = GitHubAppCredentialsFactory.create(name, description, appId, apiUri, new SecretSupplier(client, arn));
                 break;
             default:
                 return Optional.empty();

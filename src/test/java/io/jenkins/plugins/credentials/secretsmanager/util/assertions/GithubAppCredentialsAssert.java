@@ -13,6 +13,16 @@ public class GithubAppCredentialsAssert extends AbstractAssert<GithubAppCredenti
         super(actual, GithubAppCredentialsAssert.class);
     }
 
+    public GithubAppCredentialsAssert hasApiUri(String apiUri) {
+        isNotNull();
+
+        if (!Objects.equals(actual.getApiUri(), apiUri)) {
+            failWithMessage("Expected API URI to be <%s> but was <%s>", apiUri, actual.getApiUri());
+        }
+
+        return this;
+    }
+
     public GithubAppCredentialsAssert hasAppId(String appId) {
         isNotNull();
 

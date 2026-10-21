@@ -15,7 +15,7 @@ public class AwsGitHubAppCredentialsSnapshotTaker extends CredentialsSnapshotTak
 
     @Override
     public AwsGitHubAppCredentials snapshot(AwsGitHubAppCredentials credential) {
-        return new AwsGitHubAppCredentials(credential.getId(), credential.getDescription(), credential.getAppID(), new SecretSnapshot(credential.getPrivateKey()));
+        return new AwsGitHubAppCredentials(credential.getId(), credential.getDescription(), credential.getAppID(), credential.getApiUri(), new SecretSnapshot(credential.getPrivateKey()));
     }
 
     private static class SecretSnapshot extends Snapshot<Secret> {

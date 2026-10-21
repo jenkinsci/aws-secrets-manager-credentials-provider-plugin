@@ -2,6 +2,7 @@ package io.jenkins.plugins.credentials.secretsmanager.factory.git_app;
 
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.CredentialsScope;
+import edu.umd.cs.findbugs.annotations.CheckForNull;
 import hudson.Extension;
 import hudson.util.Secret;
 import io.jenkins.plugins.credentials.secretsmanager.AwsCredentialsProvider;
@@ -23,9 +24,10 @@ public class AwsGitHubAppCredentials extends GitHubAppCredentials {
 
     private final Supplier<Secret> privateKey;
 
-    public AwsGitHubAppCredentials(String id, String description, String appId, Supplier<Secret> privateKey) {
+    public AwsGitHubAppCredentials(String id, String description, String appId, @CheckForNull String apiUri, Supplier<Secret> privateKey) {
         // The superclass field is never read: GitHubAppCredentials always goes through getPrivateKey()
         super(CredentialsScope.GLOBAL, id, description, appId, Secret.fromString(""));
+        setApiUri(apiUri);
         this.privateKey = privateKey;
     }
 

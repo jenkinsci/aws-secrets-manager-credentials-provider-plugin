@@ -307,6 +307,7 @@ This type is only available if the [GitHub Branch Source](https://plugins.jenkin
 - Tags:
   - `jenkins:credentials:type` = `githubApp`
   - `jenkins:credentials:appid` = *GitHub App ID*
+  - `jenkins:credentials:apiuri` = *GitHub API endpoint* (optional; for GitHub Enterprise Server, e.g. `https://github.example.com/api/v3`. Defaults to `https://api.github.com`)
 
 The private key must be in PKCS#8 format (starts with `-----BEGIN PRIVATE KEY-----`). If your key is in PKCS#1 format (starts with `-----BEGIN RSA PRIVATE KEY-----`), convert it with `openssl pkcs8 -topk8 -inform PEM -outform PEM -nocrypt -in pkcs1.key -out pkcs8.key`.
 
@@ -316,6 +317,12 @@ AWS CLI:
 
 ```bash
 aws secretsmanager create-secret --name 'github-app' --secret-string 'file://pkcs8.key' --tags 'Key=jenkins:credentials:type,Value=githubApp' 'Key=jenkins:credentials:appid,Value=11111' --description 'GitHub App'
+```
+
+For GitHub Enterprise Server, also set the API endpoint:
+
+```bash
+aws secretsmanager create-secret --name 'github-app' --secret-string 'file://pkcs8.key' --tags 'Key=jenkins:credentials:type,Value=githubApp' 'Key=jenkins:credentials:appid,Value=11111' 'Key=jenkins:credentials:apiuri,Value=https://github.example.com/api/v3' --description 'GitHub App on GitHub Enterprise'
 ```
 
 Declarative Pipeline:

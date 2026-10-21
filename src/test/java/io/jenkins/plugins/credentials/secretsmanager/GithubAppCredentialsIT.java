@@ -14,7 +14,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
 import software.amazon.awssdk.services.secretsmanager.model.CreateSecretResponse;
+import software.amazon.awssdk.services.secretsmanager.model.Tag;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static io.jenkins.plugins.credentials.secretsmanager.util.assertions.CustomAssertions.assertThat;
@@ -29,6 +31,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class GithubAppCredentialsIT {
 
     private static final String APP_ID = "11111";
+    private static final String GHE_API_URI = "https://github.example.com/api/v3";
     private static final String PRIVATE_KEY = Crypto.newPrivateKey();
 
     public final MyJenkinsConfiguredWithCodeRule jenkins = new MyJenkinsConfiguredWithCodeRule();
@@ -167,10 +170,55 @@ public class GithubAppCredentialsIT {
                 .hasPrivateKey(rotatedKey);
     }
 
-    private CreateSecretResponse createGitHubAppSecret(String appId, String privateKey) {
-        final var tags = List.of(
+    @Test
+    @ConfiguredWithCode(value = "/integration.yml")
+    public void shouldSupportGitHubEnterpriseApiUri() {
+        // Given
+        final var secret = createGitHubAppSecret(APP_ID, PRIVATE_KEY, AwsTags.apiuri(GHE_API_URI));
+
+        // When
+        final var credential = lookup(GitHubAppCredentials.class, secret.name());
+
+        // Then
+        assertThat(credential)
+                .hasApiUri(GHE_API_URI);
+    }
+
+    @Test
+    @ConfiguredWithCode(value = "/integration.yml")
+    public void shouldUseDefaultApiUriWhenNotSpecified() {
+        // Given
+        final var secret = createGitHubAppSecret(APP_ID, PRIVATE_KEY);
+
+        // When
+        final var credential = lookup(GitHubAppCredentials.class, secret.name());
+
+        // Then
+        assertThat(credential)
+                .hasApiUri(null);
+    }
+
+    @Test
+    @ConfiguredWithCode(value = "/integration.yml")
+    public void shouldKeepApiUriInSnapshots() {
+        // Given
+        final var secret = createGitHubAppSecret(APP_ID, PRIVATE_KEY, AwsTags.apiuri(GHE_API_URI));
+        final var before = lookup(GitHubAppCredentials.class, secret.name());
+
+        // When
+        final var after = CredentialSnapshots.snapshot(before);
+
+        // Then
+        assertThat(after)
+                .hasApiUri(GHE_API_URI);
+    }
+
+
+    private CreateSecretResponse createGitHubAppSecret(String appId, String privateKey, Tag... extraTags) {
+        final var tags = new ArrayList<>(List.of(
                 AwsTags.type(Type.githubApp),
-                AwsTags.appid(appId));
+                AwsTags.appid(appId)));
+        tags.addAll(List.of(extraTags));
 
         return secretsManager.getClient().createSecret((b) -> {
             b.name(CredentialNames.random());
