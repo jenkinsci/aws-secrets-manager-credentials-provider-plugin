@@ -118,13 +118,13 @@ public class Client extends AbstractDescribableImpl<Client> implements Serializa
      */
     Object buildKey() {
         final var proxy = clientConfiguration != null ? null : getProxyConfiguration()
-                .map(p -> new ProxyKey(p.getName(), p.getPort(), p.getUserName(), Secret.toString(p.getSecretPassword()), p.getNoProxyHost()))
+                .map(p -> new ProxyKey(p.getName(), p.getPort(), p.getUserName(), p.getSecretPassword(), p.getNoProxyHost()))
                 .orElse(null);
 
         return new BuildKey(clientConfiguration, credentialsProvider, endpointUrl, region, proxy);
     }
 
-    private record ProxyKey(String host, int port, String username, String password, String noProxyHost) {
+    private record ProxyKey(String host, int port, String username, Secret password, String noProxyHost) {
     }
 
     private record BuildKey(ClientConfiguration clientConfiguration, CredentialsProvider credentialsProvider,
