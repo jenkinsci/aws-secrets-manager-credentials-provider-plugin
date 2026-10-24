@@ -33,10 +33,10 @@ public abstract class CredentialsFactory {
      * @param name the secret's name (must be unique within the AWS account)
      * @param description the secret's description
      * @param tags the secret's AWS tags
-     * @param client the Secrets Manager client that will retrieve the secret's value on demand
+     * @param client supplies the Secrets Manager client that will retrieve the secret's value on demand. Resolved at retrieval time, so a credential keeps working if the client is replaced.
      * @return a credential (if one could be constructed from the secret's properties)
      */
-    public static Optional<StandardCredentials> create(String arn, String name, String description, Map<String, String> tags, SecretsManagerClient client) {
+    public static Optional<StandardCredentials> create(String arn, String name, String description, Map<String, String> tags, Supplier<SecretsManagerClient> client) {
         final String type = tags.getOrDefault(Tags.type, "");
         final String username = tags.getOrDefault(Tags.username, "");
         final String filename = tags.getOrDefault(Tags.filename, name);
@@ -80,7 +80,7 @@ public abstract class CredentialsFactory {
 
     private static class SecretBytesSupplier extends RealSecretsManager implements Supplier<SecretBytes> {
 
-        private SecretBytesSupplier(SecretsManagerClient client, String name) {
+        private SecretBytesSupplier(Supplier<SecretsManagerClient> client, String name) {
             super(client, name);
         }
 
@@ -102,7 +102,7 @@ public abstract class CredentialsFactory {
 
     private static class SecretSupplier extends RealSecretsManager implements Supplier<Secret> {
 
-        private SecretSupplier(SecretsManagerClient client, String name) {
+        private SecretSupplier(Supplier<SecretsManagerClient> client, String name) {
             super(client, name);
         }
 
@@ -124,7 +124,7 @@ public abstract class CredentialsFactory {
 
     private static class StringSupplier extends RealSecretsManager implements Supplier<String> {
 
-        private StringSupplier(SecretsManagerClient client, String name) {
+        private StringSupplier(Supplier<SecretsManagerClient> client, String name) {
             super(client, name);
         }
 
@@ -149,9 +149,9 @@ public abstract class CredentialsFactory {
         private static final Logger LOG = Logger.getLogger(RealSecretsManager.class.getName());
 
         private final String id;
-        private final transient SecretsManagerClient client;
+        private final transient Supplier<SecretsManagerClient> client;
 
-        RealSecretsManager(SecretsManagerClient client, String id) {
+        RealSecretsManager(Supplier<SecretsManagerClient> client, String id) {
             this.client = client;
             this.id = id;
         }
@@ -161,7 +161,7 @@ public abstract class CredentialsFactory {
             final var request = GetSecretValueRequest.builder().secretId(id).build();
 
             try {
-                final var result = client.getSecretValue(request);
+                final var result = client.get().getSecretValue(request);
                 if (result.secretBinary() != null) {
                     return SecretValue.binary(result.secretBinary().asByteArray());
                 }
