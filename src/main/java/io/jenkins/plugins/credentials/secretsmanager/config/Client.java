@@ -19,6 +19,8 @@ import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
+import java.util.ArrayList;
+import java.util.List;
 import javax.annotation.Nonnull;
 import java.io.Serializable;
 import java.net.URI;
@@ -110,42 +112,127 @@ public class Client extends AbstractDescribableImpl<Client> implements Serializa
                 .build();
     }
 
-    public SecretsManagerClient build() {
+    /**
+     * Identifies everything that affects the client that {@link #build()} creates, including the Jenkins-wide proxy
+     * settings that are used when there is no client configuration. Equal keys build equivalent clients.
+     */
+    Object buildKey() {
+        final var proxy = clientConfiguration != null ? null : getProxyConfiguration()
+                .map(p -> new ProxyKey(p.getName(), p.getPort(), p.getUserName(), Secret.toString(p.getSecretPassword()), p.getNoProxyHost()))
+                .orElse(null);
+
+        return new BuildKey(clientConfiguration, credentialsProvider, endpointUrl, region, proxy);
+    }
+
+    private record ProxyKey(String host, int port, String username, String password, String noProxyHost) {
+    }
+
+    private record BuildKey(ClientConfiguration clientConfiguration, CredentialsProvider credentialsProvider,
+                            String endpointUrl, String region, ProxyKey proxy) {
+    }
+
+    /**
+     * Build a client. The caller owns it and must {@link Built#close() close} it.
+     */
+    public Built build() {
         final var builder = SecretsManagerClient.builder();
 
-        if (clientConfiguration != null) {
-            builder.httpClient(clientConfiguration.build());
-        } else {
-            // If Jenkins has a system-wide proxy configuration set, use it.
-            // Otherwise, leave the AWS client configuration as default.
-            final var proxyConfiguration = getProxyConfiguration();
+        // The SDK does not close an HTTP client or credentials provider that it is given, so keep track of them
+        final List<AutoCloseable> resources = new ArrayList<>();
 
-            proxyConfiguration.ifPresent(p -> {
-                final var proxyClientConfiguration = toAwsProxyConfiguration(p);
-
-                final var httpClient = ApacheHttpClient.builder()
-                        .proxyConfiguration(proxyClientConfiguration)
-                        .build();
-
+        try {
+            if (clientConfiguration != null) {
+                final var httpClient = clientConfiguration.build();
+                resources.add(httpClient);
                 builder.httpClient(httpClient);
-            });
+            } else {
+                // If Jenkins has a system-wide proxy configuration set, use it.
+                // Otherwise, leave the AWS client configuration as default.
+                final var proxyConfiguration = getProxyConfiguration();
+
+                proxyConfiguration.ifPresent(p -> {
+                    final var proxyClientConfiguration = toAwsProxyConfiguration(p);
+
+                    final var httpClient = ApacheHttpClient.builder()
+                            .proxyConfiguration(proxyClientConfiguration)
+                            .build();
+
+                    resources.add(httpClient);
+                    builder.httpClient(httpClient);
+                });
+            }
+
+            if (credentialsProvider != null) {
+                final var provider = credentialsProvider.build();
+                if (provider instanceof AutoCloseable) {
+                    resources.add((AutoCloseable) provider);
+                }
+                builder.credentialsProvider(provider);
+            }
+
+            if (endpointUrl != null && !endpointUrl.isEmpty()) {
+                final var theEndpointUrl = URI.create(endpointUrl);
+                builder.endpointOverride(theEndpointUrl);
+            }
+
+            if (region != null && !region.isEmpty()) {
+                final var theRegion = Region.of(region);
+                builder.region(theRegion);
+            }
+
+            return new Built(builder.build(), resources);
+        } catch (RuntimeException e) {
+            Built.closeAll(resources, e);
+            throw e;
+        }
+    }
+
+    /**
+     * A Secrets Manager client together with the resources that were created for it.
+     */
+    public static final class Built implements AutoCloseable {
+
+        private final SecretsManagerClient client;
+        private final List<AutoCloseable> resources;
+
+        Built(SecretsManagerClient client, List<AutoCloseable> resources) {
+            this.client = client;
+            this.resources = resources;
         }
 
-        if (credentialsProvider != null) {
-            builder.credentialsProvider(credentialsProvider.build());
+        public SecretsManagerClient client() {
+            return client;
         }
 
-        if (endpointUrl != null && !endpointUrl.isEmpty()) {
-            final var theEndpointUrl = URI.create(endpointUrl);
-            builder.endpointOverride(theEndpointUrl);
+        /**
+         * Close the client, then the resources it was using. Always attempts all of them.
+         */
+        @Override
+        public void close() {
+            final var all = new ArrayList<AutoCloseable>();
+            all.add(client);
+            all.addAll(resources);
+
+            closeAll(all, null);
         }
 
-        if (region != null && !region.isEmpty()) {
-            final var theRegion = Region.of(region);
-            builder.region(theRegion);
+        private static void closeAll(List<? extends AutoCloseable> closeables, RuntimeException primary) {
+            RuntimeException failure = primary;
+            for (final var closeable : closeables) {
+                try {
+                    closeable.close();
+                } catch (Exception e) {
+                    if (failure == null) {
+                        failure = new IllegalStateException(e);
+                    } else {
+                        failure.addSuppressed(e);
+                    }
+                }
+            }
+            if (failure != null && failure != primary) {
+                throw failure;
+            }
         }
-
-        return builder.build();
     }
 
     @Override

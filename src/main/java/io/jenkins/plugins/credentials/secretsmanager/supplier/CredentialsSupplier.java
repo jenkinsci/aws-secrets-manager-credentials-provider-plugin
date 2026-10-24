@@ -1,6 +1,5 @@
 package io.jenkins.plugins.credentials.secretsmanager.supplier;
 
-import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.secretsmanager.model.Filter;
 import software.amazon.awssdk.services.secretsmanager.model.SecretListEntry;
 import software.amazon.awssdk.services.secretsmanager.model.Tag;
@@ -23,6 +22,8 @@ public class CredentialsSupplier implements Supplier<Collection<StandardCredenti
 
     private static final Logger LOG = Logger.getLogger(CredentialsSupplier.class.getName());
 
+    private final ClientCache clients = new ClientCache();
+
     private CredentialsSupplier() {
 
     }
@@ -42,7 +43,8 @@ public class CredentialsSupplier implements Supplier<Collection<StandardCredenti
 
         final var filters = createListSecretsFilters(config);
 
-        final var client = createClient(config);
+        clients.update(getClientConfig(config));
+        final var client = clients.get();
 
         final ListSecretsOperation listSecretsOperation = new ListSecretsOperation(client, filters);
 
@@ -64,7 +66,7 @@ public class CredentialsSupplier implements Supplier<Collection<StandardCredenti
                     final var name = secretListEntry.name();
                     final var description = secretListEntry.description();
                     final var tags = Lists.toMap(secretListEntry.tags(), Tag::key, Tag::value);
-                    final var cred = CredentialsFactory.create(arn, name, description, tags, client);
+                    final var cred = CredentialsFactory.create(arn, name, description, tags, clients);
                     return cred.stream();
                 })
                 .collect(Collectors.toList());
@@ -90,10 +92,8 @@ public class CredentialsSupplier implements Supplier<Collection<StandardCredenti
                 .orElse(new io.jenkins.plugins.credentials.secretsmanager.config.transformer.description.Default())::transform;
     }
 
-    private static SecretsManagerClient createClient(PluginConfiguration config) {
-        final Client clientConfig = Optional.ofNullable(config.getClient())
+    private static Client getClientConfig(PluginConfiguration config) {
+        return Optional.ofNullable(config.getClient())
                 .orElse(new Client(null, null, null, null));
-
-        return clientConfig.build();
     }
 }
