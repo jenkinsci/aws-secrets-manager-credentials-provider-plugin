@@ -1,5 +1,7 @@
 package io.jenkins.plugins.credentials.secretsmanager.config.filters;
 
+import io.jenkins.plugins.casc.ConfigurationContext;
+import io.jenkins.plugins.casc.ConfiguratorRegistry;
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
 import io.jenkins.plugins.casc.misc.JenkinsConfiguredWithCodeRule;
 import io.jenkins.plugins.credentials.secretsmanager.config.Filter;
@@ -11,6 +13,9 @@ import org.jvnet.hudson.test.JenkinsRule;
 
 import java.util.List;
 
+import static io.jenkins.plugins.casc.misc.Util.getUnclassifiedRoot;
+import static io.jenkins.plugins.casc.misc.Util.toStringFromYamlFile;
+import static io.jenkins.plugins.casc.misc.Util.toYamlString;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
@@ -48,5 +53,22 @@ public class CasCFiltersIT extends AbstractFiltersIT {
                 .contains(
                         tuple("tag-key", List.of(new Value("foo"))),
                         tuple("tag-value", List.of(new Value("bar"))));
+    }
+
+    @Test
+    @ConfiguredWithCode("/config/filters/multiple.yml")
+    public void shouldExportFilters() throws Exception {
+        // Given
+        final var context = new ConfigurationContext(ConfiguratorRegistry.get());
+
+        // When
+        final var listSecrets = getUnclassifiedRoot(context)
+                .get("awsCredentialsProvider")
+                .asMapping()
+                .get("listSecrets");
+
+        // Then
+        assertThat(toYamlString(listSecrets))
+                .isEqualTo(toStringFromYamlFile(this, "/config/filters/multiple-expected.yml"));
     }
 }

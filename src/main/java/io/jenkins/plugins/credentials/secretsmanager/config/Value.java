@@ -45,6 +45,14 @@ public class Value extends AbstractDescribableImpl<Value> implements Serializabl
         return Objects.hash(value);
     }
 
+    /**
+     * Configuration as Code exports a Value as a scalar, using this method.
+     */
+    @Override
+    public String toString() {
+        return value;
+    }
+
     @Extension
     @Symbol("value")
     @SuppressWarnings("unused")
