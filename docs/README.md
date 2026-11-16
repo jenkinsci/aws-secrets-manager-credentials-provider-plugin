@@ -380,7 +380,7 @@ By default, credentials from AWS Secrets Manager are globally accessible across 
 
 - **Hierarchical Matching**: Credentials are accessible from the specified folder and all its child folders
 - **Backward Compatible**: Credentials without the `jenkins:credentials:folder` tag remain globally accessible
-- **Multiple Folders**: Support comma-separated folder paths to grant access to multiple folder hierarchies
+- **Multiple Folders**: Grant access to several folder hierarchies with additional tags (`jenkins:credentials:folder:<suffix>`), or with comma-separated paths where the tag store allows commas
 
 ### Basic Folder Scope
 
@@ -402,7 +402,7 @@ aws secretsmanager create-secret \
 
 ### Multiple Folder Scopes
 
-To make a credential accessible from multiple folders, use comma-separated folder paths:
+To make a credential accessible from several folders, add one tag per folder. The first folder uses the `jenkins:credentials:folder` tag. Each additional folder uses a tag whose key is `jenkins:credentials:folder:` followed by any suffix that makes the key unique (for example a number):
 
 ```bash
 aws secretsmanager create-secret \
@@ -410,13 +410,19 @@ aws secretsmanager create-secret \
   --secret-string 'abc123' \
   --tags \
     'Key=jenkins:credentials:type,Value=string' \
-    'Key=jenkins:credentials:folder,Value=engineering/backend,engineering/frontend' \
-  --description 'Shared API key for backend and frontend'
+    'Key=jenkins:credentials:folder,Value=engineering/backend' \
+    'Key=jenkins:credentials:folder:2,Value=engineering/frontend' \
+    'Key=jenkins:credentials:folder:3,Value=qa' \
+  --description 'Shared API key for backend, frontend and QA'
 ```
 
 **Access behavior:**
-- ✓ Accessible from: `engineering/backend` and its children, `engineering/frontend` and its children
-- ✗ NOT accessible from: root, `engineering`, `qa`
+- ✓ Accessible from: `engineering/backend`, `engineering/frontend` and `qa`, and their children
+- ✗ NOT accessible from: root, `engineering`, `ops`
+
+The base tag is optional (a secret with only `jenkins:credentials:folder:2` is still scoped), but keep it: an older version of the plugin ignores the additional tags, and a secret that has only additional tags would be global there.
+
+Each tag holds one path, so the paths stay within the length limit of a tag value, and no delimiter is needed. This matters on AWS: Secrets Manager does not allow a comma in a tag value, so a comma-separated list such as `engineering/backend,engineering/frontend` is rejected when the tag is written. The plugin still reads a comma-separated list in a folder tag, which is useful for tag stores that accept it.
 
 ### Global Credentials
 

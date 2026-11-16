@@ -4,6 +4,7 @@ import com.cloudbees.hudson.plugins.folder.Folder;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import hudson.security.ACL;
 import io.jenkins.plugins.casc.misc.ConfiguredWithCode;
+import io.jenkins.plugins.credentials.secretsmanager.factory.Tags;
 import io.jenkins.plugins.credentials.secretsmanager.factory.Type;
 import io.jenkins.plugins.credentials.secretsmanager.util.*;
 import jenkins.model.Jenkins;
@@ -206,6 +207,35 @@ public class FolderScopeIT {
     }
 
     @SuppressWarnings("unchecked")
+    @Test
+    @ConfiguredWithCode(value = "/integration.yml")
+    public void shouldMakeCredentialAccessibleInFoldersFromAdditionalTagKeys() throws IOException {
+        // Given: a credential with one folder per tag key (AWS does not allow a comma in a tag value)
+        final var secret = createSecret(SECRET, List.of(
+                AwsTags.type(Type.string),
+                AwsTags.folder("engineering/backend"),
+                AwsTags.tag(Tags.folder + ":2", "engineering/frontend"),
+                AwsTags.tag(Tags.folder + ":3", "qa")));
+
+        final var engineering = jenkins.jenkins.createProject(Folder.class, "engineering");
+        final var backend = engineering.createProject(Folder.class, "backend");
+        final var frontend = engineering.createProject(Folder.class, "frontend");
+        final var frontendChild = frontend.createProject(Folder.class, "web");
+        final var qa = jenkins.jenkins.createProject(Folder.class, "qa");
+        final var ops = jenkins.jenkins.createProject(Folder.class, "ops");
+
+        // Then: accessible from each listed folder and its children
+        assertThat(lookupCredentials(backend)).extracting("id").contains(secret.name());
+        assertThat(lookupCredentials(frontend)).extracting("id").contains(secret.name());
+        assertThat(lookupCredentials(frontendChild)).extracting("id").contains(secret.name());
+        assertThat(lookupCredentials(qa)).extracting("id").contains(secret.name());
+
+        // And: not accessible from anywhere else
+        assertThat(lookupCredentials(engineering)).extracting("id").doesNotContain(secret.name());
+        assertThat(lookupCredentials(ops)).extracting("id").doesNotContain(secret.name());
+        assertThat(lookupCredentials(jenkins.jenkins)).extracting("id").doesNotContain(secret.name());
+    }
+
     private List<StringCredentials> lookupCredentials(Folder folder) {
         // Cast to ItemGroup to resolve ambiguity between Item and ItemGroup overloads
         return (List<StringCredentials>) (List<?>) CredentialsProvider.lookupCredentials(

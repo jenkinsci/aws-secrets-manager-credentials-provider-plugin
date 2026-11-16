@@ -7,7 +7,9 @@ import com.cloudbees.plugins.credentials.SecretBytes;
 import com.cloudbees.plugins.credentials.common.StandardCredentials;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.util.Secret;
+import io.jenkins.plugins.credentials.secretsmanager.FolderScope;
 import io.jenkins.plugins.credentials.secretsmanager.Messages;
+import io.jenkins.plugins.credentials.secretsmanager.ScopedCredentials;
 import io.jenkins.plugins.credentials.secretsmanager.factory.certificate.AwsCertificateCredentials;
 import io.jenkins.plugins.credentials.secretsmanager.factory.file.AwsFileCredentials;
 import io.jenkins.plugins.credentials.secretsmanager.factory.git_app.GitHubAppCredentialsFactory;
@@ -16,6 +18,8 @@ import io.jenkins.plugins.credentials.secretsmanager.factory.string.AwsStringCre
 import io.jenkins.plugins.credentials.secretsmanager.factory.username_password.AwsUsernamePasswordCredentials;
 import software.amazon.awssdk.services.secretsmanager.model.SecretsManagerException;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -40,7 +44,6 @@ public abstract class CredentialsFactory {
         final String type = tags.getOrDefault(Tags.type, "");
         final String username = tags.getOrDefault(Tags.username, "");
         final String filename = tags.getOrDefault(Tags.filename, name);
-        final String folderTag = tags.get(Tags.folder); // null if not present
         final String appId = tags.getOrDefault(Tags.appid, "");
         final String apiUri = tags.get(Tags.apiuri); // null if not present
 
@@ -71,11 +74,34 @@ public abstract class CredentialsFactory {
 
         // Wrap with folder scope information
         return baseCredential.map(cred -> {
-            io.jenkins.plugins.credentials.secretsmanager.FolderScope scope = folderTag != null
-                    ? io.jenkins.plugins.credentials.secretsmanager.FolderScope.parse(folderTag)
-                    : io.jenkins.plugins.credentials.secretsmanager.FolderScope.global();
-            return new io.jenkins.plugins.credentials.secretsmanager.ScopedCredentials(cred, scope);
+            return new ScopedCredentials(cred, folderScope(tags));
         });
+    }
+
+    /**
+     * Builds the folder scope of a secret from its tags.
+     *
+     * <p>The scope is the value of the {@code jenkins:credentials:folder} tag plus the value of every additional tag
+     * whose key is that key followed by {@code :} and a suffix, e.g. {@code jenkins:credentials:folder:2} or
+     * {@code jenkins:credentials:folder:backend}. The suffix is only there to make the keys unique. Several tags hold
+     * several folders without a delimiter inside a value, because AWS does not allow a comma in a tag value.
+     *
+     * @param tags the secret's AWS tags
+     * @return the folder scope, or the global scope if the secret has no folder tag
+     */
+    static FolderScope folderScope(Map<String, String> tags) {
+        final List<String> values = new ArrayList<>();
+        final String base = tags.get(Tags.folder);
+        if (base != null) {
+            values.add(base);
+        }
+        tags.entrySet().stream()
+                .filter(e -> e.getKey().startsWith(Tags.folder + ":"))
+                .sorted(Map.Entry.comparingByKey())
+                .map(Map.Entry::getValue)
+                .forEach(values::add);
+
+        return values.isEmpty() ? FolderScope.global() : FolderScope.parse(String.join(",", values));
     }
 
     private static class SecretBytesSupplier extends RealSecretsManager implements Supplier<SecretBytes> {
